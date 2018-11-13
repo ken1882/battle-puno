@@ -1,0 +1,3 @@
+Special rules:
+Each player begins with 250hp, when game starts, draw a first from the deck, it must be a normal card, (redrawn if it isn't) and each player draws 7 cards from the deck.
+After the cards is drawn, select a player randomly as bookmaker then he/she will be the first to play.
