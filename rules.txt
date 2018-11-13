@@ -1,3 +1,38 @@
-Special rules:
-Each player begins with 250hp, when game starts, draw a first from the deck, it must be a normal card, (redrawn if it isn't) and each player draws 7 cards from the deck.
-After the cards is drawn, select a player randomly as bookmaker then he/she will be the first to play.
+Battle-Puno | Rules v0.0.1
+
+> Special rules:
+	Each player begins with 250hp, when game starts, draw a first from the deck, it must be a normal card, (redrawn if it isn't) and each player draws 7 cards from the deck.
+	After the cards is drawn, select a player randomly as bookmaker then he/she will be the first to play card.
+
+> Taken Damage:
+	The total damage stacks up during the progress, if the player have no more card to play or it just don't want to. It loses the hitponits equivalent to the points that have been added up. Then discard the used cards.
+
+> Draw a card form deck:
+	Pay 5 hitponits as penalty to draw a card, including drawing due to special cards.
+
+> Deck Empty:
+	When the deck is emptied, the game still continues. But when a player is unable to play any card, its hitponits is conducted that equivalent to the sum of points of the cards in its hand. The penalty cards no longer make next player to draw cards this time, but the 'skip' effect still persists.
+
+> Cards special:
+	0: 	 Resets the stacked damage to 0.
+	1~9: Stacks up the damage according to its number.
+	
+> Skip:
+	Directly use: Next player is skipped, meanwhile +5 stacked damage.
+	Reactive use: When previous player uses penalty/skip cards on you, you can transfer the penalty to next player by playing this card. You cannot use this card when unable to play it in default rules.
+
+> Reverse:
+	Directly use: Reverse playing order.
+	Reactive use: Counter the penalty back to previous player, meanwhile he/she can also uses this cards to counter the counter. You cannot use this card when unable to play it in default rules.
+
+> Penaly Cards:
+	Same as default.
+	
+> Ending the game:
+	When a player's hp drops to zero, it knocks out until next round starts.
+	When a player has no more cards in hand, it gains the score equivalent to the hp it left.
+	When a player is the only one left, it make its hand deck public and continue play the card until it has no more cards in hand or no card can be played. Then it conducts the hp equivalent to the sum of points of its hand deck left.
+	
+> Wining:
+	When any player reaches 500 score or more. The game ends and the rank is ordered by the player's score.
+	(1st is highest score, 2nd is second-highest...and so on)
