@@ -21,9 +21,7 @@ function create_app(){
 
 // Draw background on current stage
 function draw_background(){
-  path = FileManager.load_image(Graphics.background);
-  let texture  = PIXI.Texture.fromImage(path);
-  let renderer = PIXI.autoDetectRenderer(Graphics.width, Graphics.height);
+  let texture = Cache.load_texture(Graphics.background);
   var sprite = new PIXI.Sprite(texture);
   app.stage.addChild(sprite);
 }
@@ -57,5 +55,11 @@ var renderer = PIXI.autoDetectRenderer(Graphics.width, Graphics.height);
 document.app = app;
 document.body.appendChild(app.view);
 
+// Preload assets
+const loader = PIXI.loader.add(Graphics.images)
+loader.onProgress.add(function(loader, resources){
+  console.log('Loaded : ' + loader.progress + '%' + ', name : ' + resources.name + ', url : ' + resources.url);
+})
+
 // Start processing
-start();
+loader.load(start);

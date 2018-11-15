@@ -8,17 +8,17 @@ function getDomainURL(){
 
 //-----------------------------------------------------------------------------
 /**
- * The static class that process file loading paths.
+ * The static class that process cached images in pixi loader
  *
- * @class FileManager
+ * @class Cache
  */
-function FileManager() {
+function Cache() {
   throw new Error('This is a static class');
 }
 
-// get path of image
-FileManager.load_image = function(name){
-  return getDomainURL() + '/' + name;
+// load resources
+Cache.load_texture = function(name){
+  return PIXI.loader.resources[name].texture;
 }
 
 //-----------------------------------------------------------------------------
@@ -35,7 +35,13 @@ function Graphics() {
 Graphics.width  = 1280;
 Graphics.height = 720;
 Graphics.padding = 32;
-Graphics.background = "resources/backgorund.png"
+Graphics.background = "assets/backgorund.png"
+
+// Collection of all images for preloading
+Graphics.images = [
+  Graphics.background,
+
+]
 
 // Get center x-pos of screen
 Graphics.screenCenterWidth = function(x = this.width){
