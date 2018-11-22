@@ -50,12 +50,18 @@ class Scene_Base extends Stage{
   }
   /*-------------------------------------------------------------------------*/
   terminate(){
-    // reserved
+    debug_log("Scene terminated: " + getClassName(this));
   }
   /**-------------------------------------------------------------------------
    * > Create the components and add them to the rendering process.
    */
   create(){
+    this.createBackground();
+  }
+  /**-------------------------------------------------------------------------
+   * > Create background
+   */
+  createBackground(){
     // reserved
   }
   /**-------------------------------------------------------------------------
@@ -67,7 +73,7 @@ class Scene_Base extends Stage{
   /*-------------------------------------------------------------------------*/
   start(){
     this._active = true;
-    this._fadeSprite = Graphics.fading_sprite;
+    this._fadingSprite = Graphics.fading_sprite;
   }
   /*-------------------------------------------------------------------------*/
   stop(){
@@ -78,32 +84,32 @@ class Scene_Base extends Stage{
     this.addChild(this._fadingSprite);
     this._fadeSign = 1;
     this._fadingTimer = duration || 30;
-    this._fadeSprite.opacity = 255; 
+    this._fadingSprite.alpha = 1;
   }
   /*-------------------------------------------------------------------------*/
   startFadeOut(duration){
     this.addChild(this._fadingSprite);
     this._fadeSign = -1;
     this._fadingTimer = duration || 30;
-    this._fadeSprite.opacity = 0;
+    this._fadingSprite.alpha = 0;
   }
   /*-------------------------------------------------------------------------*/
   updateFading(){
     if(this._fadingTimer <= 0){return ;}
     let d = this._fadingTimer;
     if(this._fadeSign > 0){
-      this._fadeSprite.opacity -= this._fadeSprite.opacity / d;
+      this._fadingSprite.alpha -= this._fadingSprite.alpha / d;
     }
     else{
-      this._fadeSprite.opacity += (255 - this._fadeSprite.opacity) / d;
+      this._fadingSprite.alpha += (1 - this._fadingSprite.alpha) / d;
     }
     this._fadingTimer -= 1;
   }
   /*-------------------------------------------------------------------------*/
   fadeOutAll(){
     var time = this.slowFadeSpeed() / 60;
-    Audio.fadeOutBGM(time);
-    Audio.fadeOutSE(time);
+    Sound.fadeOutBGM(time);
+    Sound.fadeOutSE(time);
     this.startFadeOut(this.slowFadeSpeed());
   }
   /**-------------------------------------------------------------------------
@@ -137,10 +143,12 @@ class Scene_Load extends Scene_Base{
   /**-------------------------------------------------------------------------
    * @constructor
    * @memberof Scene_Load
+   * @property {boolean} allLoaded - Graphics and Audio are both loaded
    */
   constructor(...args){
     super(...args)
     this.initialize.apply(this, arguments);
+    this.allLoaded = false;
   }
   /**-------------------------------------------------------------------------
    * > Object Initializatoin
@@ -148,6 +156,7 @@ class Scene_Load extends Scene_Base{
    * @property {number} loading_timer - timer record of loading phase
    */
   initialize(){
+    super.initialize();
     this.loading_timer = 0;
   }
   /**-------------------------------------------------------------------------
@@ -164,6 +173,11 @@ class Scene_Load extends Scene_Base{
     this.createLoadingText();
   }
   /*-------------------------------------------------------------------------*/
+  update(){
+    super.update();
+    this.updateLoading();
+  }
+  /*-------------------------------------------------------------------------*/
   createLoadingImage(){
     this.loading_sprite = Graphics.addSprite(Graphics.LoadImage);
     this.loading_sprite.x = Graphics.appCenterWidth(this.loading_sprite.width);
@@ -174,42 +188,127 @@ class Scene_Load extends Scene_Base{
   createLoadingText(){
     this.load_text = Graphics.addText(Vocab.dict.LoadText);
     let lt = this.load_text, ls = this.loading_sprite;
-    let offset = Graphics._padding / 8;
-    lt.x = Graphics.appCenterWidth(lt.width) - offset;
+    let offset = Graphics._spacing;
+    lt.x = Graphics.appCenterWidth(lt.width);
     lt.y = Graphics.appCenterHeight(lt.height) + ls.height + offset;
   }
   /*-------------------------------------------------------------------------*/
-  updateLoading(loader, resources){
-    SceneManager.scene.loading_timer += 1;
-    
-    let message = 'Loaded : ' + loader.progress + '%';
+  reportLoaderProgress(loader, resources){
+    let message = 'Graphics Loaded : ' + loader.progress + '%';
     if(resources){message += ', name : ' + resources.name + ', url : ' + resources.url;}
     debug_log(message);
-
+  }
+  /*-------------------------------------------------------------------------*/
+  updateLoading(){
+    this.updateImage();
+    this.updateText();
+    if(this.allLoaded){
+      if(this.loading_timer < 60)this.loading_timer += 1;
+      if(this.loading_timer == 60){this.processLoadingComplete();}
+    }
+  }
+  /*-------------------------------------------------------------------------*/
+  updateImage(){
     let sprite = SceneManager.scene.loading_sprite;
     if(sprite.scale_flag){
-      sprite.scale.x *= 0.95;
-      sprite.scale.y *= 0.95;
+      sprite.scale.x *= 0.98;
+      sprite.scale.y *= 0.98;
       if(sprite.scale.x <= 0.5)sprite.scale_flag = false;
     }
     else{
-      sprite.scale.x *= 1.05;
-      sprite.scale.y *= 1.05;
+      sprite.scale.x *= 1.02;
+      sprite.scale.y *= 1.02;
       if(sprite.scale.x >= 1.5)sprite.scale_flag = true;
     }
+  }
+  /*-------------------------------------------------------------------------*/
+  updateText(){
+    let gr = Graphics.isReady(), sr = Sound.isReady();
+    let sprite = this.load_text;
+    let txt = Vocab.dict.LoadText;
+    if(gr && !sr){
+      txt = Vocab.dict.LoadTextAudio;
+    }
+    else if(!gr && sr){
+      txt = Vocab.dict.LoadTextGraphics;
+    }
+    else if(gr && sr){
+      txt = Vocab.dict.LoadTextComplete;
+      this.allLoaded = true;
+    }
+    if(sprite.text == txt){return ;}
+    sprite.text = txt;
+    sprite.x = Graphics.appCenterWidth(sprite.width) - Graphics._spacing * 2;
   }
   /*-------------------------------------------------------------------------*/
   processLoadingPhase(){
     debug_log("Init loading phase");
     Graphics.renderSprite(this.loading_sprite);
     Graphics.renderSprite(this.load_text);
-    Graphics.preloadAllAssets(this.updateLoading, this.processLoadingComplete);
+    Graphics.preloadAllAssets(this.reportLoaderProgress, null);
   }
   /*-------------------------------------------------------------------------*/
   processLoadingComplete(){
-    let sprite = SceneManager.scene.load_text;
-    sprite.text = "Load completed!"
-    sprite.x = Graphics.appCenterWidth(sprite.width) - (Graphics._padding / 4)
+    debug_log("Loading Complete called");
+    this.loading_timer = 0xff;
+    GameStarted = true;
+    this.startFadeOut();
+    SceneManager.goto(Scene_Title);
+  }
+  /*-------------------------------------------------------------------------*/
+}
+/**
+ * > The title scene
+ * 
+ * @class Scene_Title
+ * @extends Scene_Title
+ */
+class Scene_Title extends Scene_Base{
+  /**-------------------------------------------------------------------------
+   * @constructor
+   * @memberof Scene_Title
+   */
+  constructor(...args){
+    super(...args)
+    this.initialize.apply(this, arguments);
+  }
+  /**-------------------------------------------------------------------------
+   * > Object Initializatoin
+   * @memberof Scene_Title
+   */
+  initialize(){
+    super.initialize();
+  }
+  /**-------------------------------------------------------------------------
+   * > Start processing
+   */
+  start(){
+    super.start();
+    // reserved
+  }
+  /*-------------------------------------------------------------------------*/
+  create(){
+    super.create();
+    this.createTitleText();
+  }
+  /*-------------------------------------------------------------------------*/
+  update(){
+    super.update();
+    // reserved
+  }
+  /*-------------------------------------------------------------------------*/
+  createBackground(){
+    this.backgroundImage = Graphics.addSprite(Graphics.Background);
+    Graphics.renderSprite(this.backgroundImage);
+  }
+  /*-------------------------------------------------------------------------*/
+  createTitleText(){
+    let font = Graphics.DefaultFontSetting;
+    font.fontSize = 48;
+    this.titleText   = Graphics.addText(Vocab.dict.TitleText, null, font);
+    this.titleText.x = Graphics.appCenterWidth(this.titleText.width)
+    this.titleText.y = Graphics._padding * 2;
+    Graphics.renderSprite(this.titleText)
   }
   /*-------------------------------------------------------------------------*/
 }

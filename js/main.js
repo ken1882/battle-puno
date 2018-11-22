@@ -2,7 +2,13 @@
 /**
  *  Global constants
 **/
+
+/**
+ * Debug mode flag, prints debug information and allow to use cheat function
+ * if enabled.
+ */
 const DebugMode = true;
+var GameStarted = false;
 
 // Start Processing
 function start(){

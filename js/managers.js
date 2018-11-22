@@ -10,26 +10,43 @@ class SceneManager{
   }
   /*-------------------------------------------------------------------------*/
   static initialize(){
-    SceneManager._scene             = null;
-    SceneManager._nextScene         = null;
-    SceneManager._stack             = [];
-    SceneManager._stopped           = false;
-    SceneManager._sceneStarted      = false;
-    SceneManager._exiting           = false;
-    SceneManager._previousClass     = null;
-    SceneManager._backgroundSprite  = null;
+    this._scene             = null;
+    this._nextScene         = null;
+    this._stack             = [];
+    this._stopped           = false;
+    this._sceneStarted      = false;
+    this._exiting           = false;
+    this._previousClass     = null;
+    this._backgroundSprite  = null;
+    this._focused           = true;
+
     this.initGraphics();
-    this.initAudio();
+    this.initSound();
     this.initInput();
   }
   /*-------------------------------------------------------------------------*/
   static updateMain(){
-    if(!document.hasFocus()){return ;}
+    if(GameStarted && !document.hasFocus()){return SceneManager.unfocusGame();}
+    SceneManager.focusGame();
     Input.update();
     Graphics.update();
     SceneManager.changeScene();
     SceneManager.updateScene();
     SceneManager.renderScene();
+  }
+  /*-------------------------------------------------------------------------*/
+  static focusGame(){
+    if(SceneManager._focused){return ;}
+    debug_log("Focus Game")
+    SceneManager._focused = true;
+    Graphics.onFocus();
+  }
+  /*-------------------------------------------------------------------------*/
+  static unfocusGame(){
+    if(!SceneManager._focused){return ;}
+    debug_log("Unfocus Game")
+    SceneManager._focused = false;
+    Graphics.onUnfocus();
   }
   /*-------------------------------------------------------------------------*/
   static run(){
@@ -57,8 +74,8 @@ class SceneManager{
     Graphics.initialize();
   }
   /*-------------------------------------------------------------------------*/
-  static initAudio(){
-    Audio.initialize();
+  static initSound(){
+    Sound.initialize();
   }
   /*-------------------------------------------------------------------------*/
   static initInput(){
@@ -114,7 +131,7 @@ class SceneManager{
     } else {
       console.log('UnknownError', e);
     }
-    Audio.stopAll();
+    Sound.stopAll();
     this.stop();
   }
   /*-------------------------------------------------------------------------*/
@@ -176,6 +193,7 @@ class SceneManager{
     if(!this.isSceneChanging() || this.isCurrentSceneBusy()){return ;}
     if (this._scene) {
       this._scene.terminate();
+      Graphics.transition();
       this._previousClass = this._scene.constructor;
     }
     this.startNextScene();

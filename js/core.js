@@ -44,6 +44,10 @@ function isWebGLSupported(){
   PIXI.utils.sayHello(type)
   return result
 }
+
+function isSameClass(obj, cls){
+  return getClassName(obj) == cls.name;
+}
 /**----------------------------------------------------------------------------
  * > Get class name of object
  * @function
@@ -116,6 +120,7 @@ class Graphics{
    * @property {number} _width          - width of app canvas
    * @property {number} _height         - height of app canvas
    * @property {number} _padding        - default padding of app canvas
+   * @property {number} _spacing        - width of space for sprites seperate
    * @property {number} _frame_count    - frames passed after app starts
    * @property {object} _sprite_map     - Mapping sprite name to sprite instance
    * @property {boolean} _loader_ready  - whether the loader is completed
@@ -125,12 +130,15 @@ class Graphics{
     this._width  = 1280;
     this._height = 720;
     this._padding = 32;
+    this._spacing = 4;
     this._frame_count = 0;
     this._sprite_map = {}
-    this.fading_sprite = null;
-    this._loader_ready = true;
-  
+    this.fading_sprite  = null;
+    this.unfocus_sprite = null;
+    this._loader_ready  = true;
+    
     this.create_fading_sprite();
+    this.create_unfocus_sprite();
     this.create_app();
     this.init_renderer();
     this.init_loader();
@@ -140,10 +148,21 @@ class Graphics{
    */  
   static create_fading_sprite(){
     this.fading_sprite = new PIXI.Graphics();
-    this.fading_sprite.beginFill(0xffffff);
+    this.fading_sprite.beginFill(0x000000);
     this.fading_sprite.drawRect(0, 0, this._width, this._height);
     this.fading_sprite.endFill();
     this.fading_sprite.name = "Fading Sprite"
+  }
+  /**----------------------------------------------------------------------------
+   * > Create main viewport
+   */
+  static create_unfocus_sprite(){
+    this.unfocus_sprite = new PIXI.Graphics();
+    this.unfocus_sprite.beginFill(0xffffff);
+    this.unfocus_sprite.drawRect(0, 0, this._width, this._height);
+    this.unfocus_sprite.endFill();
+    this.unfocus_sprite.alpha = 0.5;
+    this.unfocus_sprite.name = "Unfocus Sprite"
   }
   /**----------------------------------------------------------------------------
    * > Create main viewport
@@ -266,6 +285,7 @@ class Graphics{
     if(instance_name == null){instance_name = image_name;}
     sprite.name = instance_name;
     this._sprite_map[instance_name] = sprite;
+    debug_log("Add sprite: " + sprite.name)
     return sprite;
   }
   /**-------------------------------------------------------------------------
@@ -280,6 +300,7 @@ class Graphics{
     if(instance_name == null){instance_name = text;}
     sprite.name = instance_name;
     this._sprite_map[instance_name] = sprite;
+    debug_log("Add text: " + sprite.name)
     return sprite;
   }
   /**-------------------------------------------------------------------------
@@ -287,16 +308,21 @@ class Graphics{
    * @param {PIXI.Sprite|string} - the sprite/instance name of sprite to remove
    */
   static removeSprite(obj){
-    if(obj instanceof String){ obj = this._sprite_map[obj]; }
-    debug_log("Remove sprite: " + obj)
-    this._sprite_map[obj.name] = null;
+    if(isSameClass(obj, String)){ obj = this._sprite_map[obj]; }
+    debug_log("Remove sprite: " + obj.name)
+    delete this._sprite_map[obj.name];
     SceneManager.scene.removeChild(obj);
   }
   /**-------------------------------------------------------------------------
    * > Process transition
    */
   static transition(){
-
+    for(var sprite in this._sprite_map){
+      if(this._sprite_map.hasOwnProperty(sprite)){
+        console.log("RES: " + sprite);
+        this.removeSprite(sprite)
+      }
+    }
   }
   /*------------------------------------------------------------------------*/
   static startLoading(){
@@ -310,7 +336,15 @@ class Graphics{
   static endLoading(){
 
   }
-
+  /*------------------------------------------------------------------------*/
+  static onUnfocus(){
+    this.renderSprite(this.unfocus_sprite);
+    this.render();
+  }
+  /*------------------------------------------------------------------------*/
+  static onFocus(){
+    this.removeSprite(this.unfocus_sprite);
+  }
 } // class Graphics
 
 /**---------------------------------------------------------------------------
@@ -469,23 +503,56 @@ class Stage extends PIXI.Container{
 /**---------------------------------------------------------------------------
  * >> The static class that process audios
  *
- * @class Audio
+ * @class Sound
  */
-class Audio{
+class Sound{
   /**-------------------------------------------------------------------------
    * @constructor
-   * @memberof Audio
+   * @memberof Sound
    */
   constructor(){
     throw new Error('This is a static class');
   }
   /**-------------------------------------------------------------------------
    * > Module initialization
-   * @memberof Audio
+   * @memberof Sound
    * @property {float} _masterVolume - default master volume of audios
    */
   static initialize(){
-    this._masterVolume = 1;
+    this._masterVolume = 0.5;
+    this._currentBGM   = null;
+    this._currentSE    = [];
+    this._dict         = {};
+    this._loadProgess  = 0;
+    this.preloadAllAudio();
+  }
+  /*-------------------------------------------------------------------------*/
+  static preloadAllAudio(){
+    debug_log("Load audios...")
+    Sound.resources.forEach(filename => {
+      this._dict[filename] = new Howl({
+        src: [filename],
+        volume: Sound._masterVolume,
+        onload: this.reportLoadProgress,
+      })
+    })
+  }
+  /*-------------------------------------------------------------------------*/
+  static reportLoadProgress(){
+    Sound._loadProgess += 1;
+    debug_log("Audio Loaded: " + Sound._loadProgess + '/' + Sound.resources.length + '(' + Sound.loadPercent + ')')
+  }
+  /*-------------------------------------------------------------------------*/
+  static isReady(){
+    return this._loadProgess == this.resources.length;
+  }
+  /*-------------------------------------------------------------------------*/
+  static get loadProgess(){
+    return this._loadProgess;
+  }
+  /*-------------------------------------------------------------------------*/
+  static get loadPercent(){
+    return this._loadProgess / this.resources.length;
   }
   /*-------------------------------------------------------------------------*/
   static fadeOutBGM(){

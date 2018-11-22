@@ -1,3 +1,7 @@
 {
-  "LoadText": "Loading..."
+  "LoadText": "Loading...",
+  "LoadTextGraphics": "Loading Texture...",
+  "LoadTextAudio": "Loading Audio...",
+  "LoadTextComplete": "Load Completed!",
+  "TitleText": "Battle Puno"
 }
