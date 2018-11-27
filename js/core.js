@@ -3,6 +3,12 @@
  *----------------------------------------------------------------------------*/
 
 /**----------------------------------------------------------------------------
+ * > Disable web page scrolling when using wheel
+ */
+function DisablePageScroll() {
+  document.documentElement.style.overflow = 'hidden';
+}
+/**----------------------------------------------------------------------------
  * > Get domain URL of current page
  * @function
  * @global
@@ -44,7 +50,12 @@ function isWebGLSupported(){
   PIXI.utils.sayHello(type)
   return result
 }
-
+/**----------------------------------------------------------------------------
+ * > Check whether given two object has same class
+ * @function
+ * @global
+ * @returns {boolean}
+ */
 function isSameClass(obj, cls){
   return getClassName(obj) == cls.name;
 }
@@ -71,7 +82,7 @@ function processJSON(path, handler){
   xhr.open('GET', path, true);
   xhr.responseType = 'blob';
   xhr.onload = function(e) { 
-    if (this.status == 200) {
+    if(this.status == 200){
       var file = new File([this.response], 'temp');
       var fileReader = new FileReader();
       fileReader.addEventListener('load', function(){
@@ -127,8 +138,8 @@ class Graphics{
    * @property {PIXI.Sprite} fading_sprite - Sprite for fade effect
    */  
   static initialize(){
-    this._width  = 1280;
-    this._height = 720;
+    this._width  = this.Resolution[0];
+    this._height = this.Resolution[1];
     this._padding = 32;
     this._spacing = 4;
     this._frame_count = 0;
@@ -145,7 +156,7 @@ class Graphics{
   }
   /**----------------------------------------------------------------------------
    * > Sprite for fading effect
-   */  
+   */
   static create_fading_sprite(){
     this.fading_sprite = new PIXI.Graphics();
     this.fading_sprite.beginFill(0x000000);
@@ -162,10 +173,12 @@ class Graphics{
     this.unfocus_sprite.drawRect(0, 0, this._width, this._height);
     this.unfocus_sprite.endFill();
     this.unfocus_sprite.alpha = 0.5;
+    this.unfocus_sprite.zIndex = 1000;
     this.unfocus_sprite.name = "Unfocus Sprite"
   }
   /**----------------------------------------------------------------------------
    * > Create main viewport
+   * @property {PIXI.Application} app - the PIXI web application
    */  
   static create_app(){
     this.app = new PIXI.Application(
@@ -176,10 +189,15 @@ class Graphics{
         backgroundColor: this.AppBackColor,
       }
     );
-    this.app.view.style.left = this.screenCenterWidth()  + 'px';
-    this.app.view.style.top  = this.screenCenterHeight() + 'px';
+    this.app.x = this.screenCenterWidth();
+    this.app.y = this.screenCenterHeight();
+    this.app.width  = this._width;
+    this.app.height = this._height;
+    this.app.view.style.left = this.app.x + 'px';
+    this.app.view.style.top  = this.app.y + 'px';
+    this.app.view.style.zIndex = 0;
   }
-  /**-------------------------------------------------------------------------
+  /**----------------------------------------------------------------------------
    * @property {PIXI.WebGLRenderer} renderer - the rending software of the app
    */
   static init_renderer(){
@@ -206,11 +224,17 @@ class Graphics{
   static preloadAllAssets(progresshandler, load_ok_handler){
     if(!progresshandler){ progresshandler = function(){} }
     if(!load_ok_handler){ load_ok_handler = function(){} }
+    this.IconsetImage = new Image();
+    this.IconsetImage.src = this.Iconset;
+    this.windowSkins = {}
+    this.WindowSkinSrc.forEach(function(path){
+      Graphics.windowSkins[path]     = new Image();
+      Graphics.windowSkins[path].src = path;
+    })
     this.loader.add(this.Images);
     this.loader.onProgress.add(progresshandler);
     this.loader.load(load_ok_handler);
   }
-
   /**-------------------------------------------------------------------------
    * > Check whether loader has loaded all resources
    * @returns {boolean}
@@ -231,9 +255,21 @@ class Graphics{
   /**-------------------------------------------------------------------------
    * > Render sprite to current scene
    * @param {PIXI.Sprite} sprite - the sprite to be rendered
-   */  
+   */
   static renderSprite(sprite){
     SceneManager.scene.addChild(sprite);
+  }
+  /**-------------------------------------------------------------------------
+   * > Render window to web page
+   */
+  static renderWindow(win){
+    SceneManager.scene.addWindow(win)
+  }
+  /**-------------------------------------------------------------------------
+   * > Remove the window that rendered to page
+   */
+  static removeWindow(win){
+    SceneManager.scene.removeWindow(win);
   }
   /**-------------------------------------------------------------------------
    * > Get center x-pos of object in screen
@@ -317,24 +353,28 @@ class Graphics{
    * > Process transition
    */
   static transition(){
+    debug_log(SplitLine, "Process transition")
+    this.disposeSprites();
+  }
+  /*------------------------------------------------------------------------*/
+  static disposeSprites(){
     for(var sprite in this._sprite_map){
       if(this._sprite_map.hasOwnProperty(sprite)){
-        console.log("RES: " + sprite);
         this.removeSprite(sprite)
       }
     }
   }
   /*------------------------------------------------------------------------*/
   static startLoading(){
-
+    // reserved
   }
   /*------------------------------------------------------------------------*/
   static updateLoading(){
-
+    // reserved
   }
   /*------------------------------------------------------------------------*/
   static endLoading(){
-
+    // reserved
   }
   /*------------------------------------------------------------------------*/
   static onUnfocus(){
@@ -374,6 +414,7 @@ class Input{
     this.keystate_trigger = new Array(0xff);
     this.state_changed    = false;
     this.reset_needed     = false;
+    this.wheelstate       = 0;
     this.setupEventHandlers();
   }
   /**-------------------------------------------------------------------------
@@ -434,12 +475,20 @@ class Input{
     this.keystate_press[parseInt(event.which)] = false;
     this.state_changed = true;
   }
+  /**-------------------------------------------------------------------------
+   * > Mouse wheel handler
+   */
+  static processMouseWheel(event){
+    this.wheelstate = Math.max( -1, Math.min(1, (event.wheelDelta || -event.detail)) );
+    this.state_changed = true;
+  }
   /*-------------------------------------------------------------------------*/
   static setupEventHandlers(){
     window.addEventListener("keydown", this.onKeydown.bind(this));
     window.addEventListener("keyup", this.onKeyup.bind(this));
     window.addEventListener("mousedown", this.onKeydown.bind(this));
     window.addEventListener("mouseup", this.onKeyup.bind(this));
+    window.addEventListener("mousewheel", this.processMouseWheel.bind(this));
   }
   /**-------------------------------------------------------------------------
    * > Frame update
@@ -453,6 +502,7 @@ class Input{
     else if(this.reset_needed){
       this.reset_needed = false;
       for(let i=0;i<0xff;++i){this.keystate_trigger[i] = false;}
+      this.wheelstate = 0;
     }
   }
   /**-------------------------------------------------------------------------
@@ -470,6 +520,18 @@ class Input{
    */
   static isPressed(key_id){
     return this.keystate_press[key_id];
+  }
+  /**-------------------------------------------------------------------------
+   * > Check whether mouse wheel scrolled up
+   */
+  static isWheelUp(){
+    return this.wheelstate == 1;
+  }
+  /**-------------------------------------------------------------------------
+   * > Check whether mouse wheel scrolled down
+   */
+  static isWheelDown(){
+    return this.wheelstate == -1;  
   }
 
 } // class Input
@@ -522,7 +584,7 @@ class Sound{
     this._masterVolume = 0.5;
     this._currentBGM   = null;
     this._currentSE    = [];
-    this._dict         = {};
+    this.track         = {};
     this._loadProgess  = 0;
     this.preloadAllAudio();
   }
@@ -530,7 +592,7 @@ class Sound{
   static preloadAllAudio(){
     debug_log("Load audios...")
     Sound.resources.forEach(filename => {
-      this._dict[filename] = new Howl({
+      this.track[filename] = new Howl({
         src: [filename],
         volume: Sound._masterVolume,
         onload: this.reportLoadProgress,
@@ -566,5 +628,85 @@ class Sound{
   static stopAll(){
 
   }
+  /*-------------------------------------------------------------------------*/
+}
+
+/**---------------------------------------------------------------------------
+ * The basic object that represents an image.
+ *
+ * @class Bitmap
+ * @constructor
+ * @param {Number} x - The X point of the bitmap
+ * @param {Number} y - The Y point of the bitmap
+ * @param {Number} width - The width of the bitmap
+ * @param {Number} height - The height of the bitmap
+ */
+class Bitmap{
+  /**-------------------------------------------------------------------------
+   * @constructor
+   * @memberof Bitmap
+   */
+  constructor(){
+    this.initialize.apply(this, arguments);
+  }
+  /**-------------------------------------------------------------------------
+   * > Object initialization
+   * @memberof Bitmap
+   */
+  initialize(x = 0, y = 0, w = 1, h = 1){
+    this.createCanvas();
+    this.setPOS(x, y);
+    this.resize(w, h);
+  }
+  /*-------------------------------------------------------------------------*/
+  createCanvas(){
+    this._canvas  = document.createElement("canvas");
+    this._context = this._canvas.getContext("2d");
+  }
+  /*-------------------------------------------------------------------------*/
+  setX(x){
+    this._x = x;
+    this.realX = Graphics.app.x + this._x;
+    this._canvas.style.left = this.realX + 'px'
+  }
+  /*-------------------------------------------------------------------------*/
+  setY(y){
+    this._y = y;
+    this.realY = Graphics.app.y + this._y;
+    this._canvas.style.top = this.realY + 'px'
+  }
+  /*-------------------------------------------------------------------------*/
+  setPOS(x, y){
+    this.setX(x);
+    this.setY(y);
+    return this;
+  }
+  /*-------------------------------------------------------------------------*/
+  resize(w, h){
+    this._canvas.width  = w;
+    this._canvas.height = h;
+    return this;
+  }
+  /*-------------------------------------------------------------------------*/
+  hide(){
+    this._canvas.style.display = "none";
+    return this;
+  }
+  /*-------------------------------------------------------------------------*/
+  show(){
+    this._canvas.style.display = '';
+    return this;
+  }
+  /*-------------------------------------------------------------------------*/
+  blt(){
+    this._context.drawImage.apply(this._context, arguments);
+  }
+  /*-------------------------------------------------------------------------*/
+  setOpacity(opa){
+    this._canvas.style.opacity = opa
+  }
+  /*-------------------------------------------------------------------------*/
+  get canvas(){return this._canvas;}
+  get context(){return this._context;}
   /*-------------------------------------------------------------------------*/
 }

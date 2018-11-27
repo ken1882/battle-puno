@@ -201,7 +201,7 @@ class SceneManager{
   /*-------------------------------------------------------------------------*/
   static startNextScene(){
     this._scene = this._nextScene;
-    debug_log("Scene changed: " + getClassName(this._scene))
+    debug_log(SplitLine, "Scene changed: " + getClassName(this._scene))
     if (this._scene) {
       this._scene.create();
       this._nextScene = null;

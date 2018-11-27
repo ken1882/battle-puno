@@ -23,7 +23,8 @@ class Scene_Base extends Stage{
    * @property {PIXI.Sprite} _fadeSprite  - sprite of fade effect
    */
   initialize(){
-    this._active = false;
+    this._active  = false;
+    this._windows = [];
     this._fadingFlag = 0;
     this._fadingTimer = 0;
     this._fadingSprite = Graphics.fading_sprite;
@@ -35,6 +36,7 @@ class Scene_Base extends Stage{
   update(){
     this.updateFading();
     this.updateChildren();
+    this.updateAllWindow();
   }
   /*-------------------------------------------------------------------------*/
   updateChildren(){
@@ -42,11 +44,23 @@ class Scene_Base extends Stage{
       if(child.update){child.update();}
     })
   }
+  /*-------------------------------------------------------------------------*/
+  updateAllWindow(){
+    this._windows.forEach(function(win){
+      win.update();
+    })
+  }
   /**-------------------------------------------------------------------------
    * @returns {boolean} - whether scene is fading
    */
   isBusy(){
     return this._fadingTimer > 0;
+  }
+  /*-------------------------------------------------------------------------*/
+  preTerminate(){
+    debug_log("Scene pre-terminate: " + getClassName(this));
+    this.disposeAllWindows();
+    this.startFadeOut();
   }
   /*-------------------------------------------------------------------------*/
   terminate(){
@@ -59,10 +73,41 @@ class Scene_Base extends Stage{
     this.createBackground();
   }
   /**-------------------------------------------------------------------------
+   * > Remove windows from page
+   */
+  disposeAllWindows(){
+    for(let i=0;i<this._windows.length;++i){
+      this.disposeWindowAt(i);
+    }
+    this._windows = [];
+  }
+  /**-------------------------------------------------------------------------
+   * > Remove a single window
+   */
+  removeWindow(win){
+    this.disposeWindowAt(this._windows.indexOf(win));
+  }
+  /**-------------------------------------------------------------------------
+   * > Dispose window
+   */
+  disposeWindowAt(index){
+    if(index <= -1){
+      console.error("Trying to dispose the window not rendered yet")
+      return ;
+    }
+    debug_log("Dispose window: " + this._windows[index]);
+    this._windows[index].children.forEach(function(bitmap){
+      document.body.removeChild(bitmap.canvas);
+    })
+    this._windows[index].clearChildren();
+    document.body.removeChild(this._windows[index]._content.canvas);
+    this._windows.splice(index, 1);
+  }
+  /**-------------------------------------------------------------------------
    * > Create background
    */
   createBackground(){
-    // reserved
+    // reserved for inherited class
   }
   /**-------------------------------------------------------------------------
    * @returns {boolean} - whether current scene is active
@@ -130,6 +175,20 @@ class Scene_Base extends Stage{
   isReady(){
     return Graphics.isReady();
   }
+  /**-------------------------------------------------------------------------
+   * > Add window to page view
+   */
+  addWindow(win){
+    if(!this.isActive()){
+      console.error("Trying to add window to stopped scene")
+      return ;
+    }
+    this._windows.push(win);
+    document.body.appendChild(win._content.canvas);
+    win.children.forEach(function(bitmap){
+      document.body.appendChild(bitmap.canvas)
+    })
+  }
   /*-------------------------------------------------------------------------*/
 } // Scene_Base
 
@@ -186,7 +245,7 @@ class Scene_Load extends Scene_Base{
   }
   /*-------------------------------------------------------------------------*/
   createLoadingText(){
-    this.load_text = Graphics.addText(Vocab.dict.LoadText);
+    this.load_text = Graphics.addText(Vocab.LoadText);
     let lt = this.load_text, ls = this.loading_sprite;
     let offset = Graphics._spacing;
     lt.x = Graphics.appCenterWidth(lt.width);
@@ -225,15 +284,15 @@ class Scene_Load extends Scene_Base{
   updateText(){
     let gr = Graphics.isReady(), sr = Sound.isReady();
     let sprite = this.load_text;
-    let txt = Vocab.dict.LoadText;
+    let txt = Vocab.LoadText;
     if(gr && !sr){
-      txt = Vocab.dict.LoadTextAudio;
+      txt = Vocab.LoadTextAudio;
     }
     else if(!gr && sr){
-      txt = Vocab.dict.LoadTextGraphics;
+      txt = Vocab.LoadTextGraphics;
     }
     else if(gr && sr){
-      txt = Vocab.dict.LoadTextComplete;
+      txt = Vocab.LoadTextComplete;
       this.allLoaded = true;
     }
     if(sprite.text == txt){return ;}
@@ -252,7 +311,7 @@ class Scene_Load extends Scene_Base{
     debug_log("Loading Complete called");
     this.loading_timer = 0xff;
     GameStarted = true;
-    this.startFadeOut();
+    this.preTerminate();
     SceneManager.goto(Scene_Title);
   }
   /*-------------------------------------------------------------------------*/
@@ -305,7 +364,7 @@ class Scene_Title extends Scene_Base{
   createTitleText(){
     let font = Graphics.DefaultFontSetting;
     font.fontSize = 48;
-    this.titleText   = Graphics.addText(Vocab.dict.TitleText, null, font);
+    this.titleText   = Graphics.addText(Vocab.TitleText, null, font);
     this.titleText.x = Graphics.appCenterWidth(this.titleText.width)
     this.titleText.y = Graphics._padding * 2;
     Graphics.renderSprite(this.titleText)

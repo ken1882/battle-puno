@@ -24,7 +24,10 @@ class Vocab{
   static loadLanguageFile(){
     var path = this.FolderPath + '/' + this.Language + '.json';
     processJSON(path, function(result){
-      this.dict = JSON.parse(result);
+      let dict = JSON.parse(result);
+      for(let key in dict){
+        Vocab[key] = dict[key];
+      }
       this.ready = true;
       debug_log("Vocab loaded");
     })

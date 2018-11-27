@@ -11,18 +11,26 @@ Graphics.DefaultFontSetting = {
 }
 
 SceneManager.firstSceneClass = Scene_Load;
+Graphics.Resolution   = [1280, 720]
 Graphics.AppBackColor = 0x000000;
 Graphics.Background   = "assets/backgorund.png";
 Graphics.Background2  = "assets/background2.png";
 Graphics.LoadImage    = "assets/CrystalHeart.png";
 Graphics.Iconset      = "assets/IconSet.png"
+Graphics.IconRect     = {x:0, y:0, width:24, height:24}
+Graphics.IconRowCount = 16
 
-// Collection of all images for preloading, fuck front-js has no glob
+Graphics.DefaultWindowSkin = "assets/wskin_base.png";
+
+// Collection of all images for PIXI preloading, fuck front-js has no glob
 Graphics.Images = [
   Graphics.Background,
   Graphics.Background2,
-  Graphics.Iconset,
-  
+  Graphics.Iconset,  
+]
+
+Graphics.WindowSkinSrc = [
+  Graphics.DefaultWindowSkin,
 ]
 
 Sound.BGM      = "audio/bgm/main.mp3";
