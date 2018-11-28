@@ -95,12 +95,12 @@ class Scene_Base extends Stage{
       console.error("Trying to dispose the window not rendered yet")
       return ;
     }
-    debug_log("Dispose window: " + this._windows[index]);
+    debug_log("Dispose window: " + getClassName(this._windows[index]));
     this._windows[index].children.forEach(function(bitmap){
       document.body.removeChild(bitmap.canvas);
+      bitmap.dispose();
     })
     this._windows[index].clearChildren();
-    document.body.removeChild(this._windows[index]._content.canvas);
     this._windows.splice(index, 1);
   }
   /**-------------------------------------------------------------------------
@@ -183,8 +183,11 @@ class Scene_Base extends Stage{
       console.error("Trying to add window to stopped scene")
       return ;
     }
+    if(win.isDisposed()){
+      console.error("Try to add disposed window: " + getClassName(win));
+      return ;
+    }
     this._windows.push(win);
-    document.body.appendChild(win._content.canvas);
     win.children.forEach(function(bitmap){
       document.body.appendChild(bitmap.canvas)
     })

@@ -12,16 +12,24 @@ const DebugMode = true;
 const SplitLine = "-------------------------\n"
 var GameStarted = false;
 
-// Start Processing
-function start(){
+function initializeApplication(){
   // Disable page scrolling
   DisablePageScroll();
-  // wait until vocab is ready
-  if(!Vocab.isReady()){
+  // Initialize kernel module
+  DataManager.initialize();
+  Vocab.initialize();
+  // call start
+  setTimeout(start, 500);
+}
+
+// Start Processing
+function start(){
+  // wait until initial data is ready
+  if(!DataManager.isReady()){
     return setTimeout(start, 500);
   }
   debug_log("start")
   SceneManager.run()
 }
 
-setTimeout(start, 100);
+setTimeout(initializeApplication, 100);

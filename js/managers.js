@@ -1,8 +1,8 @@
-//-----------------------------------------------------------------------------
-// SceneManager
-//
-// The static class that manages scene transitions.
-
+/**---------------------------------------------------------------------------
+ * > SceneManager:
+ *    The static class that manages scene transitions.
+ * @namespace
+ */
 class SceneManager{
   /*-------------------------------------------------------------------------*/
   constructor(){
@@ -212,5 +212,52 @@ class SceneManager{
       this.terminate();
     }
   }
+  /*-------------------------------------------------------------------------*/
+}
+/**---------------------------------------------------------------------------
+ * > DataManager:
+ *    The static class that manages data and settings.
+ * @namespace
+ */
+class DataManager{
+  /*-------------------------------------------------------------------------*/
+  constructor(){
+    throw new Error("This is a static class")
+  }
+  /**-------------------------------------------------------------------------
+   * @property {object} setting - the system settings
+   */
+  static initialize(){
+    this.setting  = {}
+    this.database = window.localStorage;
+    this.ready    = false;
+    this.setupSettingKeys();
+    this.loadLanguageSetting();
+    this.ready    = true;
+  }
+  /*-------------------------------------------------------------------------*/
+  static setupSettingKeys(){
+    this.DefaultLanguage = "en_us"
+    this.kLanguage = "language";
+  }
+  /*-------------------------------------------------------------------------*/
+  static loadLanguageSetting(){
+    let lan = this.database.getItem(this.kLanguage)
+    if(!lan){lan = this.DefaultLanguage;}
+    this.changeSetting(this.kLanguage, lan);
+  }
+  /*-------------------------------------------------------------------------*/
+  static changeSetting(key, value){
+    this.setting[key] = value;
+    this.database.setItem(key, value);
+  }
+  /*-------------------------------------------------------------------------*/
+  static isReady(){
+    return Vocab.isReady() && this.ready;
+  }
+  /**-------------------------------------------------------------------------
+   * > Getter functions
+   */
+  static get language(){return this.setting[this.kLanguage];}
   /*-------------------------------------------------------------------------*/
 }

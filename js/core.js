@@ -95,7 +95,7 @@ function processJSON(path, handler){
 }
 /**----------------------------------------------------------------------------
  * >> The static class that process cached images in pixi loader
- * @class Cache
+ * @namespace Cache
  */
 class Cache{
   /**-------------------------------------------------------------------------
@@ -115,7 +115,7 @@ class Cache{
 }
 /**----------------------------------------------------------------------------
  * >> The static class that carries out graphics processing.
- * @class Graphics
+ * @namespace Graphics
  */
 class Graphics{
   /**----------------------------------------------------------------------------
@@ -153,6 +153,7 @@ class Graphics{
     this.create_app();
     this.init_renderer();
     this.init_loader();
+    this.aliasFunctions();
   }
   /**----------------------------------------------------------------------------
    * > Sprite for fading effect
@@ -385,6 +386,14 @@ class Graphics{
   static onFocus(){
     this.removeSprite(this.unfocus_sprite);
   }
+  /**------------------------------------------------------------------------
+   * > Alias functions
+   * @function
+   */
+  static aliasFunctions(){
+    /** @alias renderWindow */
+    this.addWindow = this.renderWindow.bind(this);
+  }
 } // class Graphics
 
 /**---------------------------------------------------------------------------
@@ -403,8 +412,8 @@ class Input{
   /**-------------------------------------------------------------------------
    * > Module initialization
    * @memberof Input
-   * @property {Array<boolean[]>} keystate_press   - array of pressed flag key ids
-   * @property {Array<boolean[]>} keystate_trigger - array of trigger flag key ids
+   * @property {Array.<boolean>} keystate_press   - array of pressed flag key ids
+   * @property {Array.<boolean>} keystate_trigger - array of trigger flag key ids
    * @property {boolean} state_changed - key state changed flag
    * @property {boolean} reset_needed  - flag of whether need to reset keystates
    */
@@ -682,7 +691,13 @@ class Bitmap{
     return this;
   }
   /*-------------------------------------------------------------------------*/
+  setZ(z){
+    this._canvas.style.zIndex = z;
+    return this;
+  }
+  /*-------------------------------------------------------------------------*/
   resize(w, h){
+    this._width = w; this._height = h;
     this._canvas.width  = w;
     this._canvas.height = h;
     return this;
@@ -704,6 +719,15 @@ class Bitmap{
   /*-------------------------------------------------------------------------*/
   setOpacity(opa){
     this._canvas.style.opacity = opa
+  }
+  /*-------------------------------------------------------------------------*/
+  dispose(){
+    this._canvas  = null;
+    this._context = null;
+  }
+  /*-------------------------------------------------------------------------*/
+  isDisposed(){
+    return this._canvas === null;
   }
   /*-------------------------------------------------------------------------*/
   get canvas(){return this._canvas;}
