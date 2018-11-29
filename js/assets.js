@@ -26,7 +26,8 @@ Graphics.IconRowCount       = 16
 Graphics.Images = [
   Graphics.Background,
   Graphics.Background2,
-  Graphics.Iconset,  
+  Graphics.Iconset,
+  Graphics.DefaultWindowSkin,
 ]
 
 Graphics.WindowSkinSrc = [
@@ -40,18 +41,23 @@ Sound.Buzzer   = 'audio/se/KHSE_ErrorSelect.wav';
 Sound.Get      = 'audio/se/KHSE_ItemGet.wav';
 Sound.SaveLoad = 'audio/se/KHSE_SaveLoad.wav';
 Sound.OK       = 'audio/se/KHSE_Select.wav';
+Sound.Error    = 'audio/se/Buzzer1.mp3';
 
 Sound.resources = [
   Sound.BGM, Sound.Cancel, Sound.Cursor, Sound.Buzzer, Sound.Get,
-  Sound.SaveLoad, Sound.OK,
+  Sound.SaveLoad, Sound.OK, Sound.Error,
 ]
+
+Sound.fadeDurationBGM = 3000;
+Sound.fadeDurationSE  = 2000;
 
 // Graphics window settings
 Graphics.LineHeight = 24;
 
-// Source Slice Rect of Windowskin Image           X   Y    W    H
+// Source Slice Rect of Windowskin Image           X   Y   W   H
 Graphics.wSkinIndexRect     = new PIXI.Rectangle(  0,  0, 64, 64); // Window Index Fill
 Graphics.wSkinPatternRect   = new PIXI.Rectangle(  0, 64, 64, 64); // Window Index back-pattern fill
+Graphics.wSkinBorder        = new PIXI.Rectangle( 64,  0, 64, 64); // Window border
 Graphics.wSkinBorderUL      = new PIXI.Rectangle( 64,  0, 16, 16); // Window Upper-left border
 Graphics.wSkinBorderUP      = new PIXI.Rectangle( 80,  0, 32, 16); // Window Upper border
 Graphics.wSkinBorderUR      = new PIXI.Rectangle(112,  0, 16, 16); // Window Upper-right border

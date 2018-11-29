@@ -27,7 +27,7 @@ class Scene_Base extends Stage{
     this._windows = [];
     this._fadingFlag = 0;
     this._fadingTimer = 0;
-    this._fadingSprite = Graphics.fading_sprite;
+    this._fadingSprite = Graphics.fadingSprite;
   }
   /**-------------------------------------------------------------------------
    * > Frame update
@@ -59,12 +59,12 @@ class Scene_Base extends Stage{
   /*-------------------------------------------------------------------------*/
   preTerminate(){
     debug_log("Scene pre-terminate: " + getClassName(this));
-    this.disposeAllWindows();
     this.startFadeOut();
   }
   /*-------------------------------------------------------------------------*/
   terminate(){
     debug_log("Scene terminated: " + getClassName(this));
+    this.disposeAllWindows();
   }
   /**-------------------------------------------------------------------------
    * > Create the components and add them to the rendering process.
@@ -96,10 +96,6 @@ class Scene_Base extends Stage{
       return ;
     }
     debug_log("Dispose window: " + getClassName(this._windows[index]));
-    this._windows[index].children.forEach(function(bitmap){
-      document.body.removeChild(bitmap.canvas);
-      bitmap.dispose();
-    })
     this._windows[index].clearChildren();
     this._windows.splice(index, 1);
   }
@@ -118,7 +114,7 @@ class Scene_Base extends Stage{
   /*-------------------------------------------------------------------------*/
   start(){
     this._active = true;
-    this._fadingSprite = Graphics.fading_sprite;
+    this._fadingSprite = Graphics.fadingSprite;
   }
   /*-------------------------------------------------------------------------*/
   stop(){
@@ -126,29 +122,33 @@ class Scene_Base extends Stage{
   }
   /*-------------------------------------------------------------------------*/
   startFadeIn(duration){
-    this.addChild(this._fadingSprite);
+    Graphics.renderSprite(Graphics.fadingSprite);
+    this._fadingSprite.show();
     this._fadeSign = 1;
     this._fadingTimer = duration || 30;
-    this._fadingSprite.alpha = 1;
+    this._fadingSprite.setOpacity(1);
   }
   /*-------------------------------------------------------------------------*/
   startFadeOut(duration){
-    this.addChild(this._fadingSprite);
+    Graphics.renderSprite(Graphics.fadingSprite);
+    this._fadingSprite.show();
     this._fadeSign = -1;
     this._fadingTimer = duration || 30;
-    this._fadingSprite.alpha = 0;
+    this._fadingSprite.setOpacity(0);
   }
   /*-------------------------------------------------------------------------*/
   updateFading(){
     if(this._fadingTimer <= 0){return ;}
     let d = this._fadingTimer;
+    let opa = this._fadingSprite.opacity;
     if(this._fadeSign > 0){
-      this._fadingSprite.alpha -= this._fadingSprite.alpha / d;
+      this._fadingSprite.setOpacity(opa - opa / d)
     }
     else{
-      this._fadingSprite.alpha += (1 - this._fadingSprite.alpha) / d;
+      this._fadingSprite.setOpacity(opa + (1 - opa) / d)
     }
     this._fadingTimer -= 1;
+    if(this._fadingTimer <= 0){this.onFadeComplete();}
   }
   /*-------------------------------------------------------------------------*/
   fadeOutAll(){
@@ -156,6 +156,11 @@ class Scene_Base extends Stage{
     Sound.fadeOutBGM(time);
     Sound.fadeOutSE(time);
     this.startFadeOut(this.slowFadeSpeed());
+  }
+  /*-------------------------------------------------------------------------*/
+  onFadeComplete(){
+    this._fadingFlag  = 0;
+    this._fadingTimer = 0;
   }
   /**-------------------------------------------------------------------------
    * @returns {number} - frames before fade completed, slower one
@@ -178,8 +183,8 @@ class Scene_Base extends Stage{
   /**-------------------------------------------------------------------------
    * > Add window to page view
    */
-  addWindow(win){
-    if(!this.isActive()){
+  addWindow(win, forced = false){
+    if(!this.isActive() && !forced){
       console.error("Trying to add window to stopped scene")
       return ;
     }
@@ -188,9 +193,7 @@ class Scene_Base extends Stage{
       return ;
     }
     this._windows.push(win);
-    win.children.forEach(function(bitmap){
-      document.body.appendChild(bitmap.canvas)
-    })
+    this.addChild(win);
   }
   /*-------------------------------------------------------------------------*/
 } // Scene_Base
@@ -314,7 +317,6 @@ class Scene_Load extends Scene_Base{
     debug_log("Loading Complete called");
     this.loading_timer = 0xff;
     GameStarted = true;
-    this.preTerminate();
     SceneManager.goto(Scene_Title);
   }
   /*-------------------------------------------------------------------------*/
@@ -346,7 +348,12 @@ class Scene_Title extends Scene_Base{
    */
   start(){
     super.start();
-    // reserved
+    let wx = Graphics.appCenterWidth(300);
+    this.win = new Window_Base(wx, 200);
+    Graphics.addWindow(this.win);
+    this.win.drawIcon(10, 0, 0);
+    this.win.drawIcon(10, 48, 0);
+    this.win.drawIcon(10, 24, 0);
   }
   /*-------------------------------------------------------------------------*/
   create(){
@@ -370,7 +377,7 @@ class Scene_Title extends Scene_Base{
     this.titleText   = Graphics.addText(Vocab.TitleText, null, font);
     this.titleText.x = Graphics.appCenterWidth(this.titleText.width)
     this.titleText.y = Graphics._padding * 2;
-    Graphics.renderSprite(this.titleText)
+    Graphics.renderSprite(this.titleText);
   }
   /*-------------------------------------------------------------------------*/
 }

@@ -26,13 +26,18 @@ class SceneManager{
   }
   /*-------------------------------------------------------------------------*/
   static updateMain(){
-    if(GameStarted && !document.hasFocus()){return SceneManager.unfocusGame();}
-    SceneManager.focusGame();
-    Input.update();
-    Graphics.update();
-    SceneManager.changeScene();
-    SceneManager.updateScene();
-    SceneManager.renderScene();
+    try{
+      if(GameStarted && !document.hasFocus()){return SceneManager.unfocusGame();}
+      SceneManager.focusGame();
+      Input.update();
+      Graphics.update();
+      SceneManager.changeScene();
+      SceneManager.updateScene();
+      SceneManager.renderScene();
+    }
+    catch(e){
+      reportError(e);
+    }
   }
   /*-------------------------------------------------------------------------*/
   static focusGame(){
@@ -50,19 +55,21 @@ class SceneManager{
   }
   /*-------------------------------------------------------------------------*/
   static run(){
-    try {
+    try{
       this.initialize();
-    } catch (e) {
-      this.catchException(e);
+    }
+    catch(e){
+      reportError(e);
     }
   }
   /*-------------------------------------------------------------------------*/
   static processFirstScene(){
-    try {
+    try{
       this.goto(this.firstSceneClass);
       this.startNextScene();
-    } catch (e) {
-      this.catchException(e);
+    }
+    catch(e){
+      reportError(e);
     }
   }
   /*-------------------------------------------------------------------------*/
@@ -83,11 +90,12 @@ class SceneManager{
   }
   /*-------------------------------------------------------------------------*/
   static goto(sceneClass, args){
-    if (sceneClass) {
+    if(sceneClass){
       this._nextScene = new (sceneClass.bind.apply(sceneClass, args))();
     }
-    if (this._scene) {
-        this._scene.stop();
+    if(this._scene){
+      this._scene.preTerminate();
+      this._scene.stop();
     }
   }
   /*-------------------------------------------------------------------------*/
@@ -122,17 +130,6 @@ class SceneManager{
   /*-------------------------------------------------------------------------*/
   static terminate(){
     window.location.reload();
-  }
-  /*-------------------------------------------------------------------------*/
-  static catchException(e){
-    if(e instanceof Error){
-      console.error(e.name + ':', e.message);
-      console.error(e.stack);
-    } else {
-      console.log('UnknownError', e);
-    }
-    Sound.stopAll();
-    this.stop();
   }
   /*-------------------------------------------------------------------------*/
   static updateScene(){

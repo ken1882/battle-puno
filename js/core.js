@@ -56,7 +56,7 @@ function isWebGLSupported(){
  * @global
  * @returns {boolean}
  */
-function isSameClass(obj, cls){
+function isClassOf(obj, cls){
   return getClassName(obj) == cls.name;
 }
 /**----------------------------------------------------------------------------
@@ -68,6 +68,14 @@ function isSameClass(obj, cls){
  */
 function getClassName(obj){
   return obj.constructor.name;
+}
+/**----------------------------------------------------------------------------
+ * > Clone object
+ */
+function clone(obj){
+  let dup = Object.assign({}, obj);
+  dup.constructor = obj.constructor;
+  return dup;
 }
 /**----------------------------------------------------------------------------
  * > Process given JSON file
@@ -94,6 +102,20 @@ function processJSON(path, handler){
   xhr.send();
 }
 /**----------------------------------------------------------------------------
+ * > Report the error
+ */
+function reportError(e){
+  if(Sound.isReady()){Sound.playSE(Sound.Error, 1.0);}
+  console.error("An error occurred!")
+  console.error(e.name + ':', e.message);
+  console.error(e.stack);
+  if(Sound.isReady()){
+    window.setTimeout(function(){
+      Sound.stopAll(); SceneManager.stop();
+    }, 1000);
+  }
+}
+/**----------------------------------------------------------------------------
  * >> The static class that process cached images in pixi loader
  * @namespace Cache
  */
@@ -108,8 +130,12 @@ class Cache{
   /**-------------------------------------------------------------------------
    * > Return textire of pre-loaded resources
    * @param {string} name - name of resources
+   * @param {Rectangle} srect - Souce Slice Rect of the texture
    */  
-  static load_texture(name){
+  static loadTexture(name, srect = null){
+    if(srect){
+      return new PIXI.Texture(PIXI.loader.resources[name].texture, srect);
+    }
     return PIXI.loader.resources[name].texture;
   }
 }
@@ -132,56 +158,54 @@ class Graphics{
    * @property {number} _height         - height of app canvas
    * @property {number} _padding        - default padding of app canvas
    * @property {number} _spacing        - width of space for sprites seperate
-   * @property {number} _frame_count    - frames passed after app starts
-   * @property {object} _sprite_map     - Mapping sprite name to sprite instance
-   * @property {boolean} _loader_ready  - whether the loader is completed
-   * @property {PIXI.Sprite} fading_sprite - Sprite for fade effect
+   * @property {number} _frameCount    - frames passed after app starts
+   * @property {object} _spriteMap     - Mapping sprite name to sprite instance
+   * @property {boolean} _loaderReady  - whether the loader is completed
+   * @property {Sprite} fadingSprite - Sprite for fade effect
    */  
   static initialize(){
     this._width  = this.Resolution[0];
     this._height = this.Resolution[1];
     this._padding = 32;
     this._spacing = 4;
-    this._frame_count = 0;
-    this._sprite_map = {}
-    this.fading_sprite  = null;
-    this.unfocus_sprite = null;
+    this._frameCount = 0;
+    this._spriteMap = {}
+    this.fadingSprite  = null;
+    this.unfocusSprite = null;
     this._loader_ready  = true;
-    
-    this.create_fading_sprite();
-    this.create_unfocus_sprite();
-    this.create_app();
-    this.init_renderer();
-    this.init_loader();
+
+    this.createApp();
+    this.initRenderer();
+    this.initLoader();
     this.aliasFunctions();
+    this.createFadingSprite();
+    this.createUnfocusSprite();
   }
   /**----------------------------------------------------------------------------
    * > Sprite for fading effect
    */
-  static create_fading_sprite(){
-    this.fading_sprite = new PIXI.Graphics();
-    this.fading_sprite.beginFill(0x000000);
-    this.fading_sprite.drawRect(0, 0, this._width, this._height);
-    this.fading_sprite.endFill();
-    this.fading_sprite.name = "Fading Sprite"
+  static createFadingSprite(){
+    this.fadingSprite = new Sprite();
+    this.fadingSprite.fillRect(0, 0, this.width, this.height, 0x000000);
+    this.fadingSprite.name = "Fading Sprite"
+    this.fadingSprite.hide();
   }
   /**----------------------------------------------------------------------------
    * > Create main viewport
    */
-  static create_unfocus_sprite(){
-    this.unfocus_sprite = new PIXI.Graphics();
-    this.unfocus_sprite.beginFill(0xffffff);
-    this.unfocus_sprite.drawRect(0, 0, this._width, this._height);
-    this.unfocus_sprite.endFill();
-    this.unfocus_sprite.alpha = 0.5;
-    this.unfocus_sprite.zIndex = 1000;
-    this.unfocus_sprite.name = "Unfocus Sprite"
+  static createUnfocusSprite(){
+    this.unfocusSprite = new Sprite();
+    this.unfocusSprite.fillRect(0, 0, this.width, this.height, 0xffffff);
+    this.unfocusSprite.setOpacity(0.5);
+    this.unfocusSprite.setZ(1001);
+    this.unfocusSprite.name = "Unfocus Sprite";
+    this.unfocusSprite.hide();
   }
   /**----------------------------------------------------------------------------
    * > Create main viewport
    * @property {PIXI.Application} app - the PIXI web application
    */  
-  static create_app(){
+  static createApp(){
     this.app = new PIXI.Application(
       {
         width: this._width,
@@ -201,7 +225,7 @@ class Graphics{
   /**----------------------------------------------------------------------------
    * @property {PIXI.WebGLRenderer} renderer - the rending software of the app
    */
-  static init_renderer(){
+  static initRenderer(){
     this.renderer = PIXI.autoDetectRenderer(this._width, this._height);
     document.app = this.app;
     document.body.appendChild(this.app.view);
@@ -210,7 +234,7 @@ class Graphics{
    * > Initialize PIXI Loader
    * @property {PIXI.loaders.Loader} loader - PIXI resources loader
    */
-  static init_loader(){
+  static initLoader(){
     this.loader = PIXI.loader;
     this.loader.onProgress.add( function(){Graphics._loader_ready = false;} );
     this.loader.onComplete.add( function(){Graphics._loader_ready = true;} );
@@ -258,19 +282,36 @@ class Graphics{
    * @param {PIXI.Sprite} sprite - the sprite to be rendered
    */
   static renderSprite(sprite){
+    if(SceneManager.scene.children.indexOf(sprite) > -1){return ;}
     SceneManager.scene.addChild(sprite);
+    SceneManager.scene.children.sort((a,b) => (a.zIndex || 0) - (b.zIndex || 0))
   }
   /**-------------------------------------------------------------------------
    * > Render window to web page
    */
   static renderWindow(win){
     SceneManager.scene.addWindow(win)
+    SceneManager.scene.children.sort((a,b) => (a.zIndex || 0) - (b.zIndex || 0))
+  }
+  /*-------------------------------------------------------------------------*/
+  static renderBitmap(bmp){
+    document.body.appendChild(bmp.canvas);
+  }
+  /*-------------------------------------------------------------------------*/
+  static removeBitmap(bmp){
+    document.body.removeChild(bmp.canvas);
   }
   /**-------------------------------------------------------------------------
    * > Remove the window that rendered to page
    */
   static removeWindow(win){
     SceneManager.scene.removeWindow(win);
+  }
+  /**-------------------------------------------------------------------------
+   * > Render bitmap to web page
+   */
+  static removeBitmap(bmp){
+    document.body.removeChild(bmp.canvas);
   }
   /**-------------------------------------------------------------------------
    * > Get center x-pos of object in screen
@@ -309,7 +350,7 @@ class Graphics{
    * @memberof Graphics
    */  
   static update(){
-    this._frame_count += 1;
+    this._frameCount += 1;
   }
   /**-------------------------------------------------------------------------
    * > Add sprite and build a instance name map
@@ -318,10 +359,10 @@ class Graphics{
    * @returns {PIXI.Sprite} - the created sprite
    */  
   static addSprite(image_name, instance_name = null){
-    var sprite = new PIXI.Sprite(Cache.load_texture(image_name));
+    var sprite = new PIXI.Sprite(Cache.loadTexture(image_name));
     if(instance_name == null){instance_name = image_name;}
     sprite.name = instance_name;
-    this._sprite_map[instance_name] = sprite;
+    this._spriteMap[instance_name] = sprite;
     debug_log("Add sprite: " + sprite.name)
     return sprite;
   }
@@ -336,7 +377,7 @@ class Graphics{
     var sprite = new PIXI.Text(text, fontsetting);
     if(instance_name == null){instance_name = text;}
     sprite.name = instance_name;
-    this._sprite_map[instance_name] = sprite;
+    this._spriteMap[instance_name] = sprite;
     debug_log("Add text: " + sprite.name)
     return sprite;
   }
@@ -345,9 +386,9 @@ class Graphics{
    * @param {PIXI.Sprite|string} - the sprite/instance name of sprite to remove
    */
   static removeSprite(obj){
-    if(isSameClass(obj, String)){ obj = this._sprite_map[obj]; }
+    if(isClassOf(obj, String)){ obj = this._spriteMap[obj]; }
     debug_log("Remove sprite: " + obj.name)
-    delete this._sprite_map[obj.name];
+    delete this._spriteMap[obj.name];
     SceneManager.scene.removeChild(obj);
   }
   /**-------------------------------------------------------------------------
@@ -359,8 +400,8 @@ class Graphics{
   }
   /*------------------------------------------------------------------------*/
   static disposeSprites(){
-    for(var sprite in this._sprite_map){
-      if(this._sprite_map.hasOwnProperty(sprite)){
+    for(var sprite in this._spriteMap){
+      if(this._spriteMap.hasOwnProperty(sprite)){
         this.removeSprite(sprite)
       }
     }
@@ -375,17 +416,25 @@ class Graphics{
   }
   /*------------------------------------------------------------------------*/
   static endLoading(){
-    // reserved
+    if(!this.fadingSprite){return ;}
+    this.fadingSprite.hide();
+    this.renderSprite(this.unfocusSprite);
   }
   /*------------------------------------------------------------------------*/
   static onUnfocus(){
-    this.renderSprite(this.unfocus_sprite);
-    this.render();
+    this.unfocusSprite.show();
   }
   /*------------------------------------------------------------------------*/
   static onFocus(){
-    this.removeSprite(this.unfocus_sprite);
+    this.unfocusSprite.hide();
   }
+  /**------------------------------------------------------------------------
+   * > Getter functions
+   */
+  static get width(){return this._width;}
+  static get height(){return this._height;}
+  static get padding(){return this._padding;}
+  static get spacing(){return this._spacing;}
   /**------------------------------------------------------------------------
    * > Alias functions
    * @function
@@ -584,15 +633,30 @@ class Sound{
   constructor(){
     throw new Error('This is a static class');
   }
+
+  /**-------------------------------------------------------------------------
+   * @class soundInstance
+   * @property {string} symbol - symbol/key of audio file
+   * @property {string} type   - type of audio file: SE(non-looping)/BGM(looping)
+   * @property {Number} id     - Id of audio file's eigen-object
+   */
+
   /**-------------------------------------------------------------------------
    * > Module initialization
    * @memberof Sound
    * @property {float} _masterVolume - default master volume of audios
+   * @property {soundInstance} _currentBGM - current BGM
+   * @property {Array.<soundInstance>} _currentSE - list of current playing SE
+   * @property {Object.<Number, soundInstance>} _audioMap 
+   *          - Dictionary of audio id to its soundInstance
+   * @property {Object.<String, Howl>} tacck - Dictionary of audio file symbol
+   * 
    */
   static initialize(){
     this._masterVolume = 0.5;
     this._currentBGM   = null;
     this._currentSE    = [];
+    this._audioMap     = {};
     this.track         = {};
     this._loadProgess  = 0;
     this.preloadAllAudio();
@@ -604,14 +668,52 @@ class Sound{
       this.track[filename] = new Howl({
         src: [filename],
         volume: Sound._masterVolume,
-        onload: this.reportLoadProgress,
+        onload: function(){Sound.reportLoadProgress(filename)},
+        onfade: this.onAudioFadeComplete,
+        onstop: function(soundID){Sound.unregisterAudio(soundID);}, 
+        onend: function(soundID){Sound.unregisterAudio(soundID);},
       })
     })
   }
   /*-------------------------------------------------------------------------*/
-  static reportLoadProgress(){
+  static registerAudio(soundInstance){
+    Sound._audioMap[soundInstance.id] = soundInstance;
+    debug_log("Audio registered:", soundInstance.id, soundInstance.symbol);
+    if(soundInstance.type == 'SE'){
+      Sound._currentSE.push(soundInstance);
+    }
+    else if(soundInstance.type == 'BGM'){
+      Sound._currentBGM = soundInstance;
+    }
+  }
+  /*-------------------------------------------------------------------------*/
+  static unregisterAudio(soundID){
+    let soundInstance = Sound._audioMap[soundID];
+    let soundContext = Sound.track[soundInstance.symbol];
+    if(soundInstance && !soundContext.loop(soundID)){
+      debug_log("Audio unregisterd:", soundID, soundInstance.symbol)
+      if(soundInstance.type == 'SE'){
+        let index = Sound._currentSE.indexOf(soundInstance);
+        Sound._currentSE.splice(index, 1);
+      }
+      else if(soundInstance.type == 'BGM'){
+        if(Sound._currentBGM.id == soundID){Sound._currentBGM = null;}
+      }
+      Sound._audioMap[soundID] = null;
+    }
+  }
+  /*-------------------------------------------------------------------------*/
+  static reportLoadProgress(fname){
     Sound._loadProgess += 1;
-    debug_log("Audio Loaded: " + Sound._loadProgess + '/' + Sound.resources.length + '(' + Sound.loadPercent + ')')
+    debug_log("Audio Loaded: " + fname + ' ' + Sound._loadProgess + '/' + Sound.resources.length + '(' + Sound.loadPercent + ')')
+  }
+  /*-------------------------------------------------------------------------*/
+  static onAudioFadeComplete(soundID){
+    let soundGroup = Sound.track[Sound._audioMap[soundID].symbol];
+    if(soundGroup.volume(soundID) == 0.0){
+      soundGroup.loop(false, soundID);
+      Sound.unregisterAudio(soundID)
+    }
   }
   /*-------------------------------------------------------------------------*/
   static isReady(){
@@ -625,18 +727,188 @@ class Sound{
   static get loadPercent(){
     return this._loadProgess / this.resources.length;
   }
-  /*-------------------------------------------------------------------------*/
-  static fadeOutBGM(){
-
+  /**-------------------------------------------------------------------------
+   * > Play the audio file as Sound Effect of given symbol
+   * @param {string} symbol - symbol of the audio file
+   */
+  static playSE(symbol, volume = this._masterVolume){
+    let pid = -1;
+    pid = this.track[symbol].play();
+    this.track[symbol].volume(volume, pid);
+    console.log(volume);
+    this.registerAudio( {id:pid, type:'SE', symbol:symbol} );
+    return pid;
+  }
+  /**-------------------------------------------------------------------------
+   * > Play the audio file as BGM(looping)
+   */
+  static playBGM(symbol){
+    if(arguments.length != 1){
+      throw new ArgumentError(1, arguments.length);
+    }
+    if(this._currentBGM){this.fadeOutBGM();}
+    let pid = -1;
+    pid = this.track[symbol].play();
+    this.track[symbol].loop(true, pid);
+    this.registerAudio( {id:pid, type:'BGM', symbol:symbol} );
+    return pid;
+  }
+  /**-------------------------------------------------------------------------
+   * > Play the SE with fade-in effect
+   */
+  static fadeInSE(symbol){
+    let pid = -1;
+    pid = this.track[symbol].play();
+    this.track[symbol].fade(0.0, this._masterVolume, this.fadeDurationBGM, pid);
+    this.registerAudio( {id:pid, type:'SE'} );
+    return pid;
+  }
+  /**-------------------------------------------------------------------------
+   * > Play the BGM with fade-in effect
+   */
+  static fadeInBGM(symbol){
+    if(this._currentBGM){this.fadeOutBGM();}
+    let pid = -1;
+    this.track[symbol].loop = true;
+    pid = this.track[symbol].play();
+    this.track[symbol].fade(0.0, this._masterVolume, this.fadeDurationSE, pid);
+    this.registerAudio( {id:pid, type:'BGM'} );
+    return pid;
   }
   /*-------------------------------------------------------------------------*/
-  static fadeOutSE(){
-
+  static fadeOutBGM(){
+    let s = this._currentBGM;
+    this.track[s.symbol].fade(this._masterVolume, 0.0, this.fadeDurationBGM, s.id);
+  }
+  /*-------------------------------------------------------------------------*/
+  static fadeOutSE(soundID){
+    if(soundID){
+      let s = this._audioMap[soundID];
+      this.track[s.symbol].fade(this._masterVolume, 0.0, this.fadeDurationSE, s.id);
+    }
+    else{
+      for(let i=0;i<this._currentSE.length;++i){
+        let s = this._currentSE[i];
+        this.track[s.symbol].fade(this._masterVolume, 0.0, this.fadeDurationSE, s.id);
+      }
+    }
+  }
+  /*-------------------------------------------------------------------------*/
+  static stopBGM(){
+    let s = this._currentBGM;
+    this.track[s.symbol].loop(false, s.id);
+    this.track[s.symbol].stop();
+  }
+  /*-------------------------------------------------------------------------*/
+  static stopSE(soundID){
+    if(soundID){
+      let s = this._audioMap[soundID];
+      this.track[s.symbol].stop(s.id);
+    }
+    else{
+      for(let i=0;i<this._currentSE.length;++i){
+        let s = this._currentSE[i];
+        this.track[s.symbol].stop(s.id)
+      }
+    }
   }
   /*-------------------------------------------------------------------------*/
   static stopAll(){
-
+    this.stopBGM();
+    this.stopSE();
   }
+  /*-------------------------------------------------------------------------*/
+  static fadeOutAll(){
+    this.fadeOutBGM();
+    this.fadeOutSE();
+  }
+  /*-------------------------------------------------------------------------*/
+}
+
+/**---------------------------------------------------------------------------
+ * The extended class of PIXI.Sprite
+ *
+ * @class Sprite
+ * @constructor
+ * @extends PIXI.Sprite
+ */
+class Sprite extends PIXI.Sprite{
+  /**-------------------------------------------------------------------------
+   * @constructor
+   * @memberof Sprite
+   */
+  constructor(...args){
+    super(...args);
+    this.initialize.apply(this, arguments);
+    return this;
+  }
+  /**-------------------------------------------------------------------------
+   * > Object initialization
+   * @memberof Sprite
+   */
+  initialize(){
+    this.setZ(0);
+  }
+  /*-------------------------------------------------------------------------*/
+  setZ(z){
+    this.zIndex = z;
+    return this;
+  }
+  /*-------------------------------------------------------------------------*/
+  resize(w, h){
+    var scale = [w / this.width, h / this.height]
+    this.setTransform(this.x, this.y, scale[0], scale[1]);
+    this.children.forEach(function(sp){
+      sp.setTransform(sp.x, sp.y, scale[0], scale[1]);
+    });
+    return this;
+  }
+  /*-------------------------------------------------------------------------*/
+  hide(){
+    this.visible = false;
+    return this;
+  }
+  /*-------------------------------------------------------------------------*/
+  show(){
+    this.visible = true;
+    return this;
+  }
+  /*-------------------------------------------------------------------------*/
+  setOpacity(opa){
+    this.alpha = opa;
+    return this;
+  }
+  /*-------------------------------------------------------------------------*/
+  setPOS(x, y){
+    this.position.set(x, y);
+    return this;
+  }
+  /*-------------------------------------------------------------------------*/
+  fillRect(x, y, w, h, c){
+    let rect = new PIXI.Graphics();
+    rect.beginFill(c);
+    rect.drawRect(x, y, w, h);
+    rect.endFill();
+    rect.zIndex = 2;
+    rect.alpha = this.opacity;
+    this.addChild(rect);
+  }
+  /*-------------------------------------------------------------------------*/
+  drawText(x, y, text, font = Graphics.DefaultFontSetting){
+    let txt = new PIXI.Text(text, font);
+    txt.alpha  = this.opacity;
+    txt.zIndex = 2;
+    this.addChild(txt);
+  }
+  /*-------------------------------------------------------------------------*/
+  addChild(...args){
+    super.addChild(...args);
+    this.children.sort((a,b) => (a.zIndex || 0) - (b.zIndex || 0));
+  }
+  /**-------------------------------------------------------------------------
+   * > Getter function
+   */
+  get opacity(){return parseFloat(this.alpha);}
   /*-------------------------------------------------------------------------*/
 }
 
@@ -715,6 +987,17 @@ class Bitmap{
   /*-------------------------------------------------------------------------*/
   blt(){
     this._context.drawImage.apply(this._context, arguments);
+  }
+  /**-------------------------------------------------------------------------
+   * > Draw Icon in Iconset
+   */
+  drawIcon(icon_index, x, y){
+    icon_index = parseInt(icon_index);
+    let src_rect = clone(Graphics.IconRect);
+    src_rect.x = icon_index % Graphics.IconRowCount * src_rect.width;
+    src_rect.y = parseInt(icon_index / Graphics.IconRowCount) * src_rect.height;
+    let sx = src_rect.x, sy = src_rect.y, sw = src_rect.width, sh = src_rect.height;
+    this.blt(Graphics.IconsetImage, sx, sy, sw, sh, x, y, sw, sh);
   }
   /*-------------------------------------------------------------------------*/
   setOpacity(opa){

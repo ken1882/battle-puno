@@ -29,7 +29,13 @@ function start(){
     return setTimeout(start, 500);
   }
   debug_log("start")
-  SceneManager.run()
+  
+  try{
+    SceneManager.run();
+  }
+  catch(e){
+    reportError(e);
+  }
 }
 
 setTimeout(initializeApplication, 100);
