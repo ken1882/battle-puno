@@ -731,7 +731,7 @@ class Sound{
   static onAudioFadeComplete(soundID){
     let soundGroup = Sound.track[Sound._audioMap[soundID].symbol];
     if(soundGroup.volume(soundID) == 0.0){
-      soundGroup.loop = false;
+      soundGroup.loop(false, soundID);
       Sound.unregisterAudio(soundID)
     }
   }
@@ -755,7 +755,6 @@ class Sound{
     let pid = -1;
     pid = this.track[symbol].play();
     this.track[symbol].volume(volume, pid);
-    console.log(volume);
     this.registerAudio( {id:pid, type:'SE', symbol:symbol} );
     return pid;
   }
@@ -789,8 +788,8 @@ class Sound{
   static fadeInBGM(symbol, duration = Sound.fadeDurationBGM){
     if(this._currentBGM){this.fadeOutBGM();}
     let pid = -1;
-    this.track[symbol].loop = true;
     pid = this.track[symbol].play();
+    this.track[symbol].loop(true, pid);
     this.track[symbol].fade(0.0, this._masterVolume, duration, pid);
     this.registerAudio( {id:pid, type:'BGM', symbol:symbol} );
     return pid;
