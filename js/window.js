@@ -22,11 +22,12 @@ class Window_Base extends Sprite{
    * @property {Object} _renderedObjects - information of rendered stuffs
    */
   initialize(x = 0, y = 0, w = 300, h = 150){
+    // Prevent initalization called from parent again
     if(!isClassOf(x, Number)){return ;}
     super.initialize();
     this._skin  = Graphics.DefaultWindowSkin;
     this.ox = 0; this.oy = 0;
-    this.scaleMultipler = Graphics.wSkinIndexRect.width;
+    this.scaleMultipler = [Graphics.wSkinIndexRect.width, Graphics.wSkinIndexRect.height];
     this.applySkin();
     this.applyMask();
     this.setPOS(x, y);
@@ -40,23 +41,83 @@ class Window_Base extends Sprite{
   update(){
     // reserved
   }
+  /**------------------------------------------------------------------------
+   * > Check whether the object is inside the visible area
+   * @param {Sprite|Bitmap} obj - the DisplayObject to be checked
+   * @returns {boolean}
+   */
+  isObjectVisible(obj){
+    let dx = this.origX(obj.x) - this.ox, dy = this.origY(obj.y) - this.oy;
+    if(dx > this.realWidth() || dy > this.realHeight()){return false;}
+    let dw = dx + this.realWidth(obj.width), dh = dy + this.realHeight(obj.height);
+    if(dx + dw < 0 && dy + dh < 0){return false;}
+    return true;
+  }
+  /*------------------------------------------------------------------------*/
+  refresh(){
+    this.children.sort((a,b) => (a.zIndex || 0) - (b.zIndex || 0));
+    for(let i=0;i<this.children.length;++i){
+      let sp = this.children[i];
+      if(sp.static){continue;}
+      if(!this.isObjectVisible(sp)){sp.hide();}
+      else{sp.show();}
+      let dx = this.origX(sp.x) - this.ox, dy = this.origY(sp.y) - this.oy;
+      
+    }
+  }
   /**-------------------------------------------------------------------------
    * > Set Z-Index
    */
   setZ(z){
     this.zIndex = z;
   }
-  /**-------------------------------------------------------------------------
-   * > Getter functions;
-   */
-  get realWidth(){return this.width * this.scaleMultipler;}
-  get realHeight(){return this.height * this.scaleMultipler;}
+  /*-------------------------------------------------------------------------*/
   get z(){return this.zIndex;}
   get padding(){return Graphics.padding;}
   get spcaing(){return Graphics.spacing;}
-  get origScale(){return [1 / this.width, 1 / this.height];}
-  innerX(x){return x / this.scaleMultipler;}
-  innerY(y){return y / this.scaleMultipler;}
+  /**-------------------------------------------------------------------------
+   * > The scale needed for zoom the sprite to original size
+   * @returns {[Float, Float]} - width[0] and height[1] scale number
+   */
+  get origScale(){return [1 / this.width, 1 / this.height];}  
+  /**-------------------------------------------------------------------------
+   * > Get the X position inside the window
+   * @param {Number} x - the real x position on screen
+   */
+  innerX(x){return x / this.width;}
+  /**-------------------------------------------------------------------------
+   * > Get the Y position inside the window
+   * @param {Number} y - the real Y position on screen
+   */
+  innerY(y){return y / this.height;}
+  /**-------------------------------------------------------------------------
+   * > Get the real X position on the screen
+   * @param {Number} x - the x position inside the windoe
+   */
+  origX(x){return x * this.width;}
+  /**-------------------------------------------------------------------------
+   * > Get the real Y position on the screen
+   * @param {Number} y - the y position inside the windoe
+   */
+  origY(y){return y * this.height;}
+  /**-------------------------------------------------------------------------
+   * > Get the real width on the screen
+   * @param {Number} w - the width inside the windoe
+   */
+  realWidth(w = this.width){return w * this.scaleMultipler[0];}
+  /**-------------------------------------------------------------------------
+   * > Get the real height on the screen
+   * @param {Number} h - the height inside the windoe
+   */
+  realHeight(h = this.height){return h * this.scaleMultipler[1];}
+  /**-------------------------------------------------------------------------
+   * > Get the scale value to given width and length
+   * @param {Number} ow - the original width
+   * @param {Number} oh - the original height 
+   * @param {Number} gw - goal width
+   * @param {Number} gh - goal height
+   * @returns {[Float, Float]} - width(0) and height(1) scale number
+   */
   getResizeScale(ow, oh, gw, gh){
     return [gw / this.width / ow, gh / this.height / oh];
   }
@@ -84,8 +145,9 @@ class Window_Base extends Sprite{
   applyMask(){
     this.maskGraphics = new PIXI.Graphics();
     this.maskGraphics.beginFill(0xffffff);
-    this.maskGraphics.drawRect(0, 0, this.realWidth, this.realHeight);
+    this.maskGraphics.drawRect(0, 0, this.realWidth(), this.realHeight());
     this.maskGraphics.endFill();
+    this.maskGraphics.static = true;
     this.addChild(this.maskGraphics);
     this.mask = this.maskGraphics;
   }
@@ -93,14 +155,14 @@ class Window_Base extends Sprite{
    * > Draw the border of skin
    */
   drawSkinBorder(){
-    let tUL = Cache.loadTexture(this._skin, Graphics.wSkinBorderUL);
-    let tUP = Cache.loadTexture(this._skin, Graphics.wSkinBorderUP);
-    let tUR = Cache.loadTexture(this._skin, Graphics.wSkinBorderUR);
-    let tBL = Cache.loadTexture(this._skin, Graphics.wSkinBorderBL);
-    let tBT = Cache.loadTexture(this._skin, Graphics.wSkinBorderBT);
-    let tBR = Cache.loadTexture(this._skin, Graphics.wSkinBorderBR);
-    let tLT = Cache.loadTexture(this._skin, Graphics.wSkinBorderLT);
-    let tRT = Cache.loadTexture(this._skin, Graphics.wSkinBorderRT);
+    let tUL = Graphics.loadTexture(this._skin, Graphics.wSkinBorderUL);
+    let tUP = Graphics.loadTexture(this._skin, Graphics.wSkinBorderUP);
+    let tUR = Graphics.loadTexture(this._skin, Graphics.wSkinBorderUR);
+    let tBL = Graphics.loadTexture(this._skin, Graphics.wSkinBorderBL);
+    let tBT = Graphics.loadTexture(this._skin, Graphics.wSkinBorderBT);
+    let tBR = Graphics.loadTexture(this._skin, Graphics.wSkinBorderBR);
+    let tLT = Graphics.loadTexture(this._skin, Graphics.wSkinBorderLT);
+    let tRT = Graphics.loadTexture(this._skin, Graphics.wSkinBorderRT);
     
     this.borderSpriteUL = new Sprite(tUL);
     this.borderSpriteUP = new Sprite(tUP);
@@ -116,19 +178,20 @@ class Window_Base extends Sprite{
       this.borderSpriteBL, this.borderSpriteBT, this.borderSpriteBR,
       this.borderSpriteLT, this.borderSpriteRT
     ]
-    let shows = [true, false, false, false, false, false, false, false]
+    
     for(let i=0;i<this.borderSprites.length;++i){
       this.borderSprites[i].setZ(5);
+      this.borderSprites[i].static = true;
       this.addChild(this.borderSprites[i]);
-      //if(!shows[i]){this.borderSprites[i].hide()}
     }
   }
   /**-------------------------------------------------------------------------
    * > Draw the hover cursor of skin
    */
   drawSkinCursor(){
-    let texture = Cache.loadTexture(this._skin, Graphics.wSkinCursor);
+    let texture = Graphics.loadTexture(this._skin, Graphics.wSkinCursor);
     this.cursorSprite = new Sprite(texture);
+    this.cursorSprite.static = true;
     this.cursorSprite.setZ(4);
     this.cursorSprite.hide();
     this.addChild(this.cursorSprite);
@@ -137,18 +200,18 @@ class Window_Base extends Sprite{
    * > Draw the index background of skin
    */
   drawSkinIndex(){
-    let texture = Cache.loadTexture(this._skin, Graphics.wSkinIndexRect);
+    let texture = Graphics.loadTexture(this._skin, Graphics.wSkinIndexRect);
     this.indexSprite = new Sprite(texture);
-    this.indexSprite.setZ(0).setOpacity(0.5);
+    this.indexSprite.setZ(0).setOpacity(0.5).static  = true;
     this.addChild(this.indexSprite);
   }
   /**-------------------------------------------------------------------------
    * > Draw index pattern of skin
    */
   drawSkinPattern(){
-    let texture = Cache.loadTexture(this._skin, Graphics.wSkinPatternRect);
+    let texture = Graphics.loadTexture(this._skin, Graphics.wSkinPatternRect);
     this.patternSprite = new Sprite(texture);
-    this.patternSprite.setZ(1).setOpacity(0.5);
+    this.patternSprite.setZ(1).setOpacity(0.5).static = true;
     this.addChild(this.patternSprite);
   }
   /**-------------------------------------------------------------------------
@@ -162,20 +225,24 @@ class Window_Base extends Sprite{
     for(let i=0;i<4;++i){
       let srect = clone(rect);
       srect.x += offset[i][0]; srect.y += offset[i][1]
-      textureArray.push(Cache.loadTexture(this._skin, srect));
+      textureArray.push(Graphics.loadTexture(this._skin, srect));
     }
     this.buttonSprite = new PIXI.extras.AnimatedSprite(textureArray);
     this.buttonSprite.zIndex = 3;
+    this.buttonSprite.static = true;
+    this.buttonSprite.animationSpeed = 0.25;
+    this.buttonSprite.position.set(32,32);
+    this.buttonSprite.hide();
     this.addChild(this.buttonSprite);
   }
   /**-------------------------------------------------------------------------
    * > Draw scroll arrows of skin
    */
   drawSkinArrows(){
-    let tAU = Cache.loadTexture(this._skin, Graphics.wSkinArrowUP);
-    let tAD = Cache.loadTexture(this._skin, Graphics.wSkinArrowBT);
-    let tAL = Cache.loadTexture(this._skin, Graphics.wSkinArrowLT);
-    let tAR = Cache.loadTexture(this._skin, Graphics.wSkinArrowRT);
+    let tAU = Graphics.loadTexture(this._skin, Graphics.wSkinArrowUP);
+    let tAD = Graphics.loadTexture(this._skin, Graphics.wSkinArrowBT);
+    let tAL = Graphics.loadTexture(this._skin, Graphics.wSkinArrowLT);
+    let tAR = Graphics.loadTexture(this._skin, Graphics.wSkinArrowRT);
     this.arrowDownSprite  = new Sprite(tAD);
     this.arrowUpSprite    = new Sprite(tAU);
     this.arrowLeftSprite  = new Sprite(tAL);
@@ -187,12 +254,15 @@ class Window_Base extends Sprite{
     for(let i=0;i<4;++i){
       this.arrowSprites[i].setZ(3);
       this.arrowSprites[i].hide();
+      this.arrowSprites[i].static = true;
+      this.addChild(this.arrowSprites[i]);
     }
-    this.addChild(this.arrowDownSprite,  this.arrowLeftSprite, 
-                  this.arrowRightSprite, this.arrowUpSprite);
   }
   /**-------------------------------------------------------------------------
    * > Draw Icon in Iconset
+   * @param {Number} icon_index - the index of the icon in Iconset
+   * @param {Number} x - the draw position of X
+   * @param {Number} y - the draw position of Y
    */
   drawIcon(icon_index, x, y){
     icon_index = parseInt(icon_index);
@@ -200,24 +270,36 @@ class Window_Base extends Sprite{
     src_rect.x = icon_index % Graphics.IconRowCount * src_rect.width;
     src_rect.y = parseInt(icon_index / Graphics.IconRowCount) * src_rect.height;
     let sx = src_rect.x, sy = src_rect.y, sw = src_rect.width, sh = src_rect.height;
-    let bitmap = new Bitmap(0,0,this.realWidth,this.realHeight);
-    bitmap.blt(Graphics.IconsetImage, sx, sy, sw, sh, x, y, sw, sh);
+    let bitmap = new Bitmap(0,0,this.realWidth(),this.realHeight());
+    bitmap.blt(Graphics.IconsetImage, sx, sy, sw, sh, 0, 0, sw, sh);
     let texture = new PIXI.Texture.fromCanvas(bitmap.canvas);
     let iconSprite = new Sprite(texture);
     iconSprite.scale.set(this.origScale[0], this.origScale[1]);
     iconSprite.setPOS(this.innerX(x), this.innerY(y));
-    iconSprite.setZ(3);
+    iconSprite.setZ(2);
     this.addChild(iconSprite);
+    this.refresh();
     return iconSprite;
+  }
+  /**-------------------------------------------------------------------------
+   * > Draw text
+   */
+  drawText(text, x, y, font = Graphics.DefaultFontSetting){
+    let ts = new PIXI.Text(text, font);
+    ts.scale.set(this.origScale[0], this.origScale[1]);
+    ts.position.set(this.innerX(x), this.innerY(y));
+    ts.zIndex = 2;
+    this.addChild(ts);
+    this.refresh();
   }
   /*-------------------------------------------------------------------------*/
   resize(w, h){
-    this.width  = (w / this.scaleMultipler);
-    this.height = (h / this.scaleMultipler);
+    this.width  = (w / this.scaleMultipler[0]);
+    this.height = (h / this.scaleMultipler[1]);
     let blen    = Graphics.wSkinBorder.width / 2;
     let stmpr   = this.origScale;
     let brmpr   = this.getResizeScale(blen, blen, 
-                  this.realWidth - blen, this.realHeight - blen)
+                  this.realWidth() - blen, this.realHeight() - blen)
     
     this.borderSpriteUL.scale.set(stmpr[0], stmpr[1]);
     this.borderSpriteUP.scale.set(brmpr[0], stmpr[1]);
@@ -242,6 +324,11 @@ class Window_Base extends Sprite{
 
     this.cursorSprite.scale.set(stmpr[0], stmpr[1]);
     this.buttonSprite.scale.set(stmpr[0], stmpr[1]);
+
+    for(let i=0;i<this.children.length;++i){
+      if(this.children[i].static){continue;}
+      this.children[i].scale.set(stmpr[0], stmpr[1]);
+    }
 
     return this;
   }

@@ -4,10 +4,19 @@
  */
 
 Graphics.DefaultFontSetting = {
-  fontFamily: 'Arial',
+  fontFamily: 'CelestiaMediumRedux',
   fontSize: 24,
   align: 'center',
   fill: 0xffffff,
+}
+
+Graphics.LanguageFontMap = {
+  'zh_tw':{
+    fontFamily: 'NotoSansCJKtc-Regular',
+    fontSize: 24,
+    align: 'center',
+    fill: 0xffffff,
+  },
 }
 
 SceneManager.firstSceneClass = Scene_Load;
@@ -18,9 +27,13 @@ Graphics.Background         = "assets/backgorund.png";
 Graphics.Background2        = "assets/background2.png";
 Graphics.LoadImage          = "assets/CrystalHeart.png";
 Graphics.DefaultWindowSkin  = "assets/wskin_base.png";
-Graphics.Iconset            = "assets/IconSet.png"
+Graphics.Iconset            = "assets/IconSet.png";
 Graphics.IconRect           = {x:0, y:0, width:24, height:24}
 Graphics.IconRowCount       = 16
+
+Graphics.ntouSplash         = "assets/ntou.png";
+Graphics.pixiSplash         = "assets/pixijs.png";
+Graphics.howlerSplash       = "assets/howlerjs.png";
 
 // Collection of all images for PIXI preloading, fuck front-js has no glob
 Graphics.Images = [
@@ -28,6 +41,9 @@ Graphics.Images = [
   Graphics.Background2,
   Graphics.Iconset,
   Graphics.DefaultWindowSkin,
+  Graphics.ntouSplash,
+  Graphics.pixiSplash,
+  Graphics.howlerSplash,
 ]
 
 Graphics.WindowSkinSrc = [
@@ -42,10 +58,12 @@ Sound.Get      = 'audio/se/KHSE_ItemGet.wav';
 Sound.SaveLoad = 'audio/se/KHSE_SaveLoad.wav';
 Sound.OK       = 'audio/se/KHSE_Select.wav';
 Sound.Error    = 'audio/se/Buzzer1.mp3';
+Sound.Wave     = 'audio/se/seawave.wav';
 
 Sound.resources = [
   Sound.BGM, Sound.Cancel, Sound.Cursor, Sound.Buzzer, Sound.Get,
   Sound.SaveLoad, Sound.OK, Sound.Error,
+  Sound.Wave,
 ]
 
 Sound.fadeDurationBGM = 3000;

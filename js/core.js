@@ -115,30 +115,7 @@ function reportError(e){
     }, 1000);
   }
 }
-/**----------------------------------------------------------------------------
- * >> The static class that process cached images in pixi loader
- * @namespace Cache
- */
-class Cache{
-  /**-------------------------------------------------------------------------
-   * @constructor
-   * @memberof Cache
-   */
-  constructor(){
-    throw new Error('This is a static class');
-  }
-  /**-------------------------------------------------------------------------
-   * > Return textire of pre-loaded resources
-   * @param {string} name - name of resources
-   * @param {Rectangle} srect - Souce Slice Rect of the texture
-   */  
-  static loadTexture(name, srect = null){
-    if(srect){
-      return new PIXI.Texture(PIXI.loader.resources[name].texture, srect);
-    }
-    return PIXI.loader.resources[name].texture;
-  }
-}
+
 /**----------------------------------------------------------------------------
  * >> The static class that carries out graphics processing.
  * @namespace Graphics
@@ -188,6 +165,7 @@ class Graphics{
     this.fadingSprite = new Sprite();
     this.fadingSprite.fillRect(0, 0, this.width, this.height, 0x000000);
     this.fadingSprite.name = "Fading Sprite"
+    this.fadingSprite.setZ(1000);
     this.fadingSprite.hide();
   }
   /**----------------------------------------------------------------------------
@@ -261,6 +239,17 @@ class Graphics{
     this.loader.load(load_ok_handler);
   }
   /**-------------------------------------------------------------------------
+   * > Return textire of pre-loaded resources
+   * @param {string} name - name of resources
+   * @param {Rectangle} srect - Souce Slice Rect of the texture
+   */  
+  static loadTexture(name, srect = null){
+    if(srect){
+      return new PIXI.Texture(PIXI.loader.resources[name].texture, srect);
+    }
+    return PIXI.loader.resources[name].texture;
+  }
+  /**-------------------------------------------------------------------------
    * > Check whether loader has loaded all resources
    * @returns {boolean}
    */  
@@ -279,7 +268,7 @@ class Graphics{
   }
   /**-------------------------------------------------------------------------
    * > Render sprite to current scene
-   * @param {PIXI.Sprite} sprite - the sprite to be rendered
+   * @param {Sprite} sprite - the sprite to be rendered
    */
   static renderSprite(sprite){
     if(SceneManager.scene.children.indexOf(sprite) > -1){return ;}
@@ -359,7 +348,7 @@ class Graphics{
    * @returns {PIXI.Sprite} - the created sprite
    */  
   static addSprite(image_name, instance_name = null){
-    var sprite = new PIXI.Sprite(Cache.loadTexture(image_name));
+    var sprite = new PIXI.Sprite(Graphics.loadTexture(image_name));
     if(instance_name == null){instance_name = image_name;}
     sprite.name = instance_name;
     this._spriteMap[instance_name] = sprite;
@@ -385,11 +374,13 @@ class Graphics{
    * > Remove object in current scene
    * @param {PIXI.Sprite|string} - the sprite/instance name of sprite to remove
    */
-  static removeSprite(obj){
-    if(isClassOf(obj, String)){ obj = this._spriteMap[obj]; }
-    debug_log("Remove sprite: " + obj.name)
-    delete this._spriteMap[obj.name];
-    SceneManager.scene.removeChild(obj);
+  static removeSprite(...args){
+    args.forEach(function(obj){
+      if(isClassOf(obj, String)){ obj = Graphics._spriteMap[obj]; }
+      debug_log("Remove sprite: " + obj.name)
+      delete Graphics._spriteMap[obj.name];
+      SceneManager.scene.removeChild(obj);
+    })
   }
   /**-------------------------------------------------------------------------
    * > Process transition
@@ -417,7 +408,7 @@ class Graphics{
   /*------------------------------------------------------------------------*/
   static endLoading(){
     if(!this.fadingSprite){return ;}
-    this.fadingSprite.hide();
+    SceneManager.scene.startFadeIn();
     this.renderSprite(this.unfocusSprite);
   }
   /*------------------------------------------------------------------------*/
@@ -443,6 +434,35 @@ class Graphics{
     /** @alias renderWindow */
     this.addWindow = this.renderWindow.bind(this);
   }
+  /*------------------------------------------------------------------------*/
+  static pauseAnimatedSprite(obj){
+    if(isClassOf(obj, PIXI.extras.AnimatedSprite)){
+      if(obj.playing){
+        obj.paused = true;
+        obj.stop();
+      }
+    }
+    if(obj.children){
+      obj.children.forEach(function(child){
+        Graphics.pauseAnimatedSprite(child);
+      })
+    }
+  }
+  /*------------------------------------------------------------------------*/
+  static resumeAnimatedSprite(obj){
+    if(isClassOf(obj, PIXI.extras.AnimatedSprite)){
+      if(obj.paused){
+        obj.play();
+        obj.paused = false;
+      }
+    }
+    if(obj.children){
+      obj.children.forEach(function(child){
+        Graphics.resumeAnimatedSprite(child);
+      })
+    }
+  }
+  /*------------------------------------------------------------------------*/
 } // class Graphics
 
 /**---------------------------------------------------------------------------
@@ -711,7 +731,7 @@ class Sound{
   static onAudioFadeComplete(soundID){
     let soundGroup = Sound.track[Sound._audioMap[soundID].symbol];
     if(soundGroup.volume(soundID) == 0.0){
-      soundGroup.loop(false, soundID);
+      soundGroup.loop = false;
       Sound.unregisterAudio(soundID)
     }
   }
@@ -756,46 +776,48 @@ class Sound{
   /**-------------------------------------------------------------------------
    * > Play the SE with fade-in effect
    */
-  static fadeInSE(symbol){
+  static fadeInSE(symbol, duration = Sound.fadeDurationSE){
     let pid = -1;
     pid = this.track[symbol].play();
-    this.track[symbol].fade(0.0, this._masterVolume, this.fadeDurationBGM, pid);
-    this.registerAudio( {id:pid, type:'SE'} );
+    this.track[symbol].fade(0.0, this._masterVolume, duration, pid);
+    this.registerAudio( {id:pid, type:'SE',symbol:symbol} );
     return pid;
   }
   /**-------------------------------------------------------------------------
    * > Play the BGM with fade-in effect
    */
-  static fadeInBGM(symbol){
+  static fadeInBGM(symbol, duration = Sound.fadeDurationBGM){
     if(this._currentBGM){this.fadeOutBGM();}
     let pid = -1;
     this.track[symbol].loop = true;
     pid = this.track[symbol].play();
-    this.track[symbol].fade(0.0, this._masterVolume, this.fadeDurationSE, pid);
-    this.registerAudio( {id:pid, type:'BGM'} );
+    this.track[symbol].fade(0.0, this._masterVolume, duration, pid);
+    this.registerAudio( {id:pid, type:'BGM', symbol:symbol} );
     return pid;
   }
   /*-------------------------------------------------------------------------*/
-  static fadeOutBGM(){
+  static fadeOutBGM(duration = Sound.fadeDurationBGM){
     let s = this._currentBGM;
-    this.track[s.symbol].fade(this._masterVolume, 0.0, this.fadeDurationBGM, s.id);
+    if(!s){return;}
+    this.track[s.symbol].fade(this._masterVolume, 0.0, duration, s.id);
   }
   /*-------------------------------------------------------------------------*/
-  static fadeOutSE(soundID){
+  static fadeOutSE(soundID, duration = fadeDurationSE){
     if(soundID){
       let s = this._audioMap[soundID];
-      this.track[s.symbol].fade(this._masterVolume, 0.0, this.fadeDurationSE, s.id);
+      this.track[s.symbol].fade(this._masterVolume, 0.0, duration, s.id);
     }
     else{
       for(let i=0;i<this._currentSE.length;++i){
         let s = this._currentSE[i];
-        this.track[s.symbol].fade(this._masterVolume, 0.0, this.fadeDurationSE, s.id);
+        this.track[s.symbol].fade(this._masterVolume, 0.0, duration, s.id);
       }
     }
   }
   /*-------------------------------------------------------------------------*/
   static stopBGM(){
     let s = this._currentBGM;
+    if(!s){return;}
     this.track[s.symbol].loop(false, s.id);
     this.track[s.symbol].stop();
   }
@@ -823,6 +845,54 @@ class Sound{
     this.fadeOutSE();
   }
   /*-------------------------------------------------------------------------*/
+  static resumeAll(){
+    this.resumeBGM();
+    this.resumeSE()
+  }
+  /*-------------------------------------------------------------------------*/
+  static pauseAll(){
+    this.pauseBGM();
+    this.pauseSE()
+  }
+  /*-------------------------------------------------------------------------*/
+  static pauseBGM(){
+    let s = this._currentBGM;
+    if(!s){return;}
+    this.track[s.symbol].pause(s.id);
+  }
+  /*-------------------------------------------------------------------------*/
+  static resumeBGM(){
+    let s = this._currentBGM;
+    if(!s){return;}
+    this.track[s.symbol].play(s.id);
+  }
+  /*-------------------------------------------------------------------------*/
+  static pauseSE(soundID){
+    if(soundID){
+      let s = this._audioMap[soundID];
+      this.track[s.symbol].pause(s.id);
+    }
+    else{
+      for(let i=0;i<this._currentSE.length;++i){
+        let s = this._currentSE[i];
+        this.track[s.symbol].pause(s.id)
+      }
+    }
+  }
+  /*-------------------------------------------------------------------------*/
+  static resumeSE(soundID){
+    if(soundID){
+      let s = this._audioMap[soundID];
+      this.track[s.symbol].play(s.id);
+    }
+    else{
+      for(let i=0;i<this._currentSE.length;++i){
+        let s = this._currentSE[i];
+        this.track[s.symbol].play(s.id)
+      }
+    }
+  }
+  /*-------------------------------------------------------------------------*/
 }
 
 /**---------------------------------------------------------------------------
@@ -836,10 +906,13 @@ class Sprite extends PIXI.Sprite{
   /**-------------------------------------------------------------------------
    * @constructor
    * @memberof Sprite
+   * @property {boolean} static - When is child, the position won't effected by
+   *                              parent's display origin (ox/oy)
    */
   constructor(...args){
     super(...args);
     this.initialize.apply(this, arguments);
+    this.static = false;
     return this;
   }
   /**-------------------------------------------------------------------------
@@ -863,17 +936,6 @@ class Sprite extends PIXI.Sprite{
     });
     return this;
   }
-  /*-------------------------------------------------------------------------*/
-  hide(){
-    this.visible = false;
-    return this;
-  }
-  /*-------------------------------------------------------------------------*/
-  show(){
-    this.visible = true;
-    return this;
-  }
-  /*-------------------------------------------------------------------------*/
   setOpacity(opa){
     this.alpha = opa;
     return this;
@@ -905,6 +967,8 @@ class Sprite extends PIXI.Sprite{
     super.addChild(...args);
     this.children.sort((a,b) => (a.zIndex || 0) - (b.zIndex || 0));
   }
+  /*-------------------------------------------------------------------------*/
+  
   /**-------------------------------------------------------------------------
    * > Getter function
    */

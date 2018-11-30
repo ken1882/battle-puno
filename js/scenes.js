@@ -150,7 +150,9 @@ class Scene_Base extends Stage{
     this._fadingTimer -= 1;
     if(this._fadingTimer <= 0){this.onFadeComplete();}
   }
-  /*-------------------------------------------------------------------------*/
+  /**-------------------------------------------------------------------------
+   * > Fade out screen and sound
+   */
   fadeOutAll(){
     var time = this.slowFadeSpeed() / 60;
     Sound.fadeOutBGM(time);
@@ -182,6 +184,7 @@ class Scene_Base extends Stage{
   }
   /**-------------------------------------------------------------------------
    * > Add window to page view
+   * @param {Window_Base} win - the window class
    */
   addWindow(win, forced = false){
     if(!this.isActive() && !forced){
@@ -194,6 +197,22 @@ class Scene_Base extends Stage{
     }
     this._windows.push(win);
     this.addChild(win);
+  }
+  /**-------------------------------------------------------------------------
+   * > Pause animate sprites
+   */
+  pause(){
+    this.children.forEach(function(sp){
+      Graphics.pauseAnimatedSprite(sp);
+    })
+  }
+  /**-------------------------------------------------------------------------
+   * > Resume paused animate sprites
+   */
+  resume(){
+    this.children.forEach(function(sp){
+      Graphics.resumeAnimatedSprite(sp);
+    })
   }
   /*-------------------------------------------------------------------------*/
 } // Scene_Base
@@ -317,15 +336,118 @@ class Scene_Load extends Scene_Base{
     debug_log("Loading Complete called");
     this.loading_timer = 0xff;
     GameStarted = true;
-    SceneManager.goto(Scene_Title);
+    if(QuickStart){
+      SceneManager.goto(Scene_Title);
+    }
+    else{
+      SceneManager.goto(Scene_Intro);
+    }
   }
   /*-------------------------------------------------------------------------*/
 }
-/**
+/**---------------------------------------------------------------------------
+ * > The intro scene that display the splash image
+ * @class Scene_Intro
+ * @extends Scene_Base
+ */
+class Scene_Intro extends Scene_Base{
+  /*-------------------------------------------------------------------------*/
+  constructor(...args){
+    super(...args)
+  }
+  /*-------------------------------------------------------------------------*/
+  create(){
+    super.create();
+    this.createNTOUSplash();
+    this.createPIXISplash();
+    this.createHowlerSplash();
+  }
+  /*-------------------------------------------------------------------------*/
+  createBackground(){
+    this.backgroundImage = new PIXI.Graphics();
+    this.backgroundImage.beginFill(0);
+    this.backgroundImage.drawRect(0, 0, Graphics.width, Graphics.height);
+    this.backgroundImage.endFill();
+    Graphics.renderSprite(this.backgroundImage);
+  }
+  /*-------------------------------------------------------------------------*/
+  start(){
+    super.start();
+    this.timer        = 0;
+    this.fadeDuration = 30;
+    this.NTOUmoment   = 150;
+    this.ENDmoment    = 500;
+    this.drawLibrarySplash();
+  }
+  /*-------------------------------------------------------------------------*/
+  update(){
+    super.update();
+    this.timer += 1;
+    if(this.timer == this.NTOUmoment){
+      this.startFadeOut();
+    }
+    else if(this.timer == this.NTOUmoment + this.fadeDuration){
+      this.startFadeIn();
+      this.processNTOUSplash();
+    }
+    else if(this.timer == this.NTOUmoment + this.fadeDuration + 40){
+      Sound.playSE(Sound.Wave);
+    }
+    else if(this.timer == this.NTOUmoment + this.fadeDuration + 60){
+      this.startSplashEffect();
+    }
+    else if(this.timer == this.ENDmoment){
+      this.startFadeOut();
+      SceneManager.goto(Scene_Title);
+    }
+
+    if(this.requestFilterUpdate){
+      this.ntouSplash.filters[0].time += 1;
+    }
+  }
+  /*-------------------------------------------------------------------------*/
+  createPIXISplash(){
+    this.pixiSplash = Graphics.addSprite(Graphics.pixiSplash);
+    this.pixiSplash.x = Graphics.appCenterWidth(this.pixiSplash.width);
+  }
+  /*-------------------------------------------------------------------------*/
+  createHowlerSplash(){
+    this.howlerSplash = Graphics.addSprite(Graphics.howlerSplash);
+    this.howlerSplash.x = Graphics.appCenterWidth(this.howlerSplash.width);
+  }
+  /*-------------------------------------------------------------------------*/
+  createNTOUSplash(){
+    this.ntouSplash = Graphics.addSprite(Graphics.ntouSplash);
+    this.ntouSplash.x = Graphics.appCenterWidth(this.ntouSplash.width);
+    this.ntouSplash.y = Graphics.appCenterHeight(this.ntouSplash.height);
+  }
+  /*-------------------------------------------------------------------------*/
+  drawLibrarySplash(){
+    let totalW  = this.pixiSplash.height + this.howlerSplash.height;
+    let padding = Graphics.height - totalW;
+    this.pixiSplash.y   = padding / 3;
+    this.howlerSplash.y = padding;
+    Graphics.renderSprite(this.pixiSplash);
+    Graphics.renderSprite(this.howlerSplash);
+  }
+  /*-------------------------------------------------------------------------*/
+  processNTOUSplash(){
+    this.ntouSplash.filters = []
+    Graphics.removeSprite(this.pixiSplash, this.howlerSplash);
+    Graphics.renderSprite(this.ntouSplash);
+  }
+  /*-------------------------------------------------------------------------*/
+  startSplashEffect(){
+    let wave = new PIXI.filters.ShockwaveFilter([0.5, 0.5],{speed: 5, brightness: 8});
+    this.ntouSplash.filters = [wave];
+    this.requestFilterUpdate = true;
+  }
+  /*-------------------------------------------------------------------------*/
+}
+/**---------------------------------------------------------------------------
  * > The title scene
- * 
  * @class Scene_Title
- * @extends Scene_Title
+ * @extends Scene_Base
  */
 class Scene_Title extends Scene_Base{
   /**-------------------------------------------------------------------------
@@ -348,12 +470,19 @@ class Scene_Title extends Scene_Base{
    */
   start(){
     super.start();
+    Sound.fadeInBGM(Sound.BGM, 20000)
     let wx = Graphics.appCenterWidth(300);
     this.win = new Window_Base(wx, 200);
     Graphics.addWindow(this.win);
     this.win.drawIcon(10, 0, 0);
     this.win.drawIcon(10, 48, 0);
     this.win.drawIcon(10, 24, 0);
+    this.win.drawIcon(10, 0, 24);
+    this.win.drawIcon(10, 48, 24);
+    this.win.drawIcon(10, 24, 24);
+    this.win.drawIcon(10, 0, 48);
+    this.win.drawIcon(10, 48, 48);
+    this.win.drawIcon(10, 24, 48);
   }
   /*-------------------------------------------------------------------------*/
   create(){
@@ -372,7 +501,7 @@ class Scene_Title extends Scene_Base{
   }
   /*-------------------------------------------------------------------------*/
   createTitleText(){
-    let font = Graphics.DefaultFontSetting;
+    let font = clone(Graphics.DefaultFontSetting);
     font.fontSize = 48;
     this.titleText   = Graphics.addText(Vocab.TitleText, null, font);
     this.titleText.x = Graphics.appCenterWidth(this.titleText.width)

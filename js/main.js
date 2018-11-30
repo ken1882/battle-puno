@@ -8,9 +8,10 @@
  * if enabled.
  * @global
  */
-const DebugMode = true;
-const SplitLine = "-------------------------\n"
-var GameStarted = false;
+const DebugMode   = true;
+const QuickStart  = false;
+const SplitLine   = "-------------------------\n"
+var GameStarted   = false;
 
 function initializeApplication(){
   // Disable page scrolling

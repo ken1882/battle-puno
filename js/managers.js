@@ -45,13 +45,17 @@ class SceneManager{
     debug_log("Focus Game")
     SceneManager._focused = true;
     Graphics.onFocus();
+    Sound.resumeAll();
+    this._scene.resume();
   }
   /*-------------------------------------------------------------------------*/
   static unfocusGame(){
     if(!SceneManager._focused){return ;}
     debug_log("Unfocus Game")
     SceneManager._focused = false;
+    Sound.pauseAll();
     Graphics.onUnfocus();
+    this._scene.pause();
   }
   /*-------------------------------------------------------------------------*/
   static run(){
@@ -230,6 +234,7 @@ class DataManager{
     this.ready    = false;
     this.setupSettingKeys();
     this.loadLanguageSetting();
+    this.loadLanguageFont();
     this.ready    = true;
   }
   /*-------------------------------------------------------------------------*/
@@ -242,6 +247,12 @@ class DataManager{
     let lan = this.database.getItem(this.kLanguage)
     if(!lan){lan = this.DefaultLanguage;}
     this.changeSetting(this.kLanguage, lan);
+  }
+  /*-------------------------------------------------------------------------*/
+  static loadLanguageFont(){
+    if(Graphics.LanguageFontMap[this.language]){
+      Graphics.DefaultFontSetting = Graphics.LanguageFontMap[this.language];
+    }
   }
   /*-------------------------------------------------------------------------*/
   static changeSetting(key, value){

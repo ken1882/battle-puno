@@ -1,6 +1,18 @@
+@font-face{
+  font-family: 'CelestiaMediumRedux';
+  src: url('fonts/CelestiaMediumRedux.ttf') format('truetype');
+}
+
+@font-face{
+  font-family: 'NotoSansCJKtc-Regular';
+  src: url('fonts/NotoSansCJKtc-Regular.otf') format('opentype');
+}
+
 body{
   background-color: black;  
   text-align: center;
+  font-family: 'CelestiaMediumRedux';
+  color: white;
 }
 
 canvas{
