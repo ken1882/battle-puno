@@ -62,7 +62,7 @@ class Window_Base extends Sprite{
       if(!this.isObjectVisible(sp)){sp.hide();}
       else{sp.show();}
       let dx = this.origX(sp.x) - this.ox, dy = this.origY(sp.y) - this.oy;
-      
+      // last work: surplus contents handling
     }
   }
   /**-------------------------------------------------------------------------
@@ -74,7 +74,7 @@ class Window_Base extends Sprite{
   /*-------------------------------------------------------------------------*/
   get z(){return this.zIndex;}
   get padding(){return Graphics.padding;}
-  get spcaing(){return Graphics.spacing;}
+  get spacing(){return Graphics.spacing;}
   /**-------------------------------------------------------------------------
    * > The scale needed for zoom the sprite to original size
    * @returns {[Float, Float]} - width[0] and height[1] scale number
@@ -120,13 +120,6 @@ class Window_Base extends Sprite{
    */
   getResizeScale(ow, oh, gw, gh){
     return [gw / this.width / ow, gh / this.height / oh];
-  }
-  /**-------------------------------------------------------------------------
-   * > Render window onto page
-   */
-  render(){
-    if(this.rendered){return ;}
-    document.body.appendChild(this._content);
   }
   /**-------------------------------------------------------------------------
    * > Draw window skin
@@ -252,7 +245,7 @@ class Window_Base extends Sprite{
       this.arrowRightSprite, this.arrowUpSprite
     ]
     for(let i=0;i<4;++i){
-      this.arrowSprites[i].setZ(3);
+      this.arrowSprites[i].setZ(6);
       this.arrowSprites[i].hide();
       this.arrowSprites[i].static = true;
       this.addChild(this.arrowSprites[i]);
@@ -318,9 +311,21 @@ class Window_Base extends Sprite{
     this.borderSpriteBR.setPOS(this.borderSpriteUR.x, this.borderSpriteBL.y);
     this.borderSpriteRT.setPOS(this.borderSpriteUR.x, this.borderSpriteLT.y);
 
-    for(let i=0;i<this.arrowSprites;++i){
+    for(let i=0;i<this.arrowSprites.length;++i){
       this.arrowSprites[i].scale.set(stmpr[0], stmpr[1]);
     }
+    let offset = [Graphics.wSkinArrowUP.width, Graphics.wSkinArrowUP.height];
+
+    this.arrowUpSprite.setPOS(this.innerX((this.realWidth() - offset[0]) / 2 ), this.innerY(this.spacing));
+
+    this.arrowLeftSprite.setPOS(this.innerX(this.spacing),
+                                this.innerY((this.realHeight() - offset[0]) / 2));
+
+    this.arrowDownSprite.setPOS(this.arrowUpSprite.x, 
+                                this.innerY(this.realHeight() - this.spacing - offset[1]))
+
+    this.arrowRightSprite.setPOS(this.innerX(this.realWidth() - this.spacing - offset[1]),
+                                 this.arrowLeftSprite.y);
 
     this.cursorSprite.scale.set(stmpr[0], stmpr[1]);
     this.buttonSprite.scale.set(stmpr[0], stmpr[1]);

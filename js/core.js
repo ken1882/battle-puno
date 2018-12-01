@@ -2,11 +2,25 @@
  *                      Global utility functions                              *
  *----------------------------------------------------------------------------*/
 
+// Firefox 1.0+
+var isFirefox = typeof InstallTrigger !== 'undefined';
+
+// Chrome 1+
+var isChrome = !!window.chrome && !!window.chrome.webstore;
+
 /**----------------------------------------------------------------------------
  * > Disable web page scrolling when using wheel
  */
 function DisablePageScroll() {
   document.documentElement.style.overflow = 'hidden';
+}
+/**----------------------------------------------------------------------------
+ * > Ask use whether really want to leave the page
+ */
+function RegisterLeaveEvent() {
+  window.onbeforeunload = function(){
+    return "You have attempted to leave this page. If you have made any changes to the fields without clikcing the Save button, your changes will be lost. Are you sure you want to exit this page?";
+  }
 }
 /**----------------------------------------------------------------------------
  * > Get domain URL of current page

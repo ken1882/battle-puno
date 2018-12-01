@@ -249,6 +249,9 @@ class Scene_Load extends Scene_Base{
   start(){
     super.start();
     this.processLoadingPhase();
+    if(!isChrome && !isFirefox){
+      window.alert("Warning: To ensure the best experience, please use chrome or firefox to play this game.")
+    }
   }
   /*-------------------------------------------------------------------------*/
   create(){
@@ -376,7 +379,9 @@ class Scene_Intro extends Scene_Base{
     this.timer        = 0;
     this.fadeDuration = 30;
     this.NTOUmoment   = 150;
-    this.ENDmoment    = 500;
+
+    // Firefox's mysterious FPS loss so need to reduce time thereshold
+    this.ENDmoment    = isFirefox ? 400 : 500;
     this.drawLibrarySplash();
   }
   /*-------------------------------------------------------------------------*/
@@ -438,7 +443,10 @@ class Scene_Intro extends Scene_Base{
   }
   /*-------------------------------------------------------------------------*/
   startSplashEffect(){
-    let wave = new PIXI.filters.ShockwaveFilter([0.5, 0.5],{speed: 5, brightness: 8});
+    let wave = new PIXI.filters.ShockwaveFilter([0.5, 0.5],{
+      speed: isFirefox ? 8 : 5, // Haste due to FF's FPS loss
+      brightness: 8
+    });
     this.ntouSplash.filters = [wave];
     this.requestFilterUpdate = true;
   }

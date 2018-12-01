@@ -16,6 +16,8 @@ var GameStarted   = false;
 function initializeApplication(){
   // Disable page scrolling
   DisablePageScroll();
+  // Confirm leave before page unload
+  RegisterLeaveEvent();
   // Initialize kernel module
   DataManager.initialize();
   Vocab.initialize();
