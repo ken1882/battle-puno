@@ -3,5 +3,7 @@
   "LoadTextGraphics": "讀取圖像紋理...",
   "LoadTextAudio": "讀取音效...",
   "LoadTextComplete": "讀取完成!",
-  "TitleText": "Battle Puno"
+  "TitleText": "Battle Puno",
+  "BrowserWarning": "為了維持最佳的遊戲體驗, 建議您改用Chrome或Firefox來遊玩此遊戲",
+  "MobileWarning": "目前為行動裝置瀏覽器, 極有可能因遊戲解析度過大導致無法正常顯示"
 }

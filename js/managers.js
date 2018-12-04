@@ -26,6 +26,7 @@ class SceneManager{
   }
   /*-------------------------------------------------------------------------*/
   static updateMain(){
+    if(FatelError)return ;
     try{
       if(GameStarted && !document.hasFocus()){return SceneManager.unfocusGame();}
       SceneManager.focusGame();

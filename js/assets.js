@@ -5,7 +5,7 @@
 
 Graphics.DefaultFontSetting = {
   fontFamily: 'CelestiaMediumRedux',
-  fontSize: 24,
+  fontSize: 20,
   align: 'center',
   fill: 0xffffff,
 }

@@ -27,6 +27,7 @@ class Scene_Base extends Stage{
     this._windows = [];
     this._fadingFlag = 0;
     this._fadingTimer = 0;
+    this._buttonCooldown = new Array(0xff);
     this._fadingSprite = Graphics.fadingSprite;
   }
   /**-------------------------------------------------------------------------
@@ -215,6 +216,14 @@ class Scene_Base extends Stage{
     })
   }
   /*-------------------------------------------------------------------------*/
+  heatupButton(kid){
+    this._buttonCooldown[kid] = 4;
+  }
+  /*-------------------------------------------------------------------------*/
+  isButtonCooled(kid){
+    return (this._buttonCooldown[kid] || 0) == 0;
+  }
+  /*-------------------------------------------------------------------------*/
 } // Scene_Base
 
 /**
@@ -249,8 +258,11 @@ class Scene_Load extends Scene_Base{
   start(){
     super.start();
     this.processLoadingPhase();
-    if(!isChrome && !isFirefox){
-      window.alert("Warning: To ensure the best experience, please use chrome or firefox to play this game.")
+    if(isMobile){
+
+    }
+    else if(!isChrome && !isFirefox){
+      window.alert()
     }
   }
   /*-------------------------------------------------------------------------*/
@@ -263,6 +275,7 @@ class Scene_Load extends Scene_Base{
   update(){
     super.update();
     this.updateLoading();
+    this.updateButtonCooldown();
   }
   /*-------------------------------------------------------------------------*/
   createLoadingImage(){
@@ -284,6 +297,14 @@ class Scene_Load extends Scene_Base{
     let message = 'Graphics Loaded : ' + loader.progress + '%';
     if(resources){message += ', name : ' + resources.name + ', url : ' + resources.url;}
     debug_log(message);
+  }
+  /*-------------------------------------------------------------------------*/
+  updateButtonCooldown(){
+    for(let i=0;i<0xff;++i){
+      if((this._buttonCooldown[i] || 0) > 0){
+        this._buttonCooldown[i] -= 1;
+      }
+    }
   }
   /*-------------------------------------------------------------------------*/
   updateLoading(){
@@ -388,6 +409,14 @@ class Scene_Intro extends Scene_Base{
   update(){
     super.update();
     this.timer += 1;
+    this.updateSplashStage();
+    this.updateSkip();
+    if(this.requestFilterUpdate){
+      this.ntouSplash.filters[0].time += 1;
+    }
+  }
+  /*-------------------------------------------------------------------------*/
+  updateSplashStage(){
     if(this.timer == this.NTOUmoment){
       this.startFadeOut();
     }
@@ -403,11 +432,22 @@ class Scene_Intro extends Scene_Base{
     }
     else if(this.timer == this.ENDmoment){
       this.startFadeOut();
+      Sound.fadeOutAll();
       SceneManager.goto(Scene_Title);
     }
-
-    if(this.requestFilterUpdate){
-      this.ntouSplash.filters[0].time += 1;
+  }
+  /*-------------------------------------------------------------------------*/
+  updateSkip(){
+    if(!Input.isTriggered(Input.keymap.kMOUSE1)){return ;}
+    this.heatupButton(Input.keymap.kMOUSE1);
+    if(this.timer < this.NTOUmoment){
+      this.timer = this.NTOUmoment - 1;
+    }
+    else if(this.timer < this.NTOUmoment + this.fadeDuration){
+      this.timer = this.NTOUmoment + this.fadeDuration - 1;
+    }
+    else if(this.timer < this.ENDmoment){
+      this.timer = this.ENDmoment - 1;
     }
   }
   /*-------------------------------------------------------------------------*/
@@ -482,15 +522,9 @@ class Scene_Title extends Scene_Base{
     let wx = Graphics.appCenterWidth(300);
     this.win = new Window_Base(wx, 200);
     Graphics.addWindow(this.win);
-    this.win.drawIcon(10, 0, 0);
-    this.win.drawIcon(10, 48, 0);
-    this.win.drawIcon(10, 24, 0);
-    this.win.drawIcon(10, 0, 24);
-    this.win.drawIcon(10, 48, 24);
-    this.win.drawIcon(10, 24, 24);
-    this.win.drawIcon(10, 0, 48);
-    this.win.drawIcon(10, 48, 48);
-    this.win.drawIcon(10, 24, 48);
+    this.win.drawIcon(10, 260, 0);
+    this.win.drawText("Window Resoultion: " + window.innerWidth + ' ' + window.innerHeight)
+    this.win.drawText("Hello World!", 0, 24);
   }
   /*-------------------------------------------------------------------------*/
   create(){

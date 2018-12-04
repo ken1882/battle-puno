@@ -27,7 +27,9 @@ class Window_Base extends Sprite{
     super.initialize();
     this._skin  = Graphics.DefaultWindowSkin;
     this.ox = 0; this.oy = 0;
+    this.lastDisplayOrigin = [0,0];
     this.scaleMultipler = [Graphics.wSkinIndexRect.width, Graphics.wSkinIndexRect.height];
+    this.drawnObjects   = [];
     this.applySkin();
     this.applyMask();
     this.setPOS(x, y);
@@ -50,26 +52,53 @@ class Window_Base extends Sprite{
     let dx = this.origX(obj.x) - this.ox, dy = this.origY(obj.y) - this.oy;
     if(dx > this.realWidth() || dy > this.realHeight()){return false;}
     let dw = dx + this.realWidth(obj.width), dh = dy + this.realHeight(obj.height);
-    if(dx + dw < 0 && dy + dh < 0){return false;}
+    if(dx + dw < 0 || dy + dh < 0){return false;}
     return true;
   }
   /*------------------------------------------------------------------------*/
+  clear(){
+    for(let i=0;i<this.drawnObjects.length;++i){
+      this.removeChild(this.drawnObjects[i]);
+    }
+  }
+  /*------------------------------------------------------------------------*/
   refresh(){
+    let dox = this.ox - this.lastDisplayOrigin[0];
+    let doy = this.oy - this.lastDisplayOrigin[1];
     this.children.sort((a,b) => (a.zIndex || 0) - (b.zIndex || 0));
     for(let i=0;i<this.children.length;++i){
       let sp = this.children[i];
       if(sp.static){continue;}
       if(!this.isObjectVisible(sp)){sp.hide();}
       else{sp.show();}
-      let dx = this.origX(sp.x) - this.ox, dy = this.origY(sp.y) - this.oy;
-      // last work: surplus contents handling
+      let dx = this.origX(sp.x) - dox, dy = this.origY(sp.y) - doy;
+      sp.setPOS(this.innerX(dx), this.innerY(dy));
     }
+    this.lastDisplayOrigin = [this.ox, this.oy];
   }
   /**-------------------------------------------------------------------------
    * > Set Z-Index
    */
   setZ(z){
     this.zIndex = z;
+  }
+  /**-------------------------------------------------------------------------
+   * > Scroll window horz/vert
+   */
+  scroll(sx = 0, sy = 0){
+    this.ox += sx;
+    this.oy += sy;
+    this.refresh();
+  }
+  /**-------------------------------------------------------------------------
+   * > Set display origin
+   * @param {Number} x - new ox, should be real x in pixel
+   * @param {Number} y - new oy, should be rael y in pixel
+   */
+  setDisplayOrigin(x, y){
+    this.ox = x;
+    this.oy = y;
+    this.refresh();
   }
   /*-------------------------------------------------------------------------*/
   get z(){return this.zIndex;}
@@ -102,14 +131,24 @@ class Window_Base extends Sprite{
   origY(y){return y * this.height;}
   /**-------------------------------------------------------------------------
    * > Get the real width on the screen
-   * @param {Number} w - the width inside the windoe
+   * @param {Number|undefined} w - if non argument given, return this window's
+   *                               real width in pixel; otherwiase return the
+   *                               object's original width.
    */
-  realWidth(w = this.width){return w * this.scaleMultipler[0];}
+  realWidth(w = null){
+    if(!w){ return this.width * this.scaleMultipler[0]; }
+    return w / this.origScale[0];
+  }
   /**-------------------------------------------------------------------------
    * > Get the real height on the screen
-   * @param {Number} h - the height inside the windoe
+   * @param {Number|undefined} h - if non argument given, return this window's
+   *                               real height in pixel; otherwiase return the
+   *                               object's original height.
    */
-  realHeight(h = this.height){return h * this.scaleMultipler[1];}
+  realHeight(h = null){
+    if(!h){ return this.height * this.scaleMultipler[1]; }
+    return h / this.origScale[1];
+  }
   /**-------------------------------------------------------------------------
    * > Get the scale value to given width and length
    * @param {Number} ow - the original width
@@ -225,6 +264,8 @@ class Window_Base extends Sprite{
     this.buttonSprite.static = true;
     this.buttonSprite.animationSpeed = 0.25;
     this.buttonSprite.position.set(32,32);
+    this.buttonSprite.origX = 32;
+    this.buttonSprite.origY = 32;
     this.buttonSprite.hide();
     this.addChild(this.buttonSprite);
   }
@@ -258,35 +299,51 @@ class Window_Base extends Sprite{
    * @param {Number} y - the draw position of Y
    */
   drawIcon(icon_index, x, y){
+    x += this.spacing; y += this.spacing;
     icon_index = parseInt(icon_index);
     let src_rect = clone(Graphics.IconRect);
     src_rect.x = icon_index % Graphics.IconRowCount * src_rect.width;
     src_rect.y = parseInt(icon_index / Graphics.IconRowCount) * src_rect.height;
     let sx = src_rect.x, sy = src_rect.y, sw = src_rect.width, sh = src_rect.height;
-    let bitmap = new Bitmap(0,0,this.realWidth(),this.realHeight());
+    let bitmap = new Bitmap(0, 0, sw, sh);
     bitmap.blt(Graphics.IconsetImage, sx, sy, sw, sh, 0, 0, sw, sh);
     let texture = new PIXI.Texture.fromCanvas(bitmap.canvas);
     let iconSprite = new Sprite(texture);
     iconSprite.scale.set(this.origScale[0], this.origScale[1]);
     iconSprite.setPOS(this.innerX(x), this.innerY(y));
     iconSprite.setZ(2);
+    this.drawnObjects.push(iconSprite);
     this.addChild(iconSprite);
     this.refresh();
     return iconSprite;
   }
   /**-------------------------------------------------------------------------
-   * > Draw text
+   * > Draw text inside the window
+   * @param {String} text - the text to display
+   * @param {Number} x - the x position of the text to draw
+   * @param {Number} y - the y position of the text to draw
+   * @param {Object} font - the font settings
    */
-  drawText(text, x, y, font = Graphics.DefaultFontSetting){
+  drawText(text, x = 0, y = 0, font = Graphics.DefaultFontSetting){
     let ts = new PIXI.Text(text, font);
+    x += this.spacing; y += this.spacing;
     ts.scale.set(this.origScale[0], this.origScale[1]);
     ts.position.set(this.innerX(x), this.innerY(y));
     ts.zIndex = 2;
+    this.drawnObjects.push(ts);
     this.addChild(ts);
     this.refresh();
   }
   /*-------------------------------------------------------------------------*/
   resize(w, h){
+    w = Math.min(Math.max(1, w), 4096);
+    h = Math.min(Math.max(1, h), 4096);
+    let childrenPOS = []
+    for(let i=0;i<this.children.length;++i){
+      if(this.children[i].static){continue;}
+      childrenPOS[i] = [this.origX(this.children[i].x), this.origY(this.children[i].y)]
+    }
+
     this.width  = (w / this.scaleMultipler[0]);
     this.height = (h / this.scaleMultipler[1]);
     let blen    = Graphics.wSkinBorder.width / 2;
@@ -333,6 +390,8 @@ class Window_Base extends Sprite{
     for(let i=0;i<this.children.length;++i){
       if(this.children[i].static){continue;}
       this.children[i].scale.set(stmpr[0], stmpr[1]);
+      console.log(childrenPOS[i]);
+      this.children[i].setPOS(this.innerX(childrenPOS[i][0]), this.innerY(childrenPOS[i][1]));
     }
 
     return this;

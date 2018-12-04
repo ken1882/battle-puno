@@ -3,5 +3,7 @@
   "LoadTextGraphics": "Loading Texture...",
   "LoadTextAudio": "Loading Audio...",
   "LoadTextComplete": "Load Completed!",
-  "TitleText": "Battle Puno"
+  "TitleText": "Battle Puno",
+  "BrowserWarning": "Warning: To ensure the best experience, please use chrome or firefox to play this game.",
+  "MobileWarning": "You're running on a mobile, the game resoultion chances are too large to display."
 }

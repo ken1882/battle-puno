@@ -12,6 +12,7 @@ const DebugMode   = true;
 const QuickStart  = false;
 const SplitLine   = "-------------------------\n"
 var GameStarted   = false;
+var FatelError    = false;
 
 function initializeApplication(){
   // Disable page scrolling
