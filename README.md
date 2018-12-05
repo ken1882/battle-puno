@@ -52,8 +52,8 @@ Total of 76, four color with each two of 1-9 cards and one of 0 card.
   Traditional uno game. The one played all cards in hand or the last stand wins. (You can choose whether add Trade/Wild Chaos/Discard All card to deck since they're not in original uno game.)
 
   - **Battle Puno!:**<br>
-  All cards are available in this mode. Every player begins with 200 hitpoints, when a number card is played, add its number to damage pool, if the card played is zero, the user can choose whether reset the damage pool or +10 to it. Whoever have no more card to play(or just don't wanna play one in the turn) and have to draw from the deck, his/her loses the hitpoints equal to the number in damage pool, resets the damage pool afterward and discards those cards.
-  When the games end, every player loses the hitpoints equal to the sum of card points he/she left in the hand, then add the hitpoints left to the score(subtract if hp is negative).
+  All cards are available in this mode. Every player begins with 200 hitpoints, when a number card is played, add its number to damage pool, if the card played is zero, the user can choose whether reset the damage pool or +10 to it. Whoever have no more card to play(or just don't wanna play one in the turn) and have to draw from the deck, his/her loses the hitpoints equal to the number in damage pool, resets the damage pool afterward and discards those cards.<br>
+  When the round ends, every player loses the hitpoints equal to the sum of card points he/she left in the hand, then add the hitpoints left to the score(lose score if hp is negative).<br>
   The player who reach 500 scores first wins the game, and players are ranked by the score.
 
  - **Death Match:**<br>
