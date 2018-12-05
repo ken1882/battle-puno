@@ -12,7 +12,7 @@ Most rules are same as original uno, and all details will be listed below.
   At the beginning of the game, each player draws a card from the deck, and the player with the highest card point(see the 'Card Point' below) will play first with clockwise order. 
   
   - **Main process:**<br>
-  First draws a coloured card on table(if not put back and draws again then shuffle), the one plays the card must play the card matched to last card's colour(red/blue/green/yellow) or symbol(0-9, skip, reverse......). The black color card can be played regardless of the color of previous card.
+  First, draws a coloured card on table(if not put back and draws again then shuffle), the one plays the card must play the card matched to last card's colour(red/blue/green/yellow) or symbol(0-9, skip, reverse......). The black color card can be played regardless of the color of previous card.
   If any player has no cards in the hand, the round ends and calculate the score. And the last card in the hand MUST NOT be black card except 'wild', otherwise draw a card from the deck.
   
   - **Overtime:**<br>
@@ -48,10 +48,10 @@ Total of 76, four color with each two of 1-9 cards and one of 0 card.
   - **Wild/Wild Draw/Wild Chaos:** 50.<br>
 
 ## Game Modes:
-  - **Traditional:** Traditional uno game. No Trade/Wild Chaos/Discard All card.
+  - **Traditional:** Traditional uno game. The one played all cards in hand or the last stand wins. (You can choose whether add Trade/Wild Chaos/Discard All card to deck since they're not in original uno game.)<br>
   - **Battle Puno!:**
   All cards are available in this mode. Every player begins with 200 hitpoints, when a number card is played, add its number to damage pool, if the card played is zero, the user can choose whether reset the damage pool or +10 to it. Whoever have no more card to play(or just don't wanna play one in the turn) and have to draw from the deck, his/her loses the hitpoints equal to the number in damage pool, resets the damage pool afterward and discards those cards.
   When the games end, every player loses the hitpoints equal to the sum of card points he/she left in the hand, then add the hitpoints left to the score(subtract if hp is negative).
-  The player reach 500 scores wins the game.
+  The player who reach 500 scores first wins the game, and players are ranked by the score.<br>
  - **Death Match:**:
  Most are same as **Battle Puno!**, but when the number of card in player's hand is less than the number had at beginning, draws the card from deck until the number met. If the deck is out of card, shuffle the discarded cards as the deck. In rare situation, the cards played are all in the damage pool and no card in deck; resets the damage pool and shuffle those cards as deck.
