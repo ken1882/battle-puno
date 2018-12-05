@@ -1,38 +1,25 @@
-Battle-Puno | Rules v0.0.1
+# Battle-Puno | Rules v0.1.0
 
-> Special rules:
-	Each player begins with 250hp, when game starts, draw a first from the deck, it must be a normal card, (redrawn if it isn't) and each player draws 7 cards from the deck.
-	After the cards is drawn, select a player randomly as bookmaker then he/she will be the first to play card.
+Most rules are same as original uno, and all details will be listed below.
 
-> Taken Damage:
-	The total damage stacks up during the progress, if the player have no more card to play or it just don't want to. It loses the hitponits equivalent to the points that have been added up. Then discard the used cards.
+## General rules:
+  # Beginning: At the beginning of the game, each player draws a card from the deck, and the player with the highest card point(see the 'Card Point' below) will play first with clockwise order. 
+  # Main process: First draws a coloured card on table(if not put back and draws again then shuffle), the one plays the card must play the card matched to last card's colour(red/blue/green/yellow) or symbol(0-9, skip, reverse......).
+  If any player has no cards in the hand, the round ends and calculate the score. And the last card in the hand MUST NOT be black card except 'wild', otherwise draw a card from the deck.
+  # Overtime: When it comes there's no card left on deck, the game continues. If the player has no more card to play, he/she keeps the card in hand but no longer be able to play in this round(knocked out). The rest players follow the same process until there's only one player left and he/she also has no card to play.
 
-> Draw a card form deck:
-	Pay 5 hitponits as penalty to draw a card, including drawing due to special cards.
 
-> Deck Empty:
-	When the deck is emptied, the game still continues. But when a player is unable to play any card, its hitponits is conducted that equivalent to the sum of points of the cards in its hand. The penalty cards no longer make next player to draw cards this time, but the 'skip' effect still persists.
+## Cards Information:
+There're total of 120 cards in the game.
 
-> Cards special:
-	0: 	 Resets the stacked damage to 0.
-	1~9: Stacks up the damage according to its number.
-	
-> Skip:
-	Directly use: Next player is skipped, meanwhile +5 stacked damage.
-	Reactive use: When previous player uses penalty/skip cards on you, you can transfer the penalty to next player by playing this card. You cannot use this card when unable to play it in default rules.
+# Number Cards: 76, four color two of 1-9 cards and one of 0 card.
 
-> Reverse:
-	Directly use: Reverse playing order.
-	Reactive use: Counter the penalty back to previous player, meanwhile he/she can also uses this cards to counter the counter. You cannot use this card when unable to play it in default rules.
+# Special Cards: 
+  **Coloured:** 24. Each two of skip, reversed and draw 2.
+  **Black:** 12. 4 Wild, 4 Wild Draw, 1 Trade, 1 Wild Hit All, 1 Wild Chaos, 1 Discard All.
 
-> Penaly Cards:
-	Same as default.
-	
-> Ending the game:
-	When a player's hp drops to zero, it knocks out until next round starts.
-	When a player has no more cards in hand, it gains the score equivalent to the hp it left.
-	When a player is the only one left, it make its hand deck public and continue play the card until it has no more cards in hand or no card can be played. Then it conducts the hp equivalent to the sum of points of its hand deck left.
-	
-> Wining:
-	When any player reaches 500 score or more. The game ends and the rank is ordered by the player's score.
-	(1st is highest score, 2nd is second-highest...and so on)
+# Special card utility:
+  **Skip:** Next player cannot play the card for 1 turn. Or when the last player plays draw card(or the penalty is upon you by other player plays skip or reverse), you can play this card to transfer the penalty to next player.
+  **Reverse:** Reverse the play order(clockwise to counter clockwise and vice versa). Or when last player plays draw card(or the penalty is upon you by other player plays skip or reverse), you can play this card to reflect the penalty to last player himself/herself.
+  **Draw 2(+2):** Next player draw 2 cards as penalty.
+  **Wild**: Choose any color you desired as next color.
