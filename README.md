@@ -47,7 +47,11 @@ Total of 76, four color with each two of 1-9 cards and one of 0 card.
   - **Discard All/Trade:** 30.<br>
   - **Wild/Wild Draw/Wild Chaos:** 50.<br>
 
-##Game Modes:
+## Game Modes:
   - **Traditional:** Traditional uno game. No Trade/Wild Chaos/Discard All card.
   - **Battle Puno!:**
-  All cards are available in this mode. Every player begins with 300 hitpoints, 
+  All cards are available in this mode. Every player begins with 200 hitpoints, when a number card is played, add its number to damage pool, if the card played is zero, the user can choose whether reset the damage pool or +10 to it. Whoever have no more card to play(or just don't wanna play one in the turn) and have to draw from the deck, his/her loses the hitpoints equal to the number in damage pool, resets the damage pool afterward and discards those cards.
+  When the games end, every player loses the hitpoints equal to the sum of card points he/she left in the hand, then add the hitpoints left to the score(subtract if hp is negative).
+  The player reach 500 scores wins the game.
+ - **Death Match:**:
+ Most are same as **Battle Puno!**, but when the number of card in player's hand is less than the number had at beginning, draws the card from deck until the number met. If the deck is out of card, shuffle the discarded cards as the deck. In rare situation, the cards played are all in the damage pool and no card in deck; resets the damage pool and shuffle those cards as deck.
