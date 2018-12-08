@@ -7,13 +7,41 @@
  * Debug mode flag, prints debug information and allow to use cheat function
  * if enabled.
  * @global
+ * @type {boolean}
  */
 const DebugMode   = true;
+
+/**
+ * Flag that determines whether skips the intro scene
+ * @global
+ * @type {boolean}
+ */
 const QuickStart  = false;
+
+/**
+ * A paragraph-wrap line of string for debug console
+ * @global
+ * @type {string}
+ */
 const SplitLine   = "-------------------------\n"
+
+/**
+ * Flag represents whether the game has loaded and started
+ * @global
+ * @type {boolean}
+ */
 var GameStarted   = false;
+
+/**
+ * Flag whether encountered a fatel error and game cannot be continued
+ * @global
+ * @type {boolean}
+ */
 var FatelError    = false;
 
+/**
+ * > Game initialize process
+ */
 function initializeApplication(){
   // Disable page scrolling
   DisablePageScroll();
@@ -26,7 +54,9 @@ function initializeApplication(){
   setTimeout(start, 500);
 }
 
-// Start Processing
+/**
+ * Start Processing, call itself 0.5 sec later if DataManager is not ready
+ */
 function start(){
   // wait until initial data is ready
   if(!DataManager.isReady()){

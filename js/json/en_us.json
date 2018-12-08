@@ -4,6 +4,8 @@
   "LoadTextAudio": "Loading Audio...",
   "LoadTextComplete": "Load Completed!",
   "TitleText": "Battle Puno",
-  "BrowserWarning": "Warning: To ensure the best experience, please use chrome or firefox to play this game.",
-  "MobileWarning": "You're running on a mobile, the game resoultion chances are too large to display."
+  "BrowserWarning": "Warning: To ensure the best experience, please consider using chrome or firefox; or there might be some issues on other browser.",
+  "MobileWarning": "You're running on a mobile, the game resoultion most likely is too large to display. Using PC for best experience.",
+  "FirefoxWarning": "There're some add-ons will cause huge FPS lose, such as Dark Mode. Please whitelist this site or disable them to avoid this issue.",
+  "DontShowWarning": "(Click yes if you don't want to see this message again)"
 }

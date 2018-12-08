@@ -21,10 +21,16 @@ window.mobilecheck = function() {
 var isMobile = window.mobilecheck();
 
 /**----------------------------------------------------------------------------
- * > Disable web page scrolling when using wheel
+ * > Disable web page scrolling
  */
 function DisablePageScroll() {
   document.documentElement.style.overflow = 'hidden';
+}
+/**----------------------------------------------------------------------------
+ * > Enable web page scrolling
+ */
+function EnablePageScroll(){
+  document.documentElement.style.overflow = '';
 }
 /**----------------------------------------------------------------------------
  * > Ask use whether really want to leave the page
@@ -110,7 +116,7 @@ function clone(obj){
  * @param {string} path - path to the json file
  * @param {function} handler - the handler to call, first arg is the read result
  */
-function processJSON(path, handler){
+function processJSON(path, handler, fallback){
   var xhr = new XMLHttpRequest();
   if(!handler){ handler = function(){} }
   xhr.open('GET', path, true);
@@ -120,10 +126,13 @@ function processJSON(path, handler){
       var file = new File([this.response], 'temp');
       var fileReader = new FileReader();
       fileReader.addEventListener('load', function(){
-        handler.call(Vocab, fileReader.result);
+        handler.call(this, fileReader.result);
       });
       fileReader.readAsText(file);
-    } 
+    }
+    else{
+      fallback.call(this, this.status);
+    }
   }
   xhr.send();
 }
@@ -174,16 +183,26 @@ class Graphics{
     this._spacing = 4;
     this._frameCount = 0;
     this._spriteMap = {}
-    this.fadingSprite  = null;
-    this.unfocusSprite = null;
+    this.fadingSprite   = null;
+    this.unfocusSprite  = null;
     this._loader_ready  = true;
+    this._frameCount    = 0;
+    this.FPS_Sum        = 0;
+    this.FPS_MaxSample  = 30;
+    this.FPS_SampleIndex = 0;
+    this.FPS_SamplePool = [];
 
     this.createApp();
     this.initRenderer();
     this.initLoader();
     this.aliasFunctions();
+    this.createGlobalSprites();
+  }
+  /*---------------------------------------------------------------------------*/
+  static createGlobalSprites(){
     this.createFadingSprite();
     this.createUnfocusSprite();
+    this.createFPSSprite();
   }
   /**----------------------------------------------------------------------------
    * > Sprite for fading effect
@@ -196,7 +215,7 @@ class Graphics{
     this.fadingSprite.hide();
   }
   /**----------------------------------------------------------------------------
-   * > Create main viewport
+   * > Create unfocus effect sprite
    */
   static createUnfocusSprite(){
     this.unfocusSprite = new Sprite();
@@ -205,6 +224,14 @@ class Graphics{
     this.unfocusSprite.setZ(1001);
     this.unfocusSprite.name = "Unfocus Sprite";
     this.unfocusSprite.hide();
+  }
+  /**----------------------------------------------------------------------------
+   * > Create sprite display FPS
+   */
+  static createFPSSprite(){
+    let font = clone(this.DefaultFontSetting)
+    font.fontSize = 18;
+    this.FPSSprite = new PIXI.Text("FPS: ", font);
   }
   /**----------------------------------------------------------------------------
    * > Create main viewport
@@ -348,7 +375,7 @@ class Graphics{
   /**-------------------------------------------------------------------------
    * > Get center x-pos of object in canva
    * @param {number} x - the object's width
-   * @returns {number} - the x-pos after centered
+   * @returns {number} - the x-pos after center
    */  
   static appCenterWidth(x = 0){
     return (this._width - x) / 2;
@@ -356,7 +383,7 @@ class Graphics{
   /**-------------------------------------------------------------------------
    * > Get center y-pos of canva
    * @param {number} y - the object's height
-   * @returns {number} - the y-pos after centerd
+   * @returns {number} - the y-pos after center
    */  
   static appCenterHeight(y = 0){
     return (this._height - y) / 2;
@@ -367,6 +394,12 @@ class Graphics{
    */  
   static update(){
     this._frameCount += 1;
+    this.FPS_Sum -= (this.FPS_SamplePool[this.FPS_SampleIndex] || 0);
+    this.FPS_SamplePool[this.FPS_SampleIndex] = this.app.ticker.FPS;
+    this.FPS_Sum += this.FPS_SamplePool[this.FPS_SampleIndex];
+    this.FPS_SampleIndex = (this.FPS_SampleIndex + 1) % this.FPS_MaxSample;
+    this.FPS = Math.floor(this.FPS_Sum / this.FPS_MaxSample);
+    this.FPSSprite.text = "FPS: " + this.FPS;
   }
   /**-------------------------------------------------------------------------
    * > Add sprite and build a instance name map
@@ -588,6 +621,14 @@ class Input{
     this.wheelstate = Math.max( -1, Math.min(1, (event.wheelDelta || -event.detail)) );
     this.state_changed = true;
   }
+  /**-------------------------------------------------------------------------
+   * > Record client mouse pos
+   * @param {MouseEvent} event 
+   */
+  static processMouseMove(event){
+    this.mousePagePOS   = [event.pageX || 0, event.pageY || 0];
+    this.mouseClientPOS = [event.clientX || 0, event.clientY || 0];
+  }
   /*-------------------------------------------------------------------------*/
   static setupEventHandlers(){
     window.addEventListener("keydown", this.onKeydown.bind(this));
@@ -595,6 +636,7 @@ class Input{
     window.addEventListener("mousedown", this.onKeydown.bind(this));
     window.addEventListener("mouseup", this.onKeyup.bind(this));
     window.addEventListener("mousewheel", this.processMouseWheel.bind(this));
+    document.addEventListener("mousemove", this.processMouseMove.bind(this));
   }
   /**-------------------------------------------------------------------------
    * > Frame update
@@ -610,6 +652,20 @@ class Input{
       for(let i=0;i<0xff;++i){this.keystate_trigger[i] = false;}
       this.wheelstate = 0;
     }
+  }
+  /**-------------------------------------------------------------------------
+   * > Check whether key is triggered in certain area
+   * @param {Number} kid - key id
+   * @param {PIXI.Rectangle} crect - collision rect
+   */
+  static isTriggerArea(kid, crect){
+    if(!Input.isTriggered(kid)){return false;}
+    if(Input.mousePagePOS[0] < crect.x){return false;}
+    if(Input.mousePagePOS[1] < crect.y){return false;}
+    let cwidth = crect.x + crect.width, cheight = crect.y + crect.height;
+    if(Input.mousePagePOS[0] > cwidth){return false;}
+    if(Input.mousePagePOS[1] > cheight){return false;}
+    return true;
   }
   /**-------------------------------------------------------------------------
    * > Check whether the given key id is triggered

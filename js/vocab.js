@@ -21,15 +21,21 @@ class Vocab{
   }
   /*-------------------------------------------------------------------------*/
   static loadLanguageFile(){
-    var path = this.FolderPath + '/' + this.Language + '.json';
+    var path = Vocab.FolderPath + '/' + Vocab.Language + '.json';
     processJSON(path, function(result){
       let dict = JSON.parse(result);
       for(let key in dict){
         Vocab[key] = dict[key];
       }
-      this.ready = true;
+      Vocab.ready = true;
       debug_log("Vocab loaded");
-    })
+    }, this.onLoadError);
+  }
+  /*-------------------------------------------------------------------------*/
+  static onLoadError(){
+    DataManager.changeSetting(DataManager.kLanguage, DataManager.DefaultLanguage);
+    Vocab.Language = DataManager.language;
+    Vocab.loadLanguageFile();
   }
   /*-------------------------------------------------------------------------*/
   static isReady(){

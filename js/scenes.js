@@ -116,6 +116,7 @@ class Scene_Base extends Stage{
   start(){
     this._active = true;
     this._fadingSprite = Graphics.fadingSprite;
+    if(DebugMode){this.addChild(Graphics.FPSSprite)}
   }
   /*-------------------------------------------------------------------------*/
   stop(){
@@ -258,12 +259,32 @@ class Scene_Load extends Scene_Base{
   start(){
     super.start();
     this.processLoadingPhase();
-    if(isMobile){
+    let hideWarning = DataManager.getSetting('hideWarning') || '';
+    let bitset = hideWarning.split(' ');
+    let newSetting = '';
 
-    }
-    else if(!isChrome && !isFirefox){
-      window.alert()
-    }
+    if(isMobile){
+      if(bitset[0] != '1'){
+        let b = window.confirm(Vocab["MobileWarning"] + '\n' + Vocab["DontShowWarning"])
+        newSetting += b ? '1' : '0';
+      }else{newSetting += '1';}
+    }else{newSetting += '0'}
+
+    if(!isChrome && !isFirefox && !isSafari){
+      if(bitset[1] != '1'){
+        let b = window.confirm(Vocab["BrowserWarning"]+ '\n' + Vocab["DontShowWarning"])
+        newSetting += b ? ' 1 ' : ' 0 ';
+      }else{newSetting += ' 1 ';}
+    }else{newSetting += ' 0 ';}
+
+    if(isFirefox){
+      if(bitset[2] != '1'){
+        let b = window.confirm(Vocab["FirefoxWarning"]+ '\n' + Vocab["DontShowWarning"])
+        newSetting += b ? '1' : '0';
+      }else{newSetting += '1';}
+    }else{newSetting += '0';}
+
+    DataManager.changeSetting('hideWarning', newSetting);
   }
   /*-------------------------------------------------------------------------*/
   create(){
@@ -400,9 +421,7 @@ class Scene_Intro extends Scene_Base{
     this.timer        = 0;
     this.fadeDuration = 30;
     this.NTOUmoment   = 150;
-
-    // Firefox's mysterious FPS loss so need to reduce time thereshold
-    this.ENDmoment    = isFirefox ? 400 : 500;
+    this.ENDmoment    = 500;
     this.drawLibrarySplash();
   }
   /*-------------------------------------------------------------------------*/
@@ -484,7 +503,7 @@ class Scene_Intro extends Scene_Base{
   /*-------------------------------------------------------------------------*/
   startSplashEffect(){
     let wave = new PIXI.filters.ShockwaveFilter([0.5, 0.5],{
-      speed: isFirefox ? 8 : 5, // Haste due to FF's FPS loss
+      speed: 5,
       brightness: 8
     });
     this.ntouSplash.filters = [wave];
@@ -518,7 +537,7 @@ class Scene_Title extends Scene_Base{
    */
   start(){
     super.start();
-    Sound.fadeInBGM(Sound.BGM, 20000)
+    Sound.fadeInBGM(Sound.BGM, 10000)
     let wx = Graphics.appCenterWidth(300);
     this.win = new Window_Base(wx, 200);
     Graphics.addWindow(this.win);

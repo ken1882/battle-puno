@@ -28,10 +28,12 @@ class SceneManager{
   static updateMain(){
     if(FatelError)return ;
     try{
-      if(GameStarted && !document.hasFocus()){return SceneManager.unfocusGame();}
-      SceneManager.focusGame();
       Input.update();
       Graphics.update();
+      if(!SceneManager.isGameFocused()){
+        return SceneManager.unfocusGame();
+      }
+      SceneManager.focusGame();
       SceneManager.changeScene();
       SceneManager.updateScene();
       SceneManager.renderScene();
@@ -41,9 +43,24 @@ class SceneManager{
     }
   }
   /*-------------------------------------------------------------------------*/
+  static isGameFocused(){
+    if(!GameStarted)return true;
+    if(!document.hasFocus())return false;
+    let mouseKeys = [1,2,3];
+    for(let i=0;i<mouseKeys.length;++i){
+      let key = mouseKeys[i];
+      if(Input.isTriggered(key)){
+        if(!Input.isTriggerArea(key, Graphics.app)){return false;}
+        else{return true;}
+      }
+    }
+    return this._focused;
+  }
+  /*-------------------------------------------------------------------------*/
   static focusGame(){
     if(SceneManager._focused){return ;}
     debug_log("Focus Game")
+    DisablePageScroll();
     SceneManager._focused = true;
     Graphics.onFocus();
     Sound.resumeAll();
@@ -53,6 +70,7 @@ class SceneManager{
   static unfocusGame(){
     if(!SceneManager._focused){return ;}
     debug_log("Unfocus Game")
+    EnablePageScroll();
     SceneManager._focused = false;
     Sound.pauseAll();
     Graphics.onUnfocus();
@@ -234,6 +252,7 @@ class DataManager{
     this.database = window.localStorage;
     this.ready    = false;
     this.setupSettingKeys();
+    this.loadDatabase();
     this.loadLanguageSetting();
     this.loadLanguageFont();
     this.ready    = true;
@@ -244,8 +263,15 @@ class DataManager{
     this.kLanguage = "language";
   }
   /*-------------------------------------------------------------------------*/
+  static loadDatabase(){
+    for(let i=0;i<this.database.length;++i){
+      let k = this.database.key(i);
+      this.setting[k] = this.database.getItem(k);
+    }
+  }
+  /*-------------------------------------------------------------------------*/
   static loadLanguageSetting(){
-    let lan = this.database.getItem(this.kLanguage)
+    let lan = this.setting[this.kLanguage];
     if(!lan){lan = this.DefaultLanguage;}
     this.changeSetting(this.kLanguage, lan);
   }
@@ -263,6 +289,10 @@ class DataManager{
   /*-------------------------------------------------------------------------*/
   static isReady(){
     return Vocab.isReady() && this.ready;
+  }
+  /*-------------------------------------------------------------------------*/
+  static getSetting(key){
+    return this.setting[key];
   }
   /**-------------------------------------------------------------------------
    * > Getter functions

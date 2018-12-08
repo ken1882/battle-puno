@@ -32,3 +32,20 @@ class ArgumentError extends Errno{
     super(message);
   }
 }
+/**---------------------------------------------------------------------------
+ * > Http Error
+ *
+ * @class HttpError
+ * @constructor
+ * @extends Errno
+ */
+class HttpError extends Errno{
+  constructor(...args){
+    let message = ''
+    switch(parseInt(args[0])){
+      case 404:
+        message = "Not found"
+    }
+    super("HttpRequestError: " + message);
+  }
+}
