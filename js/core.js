@@ -178,21 +178,21 @@ class Graphics{
    * @property {Sprite} fadingSprite - Sprite for fade effect
    */  
   static initialize(){
-    this._width  = this.Resolution[0];
-    this._height = this.Resolution[1];
+    this._width   = this.Resolution[0];
+    this._height  = this.Resolution[1];
     this._padding = 32;
     this._spacing = 4;
     this._frameCount = 0;
-    this._spriteMap = {}
-    this.fadingSprite   = null;
-    this.unfocusSprite  = null;
-    this._loader_ready  = true;
-    this._frameCount    = 0;
-    this.FPS_Sum        = 0;
-    this.FPS_MaxSample  = 30;
-    this.FPS_SampleIndex = 0;
-    this.FPS_SamplePool = [];
-
+    this._spriteMap  = {}
+    this.fadingSprite     = null;
+    this.unfocusSprite    = null;
+    this._loaderReady     = true;
+    this._frameCount      = 0;
+    this._loadProgress    = 0;
+    this.FPS_Sum          = 0;
+    this.FPS_MaxSample    = 30;
+    this.FPS_SampleIndex  = 0;
+    this.FPS_SamplePool   = [];
     this.createApp();
     this.initRenderer();
     this.initLoader();
@@ -269,8 +269,8 @@ class Graphics{
    */
   static initLoader(){
     this.loader = PIXI.loader;
-    this.loader.onProgress.add( function(){Graphics._loader_ready = false;} );
-    this.loader.onComplete.add( function(){Graphics._loader_ready = true;} );
+    this.loader.onProgress.add( function(){Graphics._loaderReady = false;} );
+    this.loader.onComplete.add( function(){Graphics._loaderReady = true;} );
     this.loader.add(this.LoadImage).load(function(){
       Graphics.app.ticker.add(SceneManager.updateMain);
       SceneManager.processFirstScene();
@@ -304,12 +304,16 @@ class Graphics{
     }
     return PIXI.loader.resources[name].texture;
   }
+  /*-------------------------------------------------------------------------*/
+  static get getLoadingProgress(){
+    return [this._loadProgress, this.Images.length];
+  }
   /**-------------------------------------------------------------------------
    * > Check whether loader has loaded all resources
    * @returns {boolean}
    */  
   static isReady(){
-    return this._loader_ready;
+    return this._loaderReady;
   }
   /**-------------------------------------------------------------------------
    * > Render scene(stage)
@@ -764,7 +768,7 @@ class Sound{
     this._currentSE    = [];
     this._audioMap     = {};
     this.track         = {};
-    this._loadProgess  = 0;
+    this._loadProgress = 0;
     this.preloadAllAudio();
   }
   /*-------------------------------------------------------------------------*/
@@ -810,9 +814,13 @@ class Sound{
     }
   }
   /*-------------------------------------------------------------------------*/
+  static get getLoadingProgress(){
+    return [this._loadProgress, this.resources.length];
+  }
+  /*-------------------------------------------------------------------------*/
   static reportLoadProgress(fname){
-    Sound._loadProgess += 1;
-    debug_log("Audio Loaded: " + fname + ' ' + Sound._loadProgess + '/' + Sound.resources.length + '(' + Sound.loadPercent + ')')
+    Sound._loadProgress += 1;
+    debug_log("Audio Loaded: " + fname + ' ' + Sound._loadProgress + '/' + Sound.resources.length + '(' + Sound.loadPercent + ')')
   }
   /*-------------------------------------------------------------------------*/
   static onAudioFadeComplete(soundID){
@@ -824,15 +832,15 @@ class Sound{
   }
   /*-------------------------------------------------------------------------*/
   static isReady(){
-    return this._loadProgess == this.resources.length;
+    return this._loadProgress == this.resources.length;
   }
   /*-------------------------------------------------------------------------*/
-  static get loadProgess(){
-    return this._loadProgess;
+  static get loadProgress(){
+    return this._loadProgress;
   }
   /*-------------------------------------------------------------------------*/
   static get loadPercent(){
-    return this._loadProgess / this.resources.length;
+    return this._loadProgress / this.resources.length;
   }
   /**-------------------------------------------------------------------------
    * > Play the audio file as Sound Effect of given symbol

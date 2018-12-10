@@ -291,12 +291,22 @@ class Scene_Load extends Scene_Base{
     super.create();
     this.createLoadingImage();
     this.createLoadingText();
+    this.createProgressBar();
   }
   /*-------------------------------------------------------------------------*/
   update(){
     super.update();
     this.updateLoading();
     this.updateButtonCooldown();
+    this.updateProgressBar();
+  }
+  /*-------------------------------------------------------------------------*/
+  createProgressBar(){
+    let dw = Graphics.width * 0.3;
+    let dh = 24;
+    let dx = Graphics.appCenterWidth(dw), dy = this.load_text.y + 36;
+    this.bar = new Sprite_ProgressBar(dx, dy, dw, dh);
+    this.bar.setMaxProgress(Graphics.getLoadingProgress[1] + Sound.getLoadingProgress[1]);
   }
   /*-------------------------------------------------------------------------*/
   createLoadingImage(){
@@ -315,6 +325,7 @@ class Scene_Load extends Scene_Base{
   }
   /*-------------------------------------------------------------------------*/
   reportLoaderProgress(loader, resources){
+    Graphics._loadProgress += 1;
     let message = 'Graphics Loaded : ' + loader.progress + '%';
     if(resources){message += ', name : ' + resources.name + ', url : ' + resources.url;}
     debug_log(message);
@@ -370,10 +381,15 @@ class Scene_Load extends Scene_Base{
     sprite.x = Graphics.appCenterWidth(sprite.width) - Graphics._spacing * 2;
   }
   /*-------------------------------------------------------------------------*/
+  updateProgressBar(){
+    this.bar.setProgress(Graphics.getLoadingProgress[0] + Sound.getLoadingProgress[0]);
+  }
+  /*-------------------------------------------------------------------------*/
   processLoadingPhase(){
     debug_log("Init loading phase");
     Graphics.renderSprite(this.loading_sprite);
     Graphics.renderSprite(this.load_text);
+    Graphics.renderSprite(this.bar);
     Graphics.preloadAllAssets(this.reportLoaderProgress, null);
   }
   /*-------------------------------------------------------------------------*/

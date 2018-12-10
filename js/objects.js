@@ -10,24 +10,39 @@ class Sprite_ProgressBar extends SpriteCanvas{
     this.initialize.apply(this, arguments);
   }
   /*-------------------------------------------------------------------------*/
-  initialize(x, y, width, height, total = 1){
+  initialize(x, y, width, height){
     super.initialize(x, y, width, height);
+    this.maxProgress     = 1;
+    this.currentProgress = 0;
     this.createSprite();
     this.drawBorderSprite();
     this.setZ(1);
   }
   /*-------------------------------------------------------------------------*/
-  get borderWidth(){return 12;}
+  get borderWidth(){return 4;}
   /*-------------------------------------------------------------------------*/
   resize(w, h){
     super.resize(w, h);
     this.clear();
     this.drawBorderSprite();
+    this.refresh();
+  }
+  /*-------------------------------------------------------------------------*/
+  refresh(){
+    if(!this.indexSprite){return ;}
+    this.indexSprite.clear();
+    this.indexSprite.beginFill(0x1060e0);
+    let dw = (this.width - this.borderWidth) * (this.currentProgress / this.maxProgress);
+    this.indexSprite.drawRect(0, 0, dw, this.height - this.borderWidth);
+    this.indexSprite.endFill();
   }
   /*-------------------------------------------------------------------------*/
   createSprite(){
     this.indexSprite  = new PIXI.Graphics();
     this.borderSprite = new PIXI.Graphics();
+    this.indexSprite.setPOS(this.borderWidth, this.borderWidth);
+    this.addChild(this.indexSprite);
+    this.addChild(this.borderSprite);
   }
   /*-------------------------------------------------------------------------*/
   clear(){
@@ -38,9 +53,19 @@ class Sprite_ProgressBar extends SpriteCanvas{
     this.drawBorderSprite();
   }
   /*-------------------------------------------------------------------------*/
+  setMaxProgress(n){
+    this.maxProgress = n;
+    this.refresh();
+  }
+  /*-------------------------------------------------------------------------*/
+  setProgress(n){
+    this.currentProgress = n;
+    this.refresh();
+  }
+  /*-------------------------------------------------------------------------*/
   drawBorderSprite(){
     if(!this.borderSprite){return ;}
-    this.borderSprite.beginFill(0x0);
+    this.borderSprite.beginFill(0xffffff);
     // Draw upper border
     this.borderSprite.drawRect(0, 0, this._width, this.borderWidth);
     // Draw bottom border
