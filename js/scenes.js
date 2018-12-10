@@ -553,18 +553,13 @@ class Scene_Title extends Scene_Base{
    */
   start(){
     super.start();
-    Sound.fadeInBGM(Sound.BGM, 10000)
-    let wx = Graphics.appCenterWidth(300);
-    this.win = new Window_Base(wx, 200);
-    Graphics.addWindow(this.win);
-    this.win.drawIcon(10, 260, 0);
-    this.win.drawText("Window Resoultion: " + window.innerWidth + ' ' + window.innerHeight)
-    this.win.drawText("Hello World!", 0, 24);
+    Sound.fadeInBGM(Sound.BGM, 10000);
+    Graphics.addWindow(this.menu);
   }
   /*-------------------------------------------------------------------------*/
   create(){
     super.create();
-    this.createTitleText();
+    this.createMenu();
   }
   /*-------------------------------------------------------------------------*/
   update(){
@@ -573,17 +568,19 @@ class Scene_Title extends Scene_Base{
   }
   /*-------------------------------------------------------------------------*/
   createBackground(){
-    this.backgroundImage = Graphics.addSprite(Graphics.Background);
+    this.backgroundImage = Graphics.addSprite(Graphics.Title);
     Graphics.renderSprite(this.backgroundImage);
   }
   /*-------------------------------------------------------------------------*/
-  createTitleText(){
-    let font = clone(Graphics.DefaultFontSetting);
-    font.fontSize = 48;
-    this.titleText   = Graphics.addText(Vocab.TitleText, null, font);
-    this.titleText.x = Graphics.appCenterWidth(this.titleText.width)
-    this.titleText.y = Graphics._padding * 2;
-    Graphics.renderSprite(this.titleText);
+  createMenu(){
+    let ww = 300, wh = 200;
+    let wx = Graphics.width - ww - Graphics.padding / 2;
+    let wy = Graphics.height / 2;
+    this.menu = new Window_Base(wx, wy, ww, wh);
+    this.menu.drawIcon(10, 260, 0);
+    this.menu.drawText("Window Resoultion: " + window.innerWidth + ' ' + window.innerHeight, 0, 24)
+    this.menu.drawText("Hello World!", 0, 48);
+    this.menu.drawText("Menu Window Sample");
   }
   /*-------------------------------------------------------------------------*/
 }

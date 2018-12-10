@@ -210,7 +210,7 @@ class Graphics{
    */
   static createFadingSprite(){
     this.fadingSprite = new Sprite();
-    this.fadingSprite.fillRect(0, 0, this.width, this.height, 0x000000);
+    this.fadingSprite.fillRect(0, 0, this.width, this.height, Graphics.color.Black);
     this.fadingSprite.name = "Fading Sprite"
     this.fadingSprite.setZ(1000);
     this.fadingSprite.hide();
@@ -220,7 +220,7 @@ class Graphics{
    */
   static createUnfocusSprite(){
     this.unfocusSprite = new Sprite();
-    this.unfocusSprite.fillRect(0, 0, this.width, this.height, 0xffffff);
+    this.unfocusSprite.fillRect(0, 0, this.width, this.height, Graphics.color.White);
     this.unfocusSprite.setOpacity(0.5);
     this.unfocusSprite.setZ(1001);
     this.unfocusSprite.name = "Unfocus Sprite";
@@ -1047,6 +1047,26 @@ class Sprite extends PIXI.Sprite{
     txt.zIndex = 2;
     this.addChild(txt);
   }
+  /**-------------------------------------------------------------------------
+   * > Draw Icon in Iconset
+   * @param {Number} icon_index - the index of the icon in Iconset
+   * @param {Number} x - the draw position of X
+   * @param {Number} y - the draw position of Y
+   */
+  drawIcon(icon_index, x, y){
+    icon_index = parseInt(icon_index);
+    let src_rect = clone(Graphics.IconRect);
+    src_rect.x = icon_index % Graphics.IconRowCount * src_rect.width;
+    src_rect.y = parseInt(icon_index / Graphics.IconRowCount) * src_rect.height;
+    let sx = src_rect.x, sy = src_rect.y, sw = src_rect.width, sh = src_rect.height;
+    let bitmap = new Bitmap(0, 0, sw, sh);
+    bitmap.blt(Graphics.IconsetImage, sx, sy, sw, sh, 0, 0, sw, sh);
+    let texture = new PIXI.Texture.fromCanvas(bitmap.canvas);
+    let iconSprite = new Sprite(texture);
+    iconSprite.setPOS(x, y).setZ(2);
+    this.addChild(iconSprite);
+    return iconSprite;
+  }
   /*-------------------------------------------------------------------------*/
   addChild(...args){
     super.addChild(...args);
@@ -1142,7 +1162,7 @@ class SpriteCanvas extends Sprite{
   drawMask(){
     if(!this.maskGraphics){return ;}
     this.maskGraphics.clear();
-    this.maskGraphics.beginFill(0xffffff);
+    this.maskGraphics.beginFill(Graphics.color.White);
     this.maskGraphics.drawRect(0, 0, this.width, this.height);
     this.maskGraphics.endFill();
   }

@@ -21,6 +21,7 @@ class Window_Base extends SpriteCanvas{
    */
   initialize(x = 0, y = 0, w = 300, h = 150){
     super.initialize(x, y, w, h);
+    console.log(x, y, w, h, arguments);
     this._skin        = Graphics.DefaultWindowSkin;
     this.drawnObjects = [];
     this.applySkin();
@@ -167,19 +168,8 @@ class Window_Base extends SpriteCanvas{
    * @param {Number} y - the draw position of Y
    */
   drawIcon(icon_index, x, y){
-    x += this.spacing; y += this.spacing;
-    icon_index = parseInt(icon_index);
-    let src_rect = clone(Graphics.IconRect);
-    src_rect.x = icon_index % Graphics.IconRowCount * src_rect.width;
-    src_rect.y = parseInt(icon_index / Graphics.IconRowCount) * src_rect.height;
-    let sx = src_rect.x, sy = src_rect.y, sw = src_rect.width, sh = src_rect.height;
-    let bitmap = new Bitmap(0, 0, sw, sh);
-    bitmap.blt(Graphics.IconsetImage, sx, sy, sw, sh, 0, 0, sw, sh);
-    let texture = new PIXI.Texture.fromCanvas(bitmap.canvas);
-    let iconSprite = new Sprite(texture);
-    iconSprite.setPOS(x, y).setZ(2);
+    let iconSprite = super.drawIcon(icon_index, x, y);
     this.drawnObjects.push(iconSprite);
-    this.addChild(iconSprite);
     this.refresh();
     return iconSprite;
   }
