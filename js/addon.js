@@ -17,6 +17,20 @@ PIXI.Sprite.prototype.hide = function(){
   return this;
 }
 /**
+ * Change z-index
+ */
+PIXI.Sprite.prototype.setZ = function(z = 0){
+  this.zIndex = z;
+  return this;
+}
+/**
+ * Change opacity(alpha)
+ */
+PIXI.Sprite.prototype.setOpacity = function(opa){
+  this.alpha = opa;
+  return this;
+}
+/**
  * Set sprite position
  */
 PIXI.Sprite.prototype.setPOS = function(x, y){

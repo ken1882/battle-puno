@@ -138,6 +138,7 @@ function processJSON(path, handler, fallback){
 }
 /**----------------------------------------------------------------------------
  * > Report the error
+ * @param {boolean} fatel - whether the application is able to continue
  */
 function reportError(e, fatel = true){
   if(Sound.isReady()){Sound.playSE(Sound.Error, 1.0);}
@@ -659,6 +660,7 @@ class Input{
    * @param {PIXI.Rectangle} crect - collision rect
    */
   static isTriggerArea(kid, crect){
+    if(!crect || !Input.mousePagePOS){return false;}
     if(!Input.isTriggered(kid)){return false;}
     if(Input.mousePagePOS[0] < crect.x){return false;}
     if(Input.mousePagePOS[1] < crect.y){return false;}
@@ -990,27 +992,18 @@ class Sprite extends PIXI.Sprite{
   /**-------------------------------------------------------------------------
    * @constructor
    * @memberof Sprite
+   * @param {Texture} - A PIXI.Texture to convert to sprite
    * @property {boolean} static - When is child, the position won't effected by
    *                              parent's display origin (ox/oy)
    */
   constructor(...args){
     super(...args);
-    this.initialize.apply(this, arguments);
+    this.setZ(0);
     this.static = false;
     return this;
   }
-  /**-------------------------------------------------------------------------
-   * > Object initialization
-   * @memberof Sprite
-   */
-  initialize(){
-    this.setZ(0);
-  }
   /*-------------------------------------------------------------------------*/
-  setZ(z){
-    this.zIndex = z;
-    return this;
-  }
+  get z(){return this.zIndex;}
   /*-------------------------------------------------------------------------*/
   resize(w, h){
     var scale = [w / this.width, h / this.height]
@@ -1020,13 +1013,13 @@ class Sprite extends PIXI.Sprite{
     });
     return this;
   }
-  setOpacity(opa){
-    this.alpha = opa;
-    return this;
-  }
   /*-------------------------------------------------------------------------*/
-  setPOS(x, y){
-    this.position.set(x ? x : this.x, y ? y : this.y);
+  clear(){
+    for(let i=0;i<this.children.length;++i){
+      if(!this.children[i].destroy){continue;}
+      this.children[i].destroy({children: true});
+    }
+    this.children = []
     return this;
   }
   /*-------------------------------------------------------------------------*/
@@ -1052,7 +1045,13 @@ class Sprite extends PIXI.Sprite{
     this.children.sort((a,b) => (a.zIndex || 0) - (b.zIndex || 0));
   }
   /*-------------------------------------------------------------------------*/
-  
+  render(){
+    Graphics.renderSprite(this);
+  }
+  /*-------------------------------------------------------------------------*/
+  remove(){
+    Graphics.removeSprite(this);
+  }
   /**-------------------------------------------------------------------------
    * > Getter function
    */
@@ -1060,6 +1059,115 @@ class Sprite extends PIXI.Sprite{
   /*-------------------------------------------------------------------------*/
 }
 
+/**---------------------------------------------------------------------------
+ * > An object holds collection of sprites, does not an actual sprite 
+ * class itself. Supposed to be superclass so won't call initialize itself.
+ * 
+ * @class
+ * @extends Sprite
+ * @property {Number} ox - Display origin x
+ * @property {Number} oy - Display origin y
+ */
+class SpriteCanvas extends Sprite{
+  /*-------------------------------------------------------------------------*/
+  constructor(){
+    super(PIXI.Texture.EMPTY);
+  }
+  /*-------------------------------------------------------------------------*/
+  initialize(x, y, w, h){
+    this.setPOS(x, y);
+    this.resize(w, h);
+    this.ox = 0; this.oy = 0;
+    this.lastDisplayOrigin = [0,0];
+    this.applyMask();
+  }
+  /*-------------------------------------------------------------------------*/
+  get width(){return this._width;}
+  get height(){return this._height;}
+  get z(){return this.z;}
+  /**------------------------------------------------------------------------
+   * > Check whether the object is inside the visible area
+   * @param {Sprite|Bitmap} obj - the DisplayObject to be checked
+   * @returns {boolean}
+   */
+  isObjectVisible(obj){
+    let dx = obj.x - this.ox + this.lastDisplayOrigin[0] * 2;
+    let dy = obj.y - this.oy + this.lastDisplayOrigin[1] * 2;
+    if(dx > this.width || dy > this.height){return false;}
+    let dw = dx + obj.width, dh = dy + obj.height;
+    if(dw < 0 || dh < 0){return false;}
+    return true;
+  }
+  /*-------------------------------------------------------------------------*/
+  refresh(){
+    let dox = this.ox - this.lastDisplayOrigin[0];
+    let doy = this.oy - this.lastDisplayOrigin[1];
+    this.children.sort((a,b) => (a.zIndex || 0) - (b.zIndex || 0));
+    for(let i=0;i<this.children.length;++i){
+      let sp = this.children[i];
+      if(sp.static){continue;}
+      if(!this.isObjectVisible(sp)){sp.hide();}
+      else{sp.show();}
+      let dx = sp.x - dox, dy = sp.y - doy;
+      sp.setPOS(dx, dy);
+    }
+    this.lastDisplayOrigin = [this.ox, this.oy];
+  }
+  /*-------------------------------------------------------------------------*/
+  resize(w, h){
+    this._width  = w;
+    this._height = h;
+    this.drawMask();
+    return this;
+  }
+  /**-------------------------------------------------------------------------
+   * > Apply mask to prevent shown overflow objects
+   */
+  applyMask(){
+    this.maskGraphics = new PIXI.Graphics();
+    this.drawMask();
+    this.maskGraphics.static = true;
+    this.addChild(this.maskGraphics);
+    this.mask = this.maskGraphics;
+  }
+  /*------------------------------------------------------------------------*/
+  drawMask(){
+    if(!this.maskGraphics){return ;}
+    this.maskGraphics.clear();
+    this.maskGraphics.beginFill(0xffffff);
+    this.maskGraphics.drawRect(0, 0, this.width, this.height);
+    this.maskGraphics.endFill();
+  }
+  /*------------------------------------------------------------------------*/
+  clear(){
+    for(let i=0;i<this.children.length;++i){
+      if(this.children[i].destroy){
+        this.children[i].destroy({children: true});
+      }
+      this.removeChild(this.children[i]);
+    }
+    this.children = [];
+  }
+  /**-------------------------------------------------------------------------
+   * > Scroll window horz/vert
+   */
+  scroll(sx = 0, sy = 0){
+    this.ox += sx;
+    this.oy += sy;
+    this.refresh();
+  }
+  /**-------------------------------------------------------------------------
+   * > Set display origin
+   * @param {Number} x - new ox, should be real x in pixel
+   * @param {Number} y - new oy, should be rael y in pixel
+   */
+  setDisplayOrigin(x, y){
+    this.ox = x;
+    this.oy = y;
+    this.refresh();
+  }
+  /*-------------------------------------------------------------------------*/
+}
 /**---------------------------------------------------------------------------
  * The basic object that represents an image.
  *

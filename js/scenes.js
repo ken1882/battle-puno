@@ -97,7 +97,7 @@ class Scene_Base extends Stage{
       return ;
     }
     debug_log("Dispose window: " + getClassName(this._windows[index]));
-    this._windows[index].clearChildren();
+    this._windows[index].clear(true);
     this._windows.splice(index, 1);
   }
   /**-------------------------------------------------------------------------
