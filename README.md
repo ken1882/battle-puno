@@ -27,7 +27,7 @@ Total of 76, four color with each two of 1-9 cards and one of 0 card.
 
 ### Special Cards:
   - **Coloured:** 24. Each two of skip, reversed and draw 2(+2).<br>
-  - **Black:** 12. 4 Wild, 4 Wild Draw(+4), 2 Trade, 2 Wild Hit All, 2 Wild Chaos, 2 Discard All.
+  - **Black:** 16. 4 Wild, 4 Wild Draw(+4), 2 Trade, 2 Wild Hit All, 2 Wild Chaos, 2 Discard All.
 
 ### Special card utility:
   - **Skip:** Next player cannot play the card for 1 turn. Or when the last player plays draw card(or the penalty is upon you by other player plays skip or reverse), you can play this card to transfer the penalty to next player but must match the color.

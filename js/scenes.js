@@ -286,6 +286,12 @@ class Scene_Load extends Scene_Base{
 
     DataManager.changeSetting('hideWarning', newSetting);
   }
+  /**-------------------------------------------------------------------------
+   * @returns {boolean}
+   */
+  isReady(){
+    return Graphics._loaderReady;
+  }
   /*-------------------------------------------------------------------------*/
   create(){
     super.create();
@@ -553,8 +559,9 @@ class Scene_Title extends Scene_Base{
    */
   start(){
     super.start();
-    Sound.fadeInBGM(Sound.BGM, 10000);
+    Sound.fadeInBGM(Sound.Title, 10000);
     Graphics.addWindow(this.menu);
+    this.menu.activate();
   }
   /*-------------------------------------------------------------------------*/
   create(){
@@ -573,14 +580,10 @@ class Scene_Title extends Scene_Base{
   }
   /*-------------------------------------------------------------------------*/
   createMenu(){
-    let ww = 300, wh = 200;
+    let ww = 200, wh = 200;
     let wx = Graphics.width - ww - Graphics.padding / 2;
     let wy = Graphics.height / 2;
-    this.menu = new Window_Base(wx, wy, ww, wh);
-    this.menu.drawIcon(10, 260, 0);
-    this.menu.drawText("Window Resoultion: " + window.innerWidth + ' ' + window.innerHeight, 0, 24)
-    this.menu.drawText("Hello World!", 0, 48);
-    this.menu.drawText("Menu Window Sample");
+    this.menu = new Window_Menu(wx, wy, ww, wh);
   }
   /*-------------------------------------------------------------------------*/
 }

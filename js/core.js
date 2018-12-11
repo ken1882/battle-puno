@@ -196,7 +196,8 @@ class Graphics{
     this._spriteMap  = {}
     this.fadingSprite     = null;
     this.unfocusSprite    = null;
-    this._loaderReady     = true;
+    this._loaderReady     = false;
+    this._assetsReady     = false;
     this._frameCount      = 0;
     this._loadProgress    = 0;
     this.FPS_Sum          = 0;
@@ -236,6 +237,7 @@ class Graphics{
     this.unfocusSprite.name = "Unfocus Sprite";
     this.unfocusSprite.hide();
   }
+  
   /**----------------------------------------------------------------------------
    * > Create sprite display FPS
    */
@@ -264,6 +266,7 @@ class Graphics{
     this.app.view.style.left = this.app.x + 'px';
     this.app.view.style.top  = this.app.y + 'px';
     this.app.view.style.zIndex = 0;
+    this.app.view.addEventListener('mousemove', this.mouseMoveTrailingEffect.bind(this));
   }
   /**----------------------------------------------------------------------------
    * @property {PIXI.WebGLRenderer} renderer - the rending software of the app
@@ -296,19 +299,27 @@ class Graphics{
     this.IconsetImage.src = this.Iconset;
     this.windowSkins = {}
     this.WindowSkinSrc.forEach(function(path){
-      Graphics.windowSkins[path]     = new Image();
-      Graphics.windowSkins[path].src = path;
+      if(path){
+        Graphics.windowSkins[path]     = new Image();
+        Graphics.windowSkins[path].src = path;
+      }
     })
     this.loader.add(this.Images);
     this.loader.onProgress.add(progresshandler);
+    this.loader.onError.add(this.onLoadError.bind(this));
     this.loader.load(load_ok_handler);
+    this.loader.onComplete.add( function(){Graphics._assetsReady = true;} );
+  }
+  /*------------------------------------------------------------------------*/
+  static onLoadError(msg, loader, rss){
+    reportError(new ResourceError("PIXI Loader error:\n" + msg + '\n' + 'filename: ' + rss.name));
   }
   /**-------------------------------------------------------------------------
    * > Return textire of pre-loaded resources
    * @param {string} name - name of resources
-   * @param {Rectangle} srect - Souce Slice Rect of the texture
+   * @param {Rectangle} [srect] - (Opt)Souce Slice Rect of the texture
    */  
-  static loadTexture(name, srect = null){
+  static loadTexture(name, srect){
     if(srect){
       return new PIXI.Texture(PIXI.loader.resources[name].texture, srect);
     }
@@ -323,7 +334,7 @@ class Graphics{
    * @returns {boolean}
    */  
   static isReady(){
-    return this._loaderReady;
+    return this._loaderReady && this._assetsReady;
   }
   /**-------------------------------------------------------------------------
    * > Render scene(stage)
@@ -501,6 +512,7 @@ class Graphics{
   static get height(){return this._height;}
   static get padding(){return this._padding;}
   static get spacing(){return this._spacing;}
+  static get lineHeight(){return this.LineHeight;}
   /**------------------------------------------------------------------------
    * > Alias functions
    * @function
@@ -536,6 +548,50 @@ class Graphics{
         Graphics.resumeAnimatedSprite(child);
       })
     }
+  }
+  /**----------------------------------------------------------------------------
+   * Mouse move trailing visual effect
+   */
+  static mouseMoveTrailingEffect(event){
+    if(!this.isReady()){return ;}
+    let dx = event.clientX - this.app.x - this.AnimRect.width  / 2;
+    let dy = event.clientY - this.app.y - this.AnimRect.height / 2;
+    this.playAnimation(dx, dy, this.Trailing);
+  }
+  /*------------------------------------------------------------------------*/
+  static generateAnimation(image){
+    let oriImage = this.loadTexture(image);
+    let src_rect = clone(this.AnimRect);
+    let textureArray = [];
+    let rowMax   = oriImage.width  / src_rect.width;
+    let colMax   = oriImage.height / src_rect.height;
+    for(let i=0;i<colMax;++i){
+      src_rect.x = 0;
+      for(let j=0;j<rowMax;++j){
+        textureArray.push(this.loadTexture(image, src_rect))
+        src_rect.x += src_rect.width;
+      }
+      src_rect.y += src_rect.height;
+    }
+    let re = new PIXI.extras.AnimatedSprite(textureArray);
+    return re;
+  }
+  /**------------------------------------------------------------------------
+   * Play an animation on the screen
+   * @param {Number} x
+   * @param {Number} y
+   * @param {String} image - image key(path)
+   */
+  static playAnimation(x, y, image){
+    let holder = new SpriteCanvas(0, 0, this.width, this.height);
+    let animSprite = this.generateAnimation(image);
+    holder.addChild(animSprite);
+    animSprite.loop = false;
+    animSprite.onComplete = function(){Graphics.removeSprite(holder)};
+    holder.setPOS(x, y).setZ(5);
+    this.renderSprite(holder);
+    animSprite.play();
+    return animSprite;
   }
   /*------------------------------------------------------------------------*/
 } // class Graphics
@@ -792,6 +848,9 @@ class Sound{
         onfade: this.onAudioFadeComplete,
         onstop: function(soundID){Sound.unregisterAudio(soundID);}, 
         onend: function(soundID){Sound.unregisterAudio(soundID);},
+        onloaderror: function(sid, msg){
+          reportError(new ResourceError(msg + ' ' + filename));
+        },
       })
     })
   }
@@ -857,6 +916,9 @@ class Sound{
    * @param {string} symbol - symbol of the audio file
    */
   static playSE(symbol, volume = this._masterVolume){
+    if(!this.track[symbol]){
+      throw new Error("Undefined audio track: " + symbol)
+    }
     let pid = -1;
     pid = this.track[symbol].play();
     this.track[symbol].volume(volume, pid);
@@ -997,6 +1059,11 @@ class Sound{
     }
   }
   /*-------------------------------------------------------------------------*/
+  static playOK(){this.playSE(this.OK);}
+  static playBuzzer(){this.playSE(this.Buzzer);}
+  static playCursor(){this.playSE(this.Cursor);}
+  static playCancel(){this.playSE(this.Cancel);}
+  /*-------------------------------------------------------------------------*/
 }
 
 /**---------------------------------------------------------------------------
@@ -1109,6 +1176,9 @@ class Sprite extends PIXI.Sprite{
  * @property {Number} h - height of canvas, overflowed content will be hidden
  * @property {Number} ox - Display origin x
  * @property {Number} oy - Display origin y
+ * @property {Bitset} surplusDirection - bitset that represent which direction
+ *                                       has overflowed item.
+ *                                       Range: 0000-1111(Up/Right/Left/Down)
  */
 class SpriteCanvas extends Sprite{
   /**-------------------------------------------------------------------------
@@ -1118,12 +1188,13 @@ class SpriteCanvas extends Sprite{
    * @param {Number} h - height of canvas, overflowed content will be hidden
    */
   constructor(x, y, w, h){
-    if(!x || !y || !w || !h){
+    if(validArgCount(x, y, w, h) != 4){
       throw new ArgumentError(4, validArgCount(x,y,w,h));
     }
     super(PIXI.Texture.EMPTY);
     this.setPOS(x, y);
     this.resize(w, h);
+    this.surplusDirection = 0;
     this.ox = 0; this.oy = 0;
     this.lastDisplayOrigin = [0,0];
     this.applyMask();
@@ -1135,25 +1206,33 @@ class SpriteCanvas extends Sprite{
   /**------------------------------------------------------------------------
    * > Check whether the object is inside the visible area
    * @param {Sprite|Bitmap} obj - the DisplayObject to be checked
-   * @returns {boolean}
+   * @returns {Number} - which diection it overflowed. 
+   *                     8: Up, 6: Right, 4: Left, 2: Down
    */
   isObjectVisible(obj){
     let dx = obj.x - this.ox + this.lastDisplayOrigin[0] * 2;
     let dy = obj.y - this.oy + this.lastDisplayOrigin[1] * 2;
-    if(dx > this.width || dy > this.height){return false;}
+    if(dx > this.width){return 6;}
+    if(dy > this.height){return 2;}
     let dw = dx + obj.width, dh = dy + obj.height;
-    if(dw < 0 || dh < 0){return false;}
-    return true;
+    if(dw < 0){return 4;}
+    if(dh < 0){return 8;}
+    return 0;
   }
   /*-------------------------------------------------------------------------*/
   refresh(){
+    this.surplusDirection = 0;
     let dox = this.ox - this.lastDisplayOrigin[0];
     let doy = this.oy - this.lastDisplayOrigin[1];
     this.children.sort((a,b) => (a.zIndex || 0) - (b.zIndex || 0));
     for(let i=0;i<this.children.length;++i){
       let sp = this.children[i];
       if(sp.static){continue;}
-      if(!this.isObjectVisible(sp)){sp.hide();}
+      let overflowDir = this.isObjectVisible(sp);
+      if(overflowDir > 0){
+        sp.hide();
+        this.surplusDirection |= (1 << ((overflowDir - 2) / 2))
+      }
       else{sp.show();}
       let dx = sp.x - dox, dy = sp.y - doy;
       sp.setPOS(dx, dy);

@@ -1,0 +1,14 @@
+{
+  "Title": "assets/Title.png",
+  "Background": "assets/backgorund.png",
+  "Background2": "assets/background2.png",
+  "DefaultWindowSkin": "assets/wskin_base.png",
+  "Particle": "assets/particle.png",
+  "Particle2": "assets/particle2.png",
+  "ntouSplash": "assets/ntou.png",
+  "pixiSplash": "assets/pixijs.png",
+  "howlerSplash": "assets/howlerjs.png",
+  "Trailing": "assets/effect_004.png",
+  "_comment": "other un-named files",
+  "Images": []
+}

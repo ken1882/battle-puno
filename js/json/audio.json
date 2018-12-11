@@ -1,0 +1,14 @@
+{
+  "Title": "audio/bgm/main.mp3",
+  "Cancel": "audio/se/KHSE_Cancel.wav",
+  "Cursor": "audio/se/KHSE_CursorMove.wav",
+  "Buzzer": "audio/se/KHSE_ErrorSelect.wav",
+  "Get": "audio/se/KHSE_ItemGet.wav",
+  "SaveLoad": "audio/se/KHSE_SaveLoad.wav",
+  "OK": "audio/se/KHSE_Select.wav",
+  "Error": "audio/se/Buzzer1.mp3",
+  "Wave": "audio/se/seawave.wav",
+
+  "_comment": "Other un-named resrouce files",
+  "resources": []
+}

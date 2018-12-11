@@ -52,3 +52,32 @@ class HttpError extends Errno{
     super("HttpRequestError: " + message);
   }
 }
+/**---------------------------------------------------------------------------
+ * > Resource Error
+ * @class ResourceError
+ * @constructor
+ * @extends Errno
+ */
+class ResourceError extends Errno{
+  constructor(...args){
+    let message = args[0] || ''
+    super("Resources Error: " + message);
+  }
+}
+/**---------------------------------------------------------------------------
+ * > Type Error
+ * @class TypeError
+ * @constructor
+ * @extends Errno
+ */
+class TypeError extends Errno{
+  /**
+   * @constructor
+   * @param {Object} re - the object received
+   * @param {Object} ex - expected class
+   */
+  constructor(re, ex){
+    if(re){re = getClassName(re);}
+    super("Type Error:\n" + "Expected " + ex.name + ", got " + re);
+  }
+}
