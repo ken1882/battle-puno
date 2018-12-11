@@ -3,25 +3,20 @@
  * 
  * @class Window_Base
  * @extends SpriteCanvas
+ * @property {String} _skin - path to window skin image
+ * @property {Object} _renderedObjects - information of rendered stuffs
  */
 class Window_Base extends SpriteCanvas{
   /**-------------------------------------------------------------------------
    * @constructor
    * @memberof Window_Base
+   * @param {Number} x - X position in app
+   * @param {Number} y - Y position in app
+   * @param {Number} w - width of canvas, overflowed content will be hidden
+   * @param {Number} h - height of canvas, overflowed content will be hidden
    */
-  constructor(...args){
-    super();
-    this.initialize.apply(this, arguments);
-  }
-  /**-------------------------------------------------------------------------
-   * > Object initialization
-   * @memberof Window_Base
-   * @property {String} _skin - path to window skin image
-   * @property {Object} _renderedObjects - information of rendered stuffs
-   */
-  initialize(x = 0, y = 0, w = 300, h = 150){
-    super.initialize(x, y, w, h);
-    console.log(x, y, w, h, arguments);
+  constructor(x = 0, y = 0, w = 300, h = 150){
+    super(x, y, w, h);
     this._skin        = Graphics.DefaultWindowSkin;
     this.drawnObjects = [];
     this.applySkin();
@@ -234,4 +229,55 @@ class Window_Base extends SpriteCanvas{
   isDisposed(){
     return this.children.length == 0;
   }
+}
+/**
+ * The window that provides selectable item
+ * 
+ * @class Window_Selectable
+ * @extends Window_Base
+ * @property {Array.<Object>} selections - the available selections
+ */
+class Window_Selectable extends Window_Base{
+  /**-------------------------------------------------------------------------
+   * @constructor
+   * @memberof Window_Selectable
+   */
+  constructor(x = 0, y = 0, w = 300, h = 150){
+    super(x, y, w, h);
+    this._active     = false;
+    this._selections = [];
+  }
+  /*------------------------------------------------------------------------*/
+  refresh(){
+    super.refresh();
+    this.syncChildrenProperties();
+  }
+  /**------------------------------------------------------------------------
+   * 
+   */
+  syncChildrenProperties(){
+    for(let i=0;i<this.children.length;++i){
+      this.children[i].interactive = this.isActivate;
+    }
+  }
+  /**-------------------------------------------------------------------------
+   * > Activate to make selections interactable
+   */
+  activate(){
+    this._active = true;
+    return this;
+  }
+  /**-------------------------------------------------------------------------
+   * > Deactivate to make selections un-interactable
+   */
+  deactivate(){
+    this._active = false;
+    return this;
+  }
+  /**-------------------------------------------------------------------------
+   * > Checl whether window activated
+   */
+  get isActivate(){return this._active;}
+  get isActive(){return this._active;}
+  
 }

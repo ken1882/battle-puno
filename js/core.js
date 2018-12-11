@@ -110,6 +110,16 @@ function clone(obj){
   return dup;
 }
 /**----------------------------------------------------------------------------
+ * > Get valid number of arguments
+ */
+function validArgCount(){
+  let sum = 0;
+  for(let i=0;i<arguments.length;++i){
+    if(arguments[i] !== undefined){sum += 1;}
+  }
+  return sum;
+}
+/**----------------------------------------------------------------------------
  * > Process given JSON file
  * @function
  * @global
@@ -1093,16 +1103,25 @@ class Sprite extends PIXI.Sprite{
  * 
  * @class
  * @extends Sprite
+ * @property {Number} x - X position in app
+ * @property {Number} y - Y position in app
+ * @property {Number} w - width of canvas, overflowed content will be hidden
+ * @property {Number} h - height of canvas, overflowed content will be hidden
  * @property {Number} ox - Display origin x
  * @property {Number} oy - Display origin y
  */
 class SpriteCanvas extends Sprite{
-  /*-------------------------------------------------------------------------*/
-  constructor(){
+  /**-------------------------------------------------------------------------
+   * @param {Number} x - X position in app
+   * @param {Number} y - Y position in app
+   * @param {Number} w - width of canvas, overflowed content will be hidden
+   * @param {Number} h - height of canvas, overflowed content will be hidden
+   */
+  constructor(x, y, w, h){
+    if(!x || !y || !w || !h){
+      throw new ArgumentError(4, validArgCount(x,y,w,h));
+    }
     super(PIXI.Texture.EMPTY);
-  }
-  /*-------------------------------------------------------------------------*/
-  initialize(x, y, w, h){
     this.setPOS(x, y);
     this.resize(w, h);
     this.ox = 0; this.oy = 0;

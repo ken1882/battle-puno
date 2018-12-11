@@ -5,13 +5,8 @@
  */
 class Sprite_ProgressBar extends SpriteCanvas{
   /*-------------------------------------------------------------------------*/
-  constructor(){
-    super();
-    this.initialize.apply(this, arguments);
-  }
-  /*-------------------------------------------------------------------------*/
-  initialize(x, y, width, height){
-    super.initialize(x, y, width, height);
+  constructor(x, y, width, height){
+    super(x, y, width, height);
     this.maxProgress     = 1;
     this.currentProgress = 0;
     this.createSprite();
@@ -83,6 +78,8 @@ class Sprite_ProgressBar extends SpriteCanvas{
  * > A bar that allowed to drag with mouse to adjust values
  * @class
  * @extends SpriteCanvas
+ * @property {function} handler - the function to call when refreshed
+ *                                (value changed)
  */
 class Sprite_DragBar extends SpriteCanvas{
   /**------------------------------------------------------------------------
@@ -93,16 +90,8 @@ class Sprite_DragBar extends SpriteCanvas{
    * @param {Number} maxn  - maximum value
    * @param {Number} initn - initial value
    */
-  constructor(){
-    super();
-    this.initialize.apply(this, arguments);
-  }
-  /**-------------------------------------------------------------------------
-   * @property {function} handler - the function to call when refreshed
-   *                                (value changed)
-   */
-  initialize(x, y, width, minn = 0, maxn = 100, initn = null){
-    super.initialize(x, y, width, this.height);
+  constructor(x, y, width, minn = 0, maxn = 100, initn = null){
+    super(x, y, width, this.height);
     if(!initn){initn = (minn + maxn) / 2;}
     this.valuePeak = [minn, maxn];
     this.value     = initn;

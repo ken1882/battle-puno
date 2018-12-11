@@ -19,9 +19,12 @@ class Errno extends Error{
  * @extends Errno
  */
 class ArgumentError extends Errno{
+  /**---------------------------------------------------------------------------
+   * 
+   */
   constructor(...args){
     let expected = 0, received = 0, message = '';
-    if(getClassName(args[0]).toLocaleLowerCase == "string"){      
+    if(getClassName(args[0]).toLowerCase == "string"){      
       message = args[0];
       expected = args[1]; received = args[2];
     }

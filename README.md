@@ -20,7 +20,7 @@ Most rules are same as original uno, and all details will be listed below.
 
 
 ## Cards Information:
-There're total of 124 cards in the game.
+There're total of 116 cards in the game.
 
 ### Number Cards:
 Total of 76, four color with each two of 1-9 cards and one of 0 card.
@@ -39,13 +39,14 @@ Total of 76, four color with each two of 1-9 cards and one of 0 card.
   - **Wild Draw(+4):** Choose any color you desired as next color, and next player draw 4 cards as penalty.<br>
   - **Trade:** Trade all of your cards in hand with another player by your choose.
   - **Wild Chaos:** After played, the next color and number will randomly chosen.
+  - **Wild Hit All:** All other player draws 2 cards and choose a color desired as next color.
   - **Discard All:** Discard all of cards with same color as last card. If last card is also discard all, play this card without discard any other cards.
 
 ### Card Point:
   - **Number card:** Same as itd number.<br>
   - **Skip/Reverse/Draw 2:** 20.<br>
   - **Discard All/Trade:** 30.<br>
-  - **Wild/Wild Draw/Wild Chaos:** 50.<br>
+  - **Wild/Wild Draw/Wild Hit All/Wild Chaos:** 50.<br>
 
 ## Game Modes:
   - **Traditional:**<br>
