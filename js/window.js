@@ -37,7 +37,7 @@ class Window_Base extends SpriteCanvas{
   }
   /*------------------------------------------------------------------------*/
   cursorRect(index){
-    let rect = new PIXI.Rectangle(0,0,0,0);
+    let rect = new Rect(0,0,0,0);
     let pos  = this.getIndexItemPOS(index);
     rect.x = pos.x - this.spacing;
     rect.y = pos.y - this.spacing;
@@ -377,7 +377,7 @@ class Window_Selectable extends Window_Base{
     this._index      = -1;
     this.on('tap', this.onSelfTrigger.bind(this));
     this.on('click', this.onSelfTrigger.bind(this));
-    this.hitArea = new PIXI.Rectangle(0, 0, w, h);
+    this.hitArea = new Rect(0, 0, w, h);
   }
   /**------------------------------------------------------------------------
    * Max item count in each row
@@ -471,7 +471,7 @@ class Window_Selectable extends Window_Base{
       let crect = this.cursorRect(this._selections.length);
       item.setZ((item.z || 0) + this.patternSprite.z + 1);
       item._index = this._selections.length;
-      item.hitArea = new PIXI.Rectangle(0,0,this.itemWidth, this.itemHeight);
+      item.hitArea = new Rect(0,0,this.itemWidth, this.itemHeight);
       item.hitArea.x = crect.x - item.x;
       item.hitArea.y = crect.y - item.y;
       item.on('mouseover', this.onMouseover.bind(this, item));

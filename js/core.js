@@ -120,6 +120,16 @@ function validArgCount(){
   return sum;
 }
 /**----------------------------------------------------------------------------
+ * > Check whether the object is interable 
+ * @param {Object} obj - the object to checl
+ */
+function isIterable(obj) {
+  if (obj == null) {
+    return false;
+  }
+  return (typeof obj[Symbol.iterator] === 'function') || false;
+}
+/**----------------------------------------------------------------------------
  * > Process given JSON file
  * @function
  * @global
@@ -554,14 +564,15 @@ class Graphics{
    */
   static mouseMoveTrailingEffect(event){
     if(!this.isReady()){return ;}
-    let dx = event.clientX - this.app.x - this.AnimRect.width  / 2;
-    let dy = event.clientY - this.app.y - this.AnimRect.height / 2;
-    this.playAnimation(dx, dy, this.Trailing);
+    let dx = event.clientX - this.app.x;
+    let dy = event.clientY - this.app.y;
+    this.playAnimation(dx, dy, this.Trailing, 2);
   }
   /*------------------------------------------------------------------------*/
   static generateAnimation(image){
     let oriImage = this.loadTexture(image);
-    let src_rect = clone(this.AnimRect);
+    let sqlen    = oriImage.width / this.AnimRowCount
+    let src_rect = new Rect(0, 0, sqlen, sqlen)
     let textureArray = [];
     let rowMax   = oriImage.width  / src_rect.width;
     let colMax   = oriImage.height / src_rect.height;
@@ -581,14 +592,17 @@ class Graphics{
    * @param {Number} x
    * @param {Number} y
    * @param {String} image - image key(path)
+   * @param {Number} [align] - (Default=1) 1: Same as given position, 2: center
    */
-  static playAnimation(x, y, image){
-    let holder = new SpriteCanvas(0, 0, this.width, this.height);
+  static playAnimation(x, y, image, align = 1){
     let animSprite = this.generateAnimation(image);
+    let holder = new SpriteCanvas(0, 0, animSprite.width, animSprite.height);
     holder.addChild(animSprite);
     animSprite.loop = false;
     animSprite.onComplete = function(){Graphics.removeSprite(holder)};
-    holder.setPOS(x, y).setZ(5);
+    let dx = align == 1 ? x : (x - animSprite.width  / 2);
+    let dy = align == 1 ? y : (y - animSprite.height / 2);
+    holder.setPOS(dx, dy).setZ(5);
     this.renderSprite(holder);
     animSprite.play();
     return animSprite;
@@ -727,7 +741,7 @@ class Input{
   /**-------------------------------------------------------------------------
    * > Check whether key is triggered in certain area
    * @param {Number} kid - key id
-   * @param {PIXI.Rectangle} crect - collision rect
+   * @param {Rect} crect - collision rect
    */
   static isTriggerArea(kid, crect){
     if(!crect || !Input.mousePagePOS){return false;}
@@ -1398,4 +1412,39 @@ class Bitmap{
   get canvas(){return this._canvas;}
   get context(){return this._context;}
   /*-------------------------------------------------------------------------*/
+}
+/**---------------------------------------------------------------------------
+ * The Rectangle object for abbreviation of PIXI's one
+ * @class Rect
+ * @extends PIXI.Rectangle
+ */
+class Rect extends PIXI.Rectangle{
+  /**
+   * @constructor
+   * @param {Object} rect - initialize by the object that contain rect data
+   * @param {...Number} [params] - initialize by given x, y, w, h
+   * @param {Number} x - The X point of the bitmap
+   * @param {Number} y - The Y point of the bitmap
+   * @param {Number} width - The width of the bitmap
+   * @param {Number} height - The height of the bitmap
+   */
+  constructor(...args){
+    super(0,0,0,0);
+    let arglen = validArgCount.apply(window, args);
+    if(arglen == 1){
+      this.x = args[0].x;
+      this.y = args[0].y;
+      this.width = args[0].width;
+      this.height = args[0].height;
+    }
+    else if(arglen == 4){
+      this.x = args[0];
+      this.y = args[1];
+      this.width = args[2];
+      this.height = args[3];
+    }
+    else{
+      throw new ArgumentError([1,4], arglen)
+    }
+  }
 }

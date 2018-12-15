@@ -20,7 +20,10 @@ class Errno extends Error{
  */
 class ArgumentError extends Errno{
   /**---------------------------------------------------------------------------
-   * 
+   * @constructor
+   * @param {String} [message] - (Optional) Prefix message
+   * @param {Number} expected - number of expected params
+   * @param {Number} received - number of received params
    */
   constructor(...args){
     let expected = 0, received = 0, message = '';

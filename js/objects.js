@@ -27,7 +27,7 @@ class Sprite_ProgressBar extends SpriteCanvas{
     if(!this.indexSprite){return ;}
     this.indexSprite.clear();
     this.indexSprite.beginFill(Graphics.color.DeepSkyBlue);
-    let dw = (this.width - this.borderWidth) * (this.currentProgress / this.maxProgress);
+    let dw = (this.width - this.borderWidth * 2) * (this.currentProgress / this.maxProgress);
     this.indexSprite.drawRect(0, 0, dw, this.height - this.borderWidth);
     this.indexSprite.endFill();
   }
