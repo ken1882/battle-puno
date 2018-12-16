@@ -363,7 +363,6 @@ class Window_Base extends SpriteCanvas{
  * @class Window_Selectable
  * @extends Window_Base
  * @property {Array.<Object>} _selections - the available selections
- * @property {boolean} _active - this flag will sync children's iteractive property
  */
 class Window_Selectable extends Window_Base{
   /**-------------------------------------------------------------------------
@@ -434,15 +433,14 @@ class Window_Selectable extends Window_Base{
    */
   syncChildrenProperties(){
     for(let i=0;i<this.children.length;++i){
-      this.children[i].interactive = this.isActivate;
+      this.children[i].interactive = this.isActivate();
     }
   }
   /**-------------------------------------------------------------------------
    * > Activate to make selections interactable
    */
   activate(){
-    this._active = true;
-    this.interactive = true;
+    super.activate();
     this.refresh();
     return this;
   }
@@ -450,16 +448,10 @@ class Window_Selectable extends Window_Base{
    * > Deactivate to make selections un-interactable
    */
   deactivate(){
-    this._active = false;
-    this.interactive = false;
+    super.deactivate();
     this.refresh();
     return this;
   }
-  /**-------------------------------------------------------------------------
-   * > Checl whether window activated
-   */
-  get isActivate(){return this._active;}
-  get isActive(){return this._active;}
   /**------------------------------------------------------------------------
    * Add selection items to window
    * @param {...} item - the items to append, the handler should be

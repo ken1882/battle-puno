@@ -36,6 +36,22 @@ PIXI.Sprite.prototype.setPOS = function(x, y){
   this.position.set(x ? x : this.x, y ? y : this.y);
   return this;
 }
+/**-------------------------------------------------------------------------
+ * > Activate to make sprite interactable
+ */
+PIXI.Sprite.prototype.activate = function(){
+  this.interactive = true;
+  return this;
+}
+/**-------------------------------------------------------------------------
+ * > Deactivate to make sprite un-interactable
+ */
+PIXI.Sprite.prototype.deactivate = function(){
+  this.interactive = false;
+  return this;
+}
+PIXI.Sprite.prototype.isActivate = function(){return this.interactive;}
+PIXI.Sprite.prototype.isActive   = function(){return this.interactive;}
 /**--------------------------------------------------------------------------
  * Make graphics visible
  */
@@ -71,3 +87,19 @@ PIXI.Graphics.prototype.setPOS = function(x, y){
   this.position.set(x ? x : this.x, y ? y : this.y);
   return this;
 }
+/**-------------------------------------------------------------------------
+ * > Activate to make graphics interactable
+ */
+PIXI.Graphics.prototype.activate = function(){
+  this.interactive = true;
+  return this;
+}
+/**-------------------------------------------------------------------------
+ * > Deactivate to make graphics un-interactable
+ */
+PIXI.Graphics.prototype.deactivate = function(){
+  this.interactive = false;
+  return this;
+}
+PIXI.Graphics.prototype.isActivate = function(){return this.interactive;}
+PIXI.Graphics.prototype.isActive   = function(){return this.interactive;}

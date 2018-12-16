@@ -277,6 +277,7 @@ class Graphics{
     this.app.view.style.top  = this.app.y + 'px';
     this.app.view.style.zIndex = 0;
     this.app.view.addEventListener('mousemove', this.mouseMoveTrailingEffect.bind(this));
+    this.app.view.addEventListener('click', this.clickEffect.bind(this));
   }
   /**----------------------------------------------------------------------------
    * @property {PIXI.WebGLRenderer} renderer - the rending software of the app
@@ -533,6 +534,7 @@ class Graphics{
   }
   /*------------------------------------------------------------------------*/
   static pauseAnimatedSprite(obj){
+    if(obj.unpause){return ;}
     if(isClassOf(obj, PIXI.extras.AnimatedSprite)){
       if(obj.playing){
         obj.paused = true;
@@ -560,13 +562,28 @@ class Graphics{
     }
   }
   /**----------------------------------------------------------------------------
+   * Clicking feedback effect
+   */
+  static clickEffect(event){
+    if(!this.isReady()){return ;}
+    let dx = event.clientX - this.app.x;
+    let dy = event.clientY - this.app.y;
+    /**
+     * @property {boolean} unpause - won't pause regardless game unfocused
+     */
+    this.playAnimation(dx, dy, this.Clicking, 2).setOpacity(this.mouseClickOpacity).unpause = true;
+  }
+  /**----------------------------------------------------------------------------
    * Mouse move trailing visual effect
    */
   static mouseMoveTrailingEffect(event){
     if(!this.isReady()){return ;}
     let dx = event.clientX - this.app.x;
     let dy = event.clientY - this.app.y;
-    this.playAnimation(dx, dy, this.Trailing, 2);
+    /**
+     * @property {boolean} unpause - won't pause regardless game unfocused
+     */
+    this.playAnimation(dx, dy, this.Trailing, 2).setOpacity(this.mouseTrailOpacity).unpause = true;
   }
   /*------------------------------------------------------------------------*/
   static generateAnimation(image){
@@ -1099,6 +1116,8 @@ class Sprite extends PIXI.Sprite{
     super(...args);
     this.setZ(0);
     this.static = false;
+    this.interactive = false;
+    this._active = false;
     return this;
   }
   /*-------------------------------------------------------------------------*/

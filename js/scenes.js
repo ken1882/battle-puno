@@ -206,6 +206,8 @@ class Scene_Base extends Stage{
   pause(){
     this.children.forEach(function(sp){
       Graphics.pauseAnimatedSprite(sp);
+      if(sp.isActive()){sp.lastActiveState = sp.isActive();}
+      sp.deactivate();
     })
   }
   /**-------------------------------------------------------------------------
@@ -214,6 +216,9 @@ class Scene_Base extends Stage{
   resume(){
     this.children.forEach(function(sp){
       Graphics.resumeAnimatedSprite(sp);
+      if(sp.lastActiveState){
+        sp.activate();
+      }
     })
   }
   /*-------------------------------------------------------------------------*/
@@ -559,7 +564,7 @@ class Scene_Title extends Scene_Base{
    */
   start(){
     super.start();
-    Sound.fadeInBGM(Sound.Title, 10000);
+    Sound.playBGM(Sound.Title);
     Graphics.addWindow(this.menu);
     this.menu.activate();
   }

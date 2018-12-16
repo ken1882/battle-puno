@@ -43,6 +43,9 @@ Graphics.Iconset            = "assets/IconSet.png";
 Graphics.IconRect           = {x:0, y:0, width:24, height:24}
 Graphics.IconRowCount       = 16
 
+Graphics.mouseTrailOpacity  = 0.25
+Graphics.mouseClickOpacity  = 0.8
+
 // How many frames in a row of original animation image
 Graphics.AnimRowCount       = 5
 
