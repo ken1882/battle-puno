@@ -255,25 +255,46 @@ class DataManager{
     this.loadDatabase();
     this.loadLanguageSetting();
     this.loadLanguageFont();
+    this.loadVolumeSetting();
+    this.loadAudioEnable();
     this.ready    = true;
   }
   /*-------------------------------------------------------------------------*/
   static setupSettingKeys(){
     this.DefaultLanguage = "en_us"
-    this.kLanguage = "language";
+    this.DefaultVolume   = [0.5, 1, 1]
+    this.kLanguage       = "language";
+    this.kVolume         = "volume";
+    this.kAudioEnable    = "audioEnable";
   }
   /*-------------------------------------------------------------------------*/
   static loadDatabase(){
     for(let i=0;i<this.database.length;++i){
       let k = this.database.key(i);
-      this.setting[k] = this.database.getItem(k);
+      this.setting[k] = null;
+      try{
+        this.setting[k] = JSON.parse(this.database.getItem(k));
+      }
+      catch(e){
+        console.error("Invalid database item: " + k + ": " + this.database.getItem(k))
+      }
     }
   }
   /*-------------------------------------------------------------------------*/
   static loadLanguageSetting(){
-    let lan = this.setting[this.kLanguage];
+    let lan = this.language;
     if(!lan){lan = this.DefaultLanguage;}
     this.changeSetting(this.kLanguage, lan);
+  }
+  /*-------------------------------------------------------------------------*/
+  static loadVolumeSetting(){
+    let check = function(n){return 0 <= n && n <= 1;}
+    if(validArgCount.apply(window, this.volume) != 3){
+      this.changeSetting(this.kVolume, this.DefaultVolume);
+    }
+    else if(validNumericCount.apply(this, [check, this.volume].flat()) != 3){
+      this.changeSetting(this.kVolume, this.DefaultVolume);
+    }
   }
   /*-------------------------------------------------------------------------*/
   static loadLanguageFont(){
@@ -282,9 +303,16 @@ class DataManager{
     }
   }
   /*-------------------------------------------------------------------------*/
+  static loadAudioEnable(){
+    let en = this.audioEnable
+    if(!isClassOf(en, Array) || en.length != 2){
+      this.changeSetting(this.kAudioEnable, [true, true]);
+    }
+  }
+  /*-------------------------------------------------------------------------*/
   static changeSetting(key, value){
     this.setting[key] = value;
-    this.database.setItem(key, value);
+    this.database.setItem(key, JSON.stringify(value));
   }
   /*-------------------------------------------------------------------------*/
   static isReady(){
@@ -298,5 +326,7 @@ class DataManager{
    * > Getter functions
    */
   static get language(){return this.setting[this.kLanguage];}
+  static get volume(){return this.setting[this.kVolume];}
+  static get audioEnable(){return this.setting[this.kAudioEnable];}
   /*-------------------------------------------------------------------------*/
 }

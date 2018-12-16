@@ -61,6 +61,7 @@ class Scene_Base extends Stage{
   preTerminate(){
     debug_log("Scene pre-terminate: " + getClassName(this));
     this.startFadeOut();
+    this.deactivateChildren();
   }
   /*-------------------------------------------------------------------------*/
   terminate(){
@@ -72,6 +73,14 @@ class Scene_Base extends Stage{
    */
   create(){
     this.createBackground();
+  }
+  /**-------------------------------------------------------------------------
+   * Deactivate all sprites to prevent interaction during terminating
+   */
+  deactivateChildren(){
+    this.children.forEach(function(sp){
+      sp.deactivate();
+    })
   }
   /**-------------------------------------------------------------------------
    * > Remove windows from page
@@ -117,10 +126,17 @@ class Scene_Base extends Stage{
     this._active = true;
     this._fadingSprite = Graphics.fadingSprite;
     if(DebugMode){this.addChild(Graphics.FPSSprite)}
+    this.renderGlobalSprites();
   }
   /*-------------------------------------------------------------------------*/
   stop(){
     this._active = false;
+  }
+  /*-------------------------------------------------------------------------*/
+  renderGlobalSprites(){
+    Graphics.globalSprites.forEach(function(sp){
+      Graphics.renderSprite(sp); sp.activate();
+    });
   }
   /*-------------------------------------------------------------------------*/
   startFadeIn(duration){
@@ -264,30 +280,30 @@ class Scene_Load extends Scene_Base{
   start(){
     super.start();
     this.processLoadingPhase();
-    let hideWarning = DataManager.getSetting('hideWarning') || '';
-    let bitset = hideWarning.split(' ');
-    let newSetting = '';
+    let bitset = DataManager.getSetting('hideWarning');
+    if(validNumericCount(null, bitset) != 1){bitset = 0;}
+    let newSetting = 0;
 
     if(isMobile){
-      if(bitset[0] != '1'){
+      if(!(bitset & 1)){
         let b = window.confirm(Vocab["MobileWarning"] + '\n' + Vocab["DontShowWarning"])
-        newSetting += b ? '1' : '0';
-      }else{newSetting += '1';}
-    }else{newSetting += '0'}
+        newSetting |= (b + 0)
+      }else{newSetting |= 1;}
+    }
 
     if(!isChrome && !isFirefox && !isSafari){
-      if(bitset[1] != '1'){
+      if(!(bitset & 2)){
         let b = window.confirm(Vocab["BrowserWarning"]+ '\n' + Vocab["DontShowWarning"])
-        newSetting += b ? ' 1 ' : ' 0 ';
-      }else{newSetting += ' 1 ';}
-    }else{newSetting += ' 0 ';}
+        newSetting |= ((b + 0) << 1);
+      }else{newSetting |= (1 << 1);}
+    }
 
     if(isFirefox){
-      if(bitset[2] != '1'){
+      if(!(bitset & 4)){
         let b = window.confirm(Vocab["FirefoxWarning"]+ '\n' + Vocab["DontShowWarning"])
-        newSetting += b ? '1' : '0';
-      }else{newSetting += '1';}
-    }else{newSetting += '0';}
+        newSetting |= ((b+0) << 2);
+      }else{newSetting |= (1 << 2);}
+    }
 
     DataManager.changeSetting('hideWarning', newSetting);
   }
@@ -433,6 +449,11 @@ class Scene_Intro extends Scene_Base{
     this.createNTOUSplash();
     this.createPIXISplash();
     this.createHowlerSplash();
+  }
+  /*-------------------------------------------------------------------------*/
+  terminate(){
+    super.terminate();
+    Graphics.createOptionSprites();
   }
   /*-------------------------------------------------------------------------*/
   createBackground(){

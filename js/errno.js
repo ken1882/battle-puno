@@ -76,11 +76,11 @@ class ResourceError extends Errno{
 class TypeError extends Errno{
   /**
    * @constructor
-   * @param {Object} re - the object received
    * @param {Object} ex - expected class
+   * @param {Object} re - the object received
    */
-  constructor(re, ex){
+  constructor(ex, re){
     if(re){re = getClassName(re);}
-    super("Type Error:\n" + "Expected " + ex.name + ", got " + re);
+    super("Type Error:\n" + "Expected " + ex.name + ", got " + getClassName(re));
   }
 }

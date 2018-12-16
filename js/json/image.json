@@ -2,7 +2,6 @@
   "Title": "assets/Title.png",
   "Background": "assets/backgorund.png",
   "Background2": "assets/background2.png",
-  "DefaultWindowSkin": "assets/wskin_base.png",
   "Particle": "assets/particle.png",
   "Particle2": "assets/particle2.png",
   "ntouSplash": "assets/ntou.png",
@@ -10,6 +9,11 @@
   "howlerSplash": "assets/howlerjs.png",
   "Trailing": "assets/Trailing2.png",
   "Clicking": "assets/Clicking.png",
+
+  "DefaultWindowSkin": "assets/wskin_base.png",
+  "WSkinRarity": "assets/wskin_rarity.png",
+  "WSkinCelestia": "assets/wskin_celestia.png",
+  "WSkinLuna": "assets/wskin_luna.png",
 
   "CardBack": "assets/back.png",
   "Blue0": "assets/b_0.png",

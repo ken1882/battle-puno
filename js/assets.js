@@ -40,8 +40,14 @@ Graphics.Resolution         = [1280, 720]; // Better not change this
 Graphics.AppBackColor       = 0x000000;
 
 Graphics.Iconset            = "assets/IconSet.png";
-Graphics.IconRect           = {x:0, y:0, width:24, height:24}
+Graphics.IconRect           = new Rect(0,0,24,24)
 Graphics.IconRowCount       = 16
+Graphics.IconID = {
+  BGM: 758,
+  SE: 6437,
+  Xmark: 1142,
+  Option: 3161,
+}
 
 Graphics.mouseTrailOpacity  = 0.25
 Graphics.mouseClickOpacity  = 0.8

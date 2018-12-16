@@ -99,6 +99,8 @@ function isClassOf(obj, cls){
  * @returns {string} - Class name of given object
  */
 function getClassName(obj){
+  if(obj === undefined){return "undefined";}
+  if(obj === null){return "null";}
   return obj.constructor.name;
 }
 /**----------------------------------------------------------------------------
@@ -116,6 +118,30 @@ function validArgCount(){
   let sum = 0;
   for(let i=0;i<arguments.length;++i){
     if(arguments[i] !== undefined){sum += 1;}
+  }
+  return sum;
+}
+/**----------------------------------------------------------------------------
+ * > Get number of valid numeric from arguments
+ * @param {function} handler - the extra condition
+ * @param {...Nunber} - numbers to be checked
+ */
+function validNumericCount(){
+  let sum = 0;
+  let handler = arguments[0];
+  if(!handler){
+    handler = function(){return true;}
+  }
+  else if(!isClassOf(handler, Function)){
+    throw new TypeError(Function, handler);
+  }
+  for(let i=1;i<arguments.length;++i){
+    if(!isClassOf(arguments[i], Number) || isNaN(arguments[i])){
+      continue;
+    }
+    else if(handler.call(this, arguments[i])){
+      sum += 1;
+    }
   }
   return sum;
 }
@@ -201,7 +227,7 @@ class Graphics{
     this._width   = this.Resolution[0];
     this._height  = this.Resolution[1];
     this._padding = 32;
-    this._spacing = 4;
+    this._spacing = 8;
     this._frameCount = 0;
     this._spriteMap  = {}
     this.fadingSprite     = null;
@@ -214,6 +240,8 @@ class Graphics{
     this.FPS_MaxSample    = 30;
     this.FPS_SampleIndex  = 0;
     this.FPS_SamplePool   = [];
+    this.globalSprites    = [];
+
     this.createApp();
     this.initRenderer();
     this.initLoader();
@@ -225,6 +253,12 @@ class Graphics{
     this.createFadingSprite();
     this.createUnfocusSprite();
     this.createFPSSprite();
+  }
+  /*---------------------------------------------------------------------------*/
+  static createOptionSprites(){
+    this.createOptionSprite();
+    this.createBGMSprite();
+    this.createSESprite();
   }
   /**----------------------------------------------------------------------------
    * > Sprite for fading effect
@@ -247,7 +281,64 @@ class Graphics{
     this.unfocusSprite.name = "Unfocus Sprite";
     this.unfocusSprite.hide();
   }
-  
+  /**-------------------------------------------------------------------------
+   * Option icon on bottom-left corner to open the option window
+   */
+  static createOptionSprite(){
+    this.optionSprite = new SpriteCanvas(this.IconRect);
+    let dy = this.height - this.IconRect.height - this.spacing;
+    let dx = this.spacing
+    this.optionSprite.drawIcon(this.IconID.Option,0,0);
+    
+    this.optionSprite.setZ(0x10).setPOS(dx, dy).activate();
+    this.globalSprites.push(this.optionSprite)
+  }
+  /**-------------------------------------------------------------------------
+   * Option icon on bottom-left corner to enable/disable the BGM
+   */
+  static createBGMSprite(){
+    this.BGMSprite = new SpriteCanvas(this.IconRect);
+    let dy = this.height - this.IconRect.height - this.spacing;
+    let dx = this.IconRect.width + this.spacing * 2
+
+    // the X mark shows when disable
+    this.BGMSprite.drawIcon(this.IconID.BGM,0,0);
+    this.BGMSprite.Xmark = this.BGMSprite.drawIcon(this.IconID.Xmark,0,0).setZ(2);
+
+    // handler when sprite clicked
+    let handler = function(){
+      this.toggleBGM();
+      this.playSE(Sound.IconOK);
+    }.bind(Sound);
+    this.BGMSprite.on('click', handler);
+    this.BGMSprite.on('tap', handler);
+    this.BGMSprite.setZ(0x10).setPOS(dx, dy).activate();
+    if(Sound.isBGMEnabled){this.BGMSprite.Xmark.hide();}
+    this.globalSprites.push(this.BGMSprite)
+  }
+  /**-------------------------------------------------------------------------
+   * Option icon on bottom-left corner to enable/disable the SE
+   */
+  static createSESprite(){
+    this.SESprite = new SpriteCanvas(this.IconRect);
+    let dy = this.height - this.IconRect.height - this.spacing;
+    let dx = this.spacing + (this.IconRect.width + this.spacing)  * 2
+
+    // the X mark shows when disable
+    this.SESprite.drawIcon(this.IconID.SE,0,0);
+    this.SESprite.Xmark = this.SESprite.drawIcon(this.IconID.Xmark,0,0).setZ(2);
+
+    // handler when sprite clicked
+    let handler = function(){
+      this.toggleSE();
+      this.playSE(Sound.IconOK);
+    }.bind(Sound);
+    this.SESprite.on('click', handler);
+    this.SESprite.on('tap', handler);
+    this.SESprite.setZ(0x10).setPOS(dx, dy).activate();
+    if(Sound.isSEEnabled){this.SESprite.Xmark.hide();}
+    this.globalSprites.push(this.SESprite)
+  }
   /**----------------------------------------------------------------------------
    * > Create sprite display FPS
    */
@@ -571,7 +662,8 @@ class Graphics{
     /**
      * @property {boolean} unpause - won't pause regardless game unfocused
      */
-    this.playAnimation(dx, dy, this.Clicking, 2).setOpacity(this.mouseClickOpacity).unpause = true;
+    let sp = this.playAnimation(dx, dy, this.Clicking, 2);
+    sp.setZ(0x20).setOpacity(this.mouseClickOpacity).unpause = true;    
   }
   /**----------------------------------------------------------------------------
    * Mouse move trailing visual effect
@@ -583,7 +675,8 @@ class Graphics{
     /**
      * @property {boolean} unpause - won't pause regardless game unfocused
      */
-    this.playAnimation(dx, dy, this.Trailing, 2).setOpacity(this.mouseTrailOpacity).unpause = true;
+    let sp = this.playAnimation(dx, dy, this.Trailing, 2)
+    sp.setOpacity(this.mouseTrailOpacity).setZ(0x20).unpause = true;
   }
   /*------------------------------------------------------------------------*/
   static generateAnimation(image){
@@ -619,7 +712,7 @@ class Graphics{
     animSprite.onComplete = function(){Graphics.removeSprite(holder)};
     let dx = align == 1 ? x : (x - animSprite.width  / 2);
     let dy = align == 1 ? y : (y - animSprite.height / 2);
-    holder.setPOS(dx, dy).setZ(5);
+    holder.setPOS(dx, dy).setZ(0x20);
     this.renderSprite(holder);
     animSprite.play();
     return animSprite;
@@ -861,12 +954,29 @@ class Sound{
    */
   static initialize(){
     this._masterVolume = 0.5;
+    this._bgmVolume    = 1;
+    this._seVolume     = 1;
     this._currentBGM   = null;
     this._currentSE    = [];
     this._audioMap     = {};
     this.track         = {};
     this._loadProgress = 0;
+    this._stackedBGM   = null;
+     
+    this.loadVolumeSetting();
+    this.loadAudioEnable();
     this.preloadAllAudio();
+  }
+  /*-------------------------------------------------------------------------*/
+  static loadVolumeSetting(){
+    let vol = DataManager.volume;
+    this._masterVolume = vol[0];
+    this._bgmVolume    = vol[1];
+    this._seVolume     = vol[2];
+  }
+  /*-------------------------------------------------------------------------*/
+  static loadAudioEnable(){
+    this.audioEnable   = DataManager.audioEnable;
   }
   /*-------------------------------------------------------------------------*/
   static preloadAllAudio(){
@@ -947,6 +1057,7 @@ class Sound{
    * @param {string} symbol - symbol of the audio file
    */
   static playSE(symbol, volume = this._masterVolume){
+    if(!this.isSEEnabled){return ;}
     if(!this.track[symbol]){
       throw new Error("Undefined audio track: " + symbol)
     }
@@ -963,20 +1074,28 @@ class Sound{
     if(arguments.length != 1){
       throw new ArgumentError(1, arguments.length);
     }
+    if(!this.isBGMEnabled){
+      this._stackedBGM = symbol;
+      return 0;
+    }
     if(this._currentBGM){this.fadeOutBGM();}
     let pid = -1;
     pid = this.track[symbol].play();
     this.track[symbol].loop(true, pid);
+    this.track[symbol].volume(this._masterVolume * this._bgmVolume);
     this.registerAudio( {id:pid, type:'BGM', symbol:symbol} );
+
     return pid;
   }
   /**-------------------------------------------------------------------------
    * > Play the SE with fade-in effect
    */
   static fadeInSE(symbol, duration = Sound.fadeDurationSE){
+    if(!this.isSEEnabled){return ;}
     let pid = -1;
     pid = this.track[symbol].play();
-    this.track[symbol].fade(0.0, this._masterVolume, duration, pid);
+    let vol = this._masterVolume * this._seVolume
+    this.track[symbol].fade(0.0, vol, duration, pid);
     this.registerAudio( {id:pid, type:'SE',symbol:symbol} );
     return pid;
   }
@@ -984,11 +1103,22 @@ class Sound{
    * > Play the BGM with fade-in effect
    */
   static fadeInBGM(symbol, duration = Sound.fadeDurationBGM){
+    if(!this.isBGMEnabled){
+      this._stackedBGM = symbol;
+      return 0;
+    }
     if(this._currentBGM){this.fadeOutBGM();}
     let pid = -1;
     pid = this.track[symbol].play();
     this.track[symbol].loop(true, pid);
-    this.track[symbol].fade(0.0, this._masterVolume, duration, pid);
+
+    if(!this.isBGMEnabled){
+      this.track[symbol].volume(0);
+    }
+    else{
+      this.track[symbol].fade(0.0, this._masterVolume * this._bgmVolume, duration, pid);
+    }
+
     this.registerAudio( {id:pid, type:'BGM', symbol:symbol} );
     return pid;
   }
@@ -996,18 +1126,21 @@ class Sound{
   static fadeOutBGM(duration = Sound.fadeDurationBGM){
     let s = this._currentBGM;
     if(!s){return;}
-    this.track[s.symbol].fade(this._masterVolume, 0.0, duration, s.id);
+    if(!this.isBGMEnabled){return this.stopBGM();}
+    this.track[s.symbol].fade(this._masterVolume * this._bgmVolume, 0.0, duration, s.id);
   }
   /*-------------------------------------------------------------------------*/
   static fadeOutSE(soundID, duration = Sound.fadeDurationSE){
+    if(!this.isSEEnabled){return this.stopSE(soundID, duration);}
+    let vol = this._masterVolume * this._seVolume;
     if(soundID){
       let s = this._audioMap[soundID];
-      this.track[s.symbol].fade(this._masterVolume, 0.0, duration, s.id);
+      this.track[s.symbol].fade(vol, 0.0, duration, s.id);
     }
     else{
       for(let i=0;i<this._currentSE.length;++i){
         let s = this._currentSE[i];
-        this.track[s.symbol].fade(this._masterVolume, 0.0, duration, s.id);
+        this.track[s.symbol].fade(vol, 0.0, duration, s.id);
       }
     }
   }
@@ -1090,10 +1223,86 @@ class Sound{
     }
   }
   /*-------------------------------------------------------------------------*/
+  static changeMasterVolume(vol){
+    this._masterVolume = vol;
+    this.changeBGMVolume(this._bgmVolume);
+    this.changeSEVolume(this._seVolume);
+    DataManager.changeSetting(DataManager.kVolume, this.volumeData);
+  }
+  /*-------------------------------------------------------------------------*/
+  static changeBGMVolume(vol){
+    if(!this._currentBGM){return ;}
+    this._bgmVolume = vol;
+    this.track[this._currentBGM.symbol].volume(this._masterVolume * vol);
+    DataManager.changeSetting(DataManager.kVolume, this.volumeData)
+  }
+  /*-------------------------------------------------------------------------*/
+  static changeSEVolume(vol){
+    if(!this._currentBGM){return ;}
+    this._seVolume = vol;
+    for(let i=0;i<this._currentSE.length;++i){
+      let s = this._currentSE[i];
+      this.track[s.symbol].volume(this._masterVolume * vol)
+    }
+    DataManager.changeSetting(DataManager.kVolume, this.volumeData)
+  }
+  /*-------------------------------------------------------------------------*/
+  static enableBGM(){
+    this.audioEnable[0] = true;
+    if(this._stackedBGM){
+      this.playBGM(this._stackedBGM);
+      this._stackedBGM = null;
+    }
+    if(Graphics.BGMSprite){Graphics.BGMSprite.Xmark.hide();}
+    DataManager.changeSetting(DataManager.kAudioEnable, this.audioEnable)
+  }
+  /*-------------------------------------------------------------------------*/
+  static disableBGM(){
+    this.audioEnable[0] = false;
+    if(this._currentBGM){this._stackedBGM = this._currentBGM.symbol;}
+    this.stopBGM();
+    if(Graphics.BGMSprite){Graphics.BGMSprite.Xmark.show();}
+    DataManager.changeSetting(DataManager.kAudioEnable, this.audioEnable)
+  }
+  /*-------------------------------------------------------------------------*/
+  static toggleBGM(){
+    if(this.isBGMEnabled){
+      this.disableBGM();
+    }
+    else{
+      this.enableBGM();
+    }
+  }
+  /*-------------------------------------------------------------------------*/
+  static enableSE(){
+    this.audioEnable[1] = true;
+    if(Graphics.SESprite){Graphics.SESprite.Xmark.hide();}
+    DataManager.changeSetting(DataManager.kAudioEnable, this.audioEnable);
+  }
+  /*-------------------------------------------------------------------------*/
+  static disableSE(){
+    this.audioEnable[1] = false;
+    this.stopSE();
+    if(Graphics.SESprite){Graphics.SESprite.Xmark.show();}
+    DataManager.changeSetting(DataManager.kAudioEnable, this.audioEnable);
+  }
+  /*-------------------------------------------------------------------------*/
+  static toggleSE(){
+    if(this.isSEEnabled){
+      this.disableSE();
+    }
+    else{
+      this.enableSE();
+    }
+  }
+  /*-------------------------------------------------------------------------*/
   static playOK(){this.playSE(this.OK);}
   static playBuzzer(){this.playSE(this.Buzzer);}
   static playCursor(){this.playSE(this.Cursor);}
   static playCancel(){this.playSE(this.Cancel);}
+  static get volumeData(){return [this._masterVolume, this._bgmVolume, this._seVolume];}
+  static get isBGMEnabled(){return this.audioEnable[0];}
+  static get isSEEnabled(){return this.audioEnable[1];}
   /*-------------------------------------------------------------------------*/
 }
 
@@ -1215,12 +1424,23 @@ class Sprite extends PIXI.Sprite{
  */
 class SpriteCanvas extends Sprite{
   /**-------------------------------------------------------------------------
+   * @constructor
+   * @param {Rect} rect - initialize by an rect object
+   *//**
+   * @constructor
    * @param {Number} x - X position in app
    * @param {Number} y - Y position in app
    * @param {Number} w - width of canvas, overflowed content will be hidden
    * @param {Number} h - height of canvas, overflowed content will be hidden
    */
   constructor(x, y, w, h){
+    if(isClassOf(x, Rect)){
+      let rect = x;
+      y = rect.x;
+      w = rect.width;
+      h = rect.height;
+      x = rect.x;
+    }
     if(validArgCount(x, y, w, h) != 4){
       throw new ArgumentError(4, validArgCount(x,y,w,h));
     }

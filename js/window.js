@@ -22,9 +22,8 @@ class Window_Base extends SpriteCanvas{
    */
   constructor(x = 0, y = 0, w = 300, h = 150){
     super(x, y, w, h);
-    this._skin        = Graphics.DefaultWindowSkin;
     this.drawnObjects = [];
-    this.applySkin();
+    this.changeSkin(Graphics.WSkinCelestia);
     this.resize(w, h);
   }
   /*------------------------------------------------------------------------*/
@@ -34,6 +33,13 @@ class Window_Base extends SpriteCanvas{
   /*------------------------------------------------------------------------*/
   get itemHeight(){
     return this.lineHeight + this.spacing;
+  }
+  /**------------------------------------------------------------------------
+   * Change window skin
+   */
+  changeSkin(skin_name){
+    this._skin = skin_name;
+    this.applySkin();
   }
   /*------------------------------------------------------------------------*/
   cursorRect(index){
@@ -521,7 +527,7 @@ class Window_Selectable extends Window_Base{
     item.on('tap', args.handler);
     let pos = this.nextItemPOS;
     if(args.align == 1){
-      pos.x = Math.max((pos.x + this.itemWidth - item.width) / 2 + this.spacing * 2, pos.x);
+      pos.x = Math.max((pos.x + this.itemWidth - item.width) / 2 + this.spacing, pos.x);
     }
     else if(args.align == 2){
       pos.x = Math.max((pos.x + this.itemWidth - item.width) , pos.x);

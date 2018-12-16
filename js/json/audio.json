@@ -8,6 +8,7 @@
   "OK": "audio/se/KHSE_Select.wav",
   "Error": "audio/se/Buzzer1.mp3",
   "Wave": "audio/se/seawave.wav",
+  "IconOK": "audio/se/Cursor1.mp3",
 
   "_comment": "Other un-named resrouce files",
   "resources": []
