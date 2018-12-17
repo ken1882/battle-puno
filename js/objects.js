@@ -90,18 +90,21 @@ class Sprite_DragBar extends SpriteCanvas{
    * @param {Number} maxn  - maximum value
    * @param {Number} initn - initial value
    */
-  constructor(x, y, width, minn = 0, maxn = 100, initn = null){
-    super(x, y, width, this.height);
+  constructor(x, y, width, height = 30, minn = 0, maxn = 100, initn = null){
+    if(!height){height = 30;}
+    if(!minn){minn = 0;}
+    if(!maxn){maxn = 100;}
+    super(x, y, width, height);
     if(!initn){initn = (minn + maxn) / 2;}
     this.valuePeak = [minn, maxn];
     this.value     = initn;
     this.handler   = null;
+    this.fillColor = Graphics.color.DeepSkyBlue;
     this.createDragButton();
     this.createDragBar();
     this.refresh();
   }
   /*-------------------------------------------------------------------------*/
-  get height(){return 30;}
   get barHeight(){return 4;}
   get barWidth(){return this.width - this.dragButton.width;}
   get xOffset(){return this.dragButton.width / 2;}
@@ -113,7 +116,7 @@ class Sprite_DragBar extends SpriteCanvas{
   refresh(){
     this.updateButtonLocation();
     this.drawBar();
-    if(this.handler){this.handler.call(this.value);}
+    if(this.handler){this.handler(this.value);}
   }
   /*-------------------------------------------------------------------------*/
   createDragButton(){
@@ -144,7 +147,7 @@ class Sprite_DragBar extends SpriteCanvas{
   onDragMove(event){
     if(!this.dragButton.dragging){return ;}
     let offset = this.xOffset;
-    let dx = event.data.global.x - this.x - offset;
+    let dx = event.data.global.x - this.worldTransform.tx - offset;
     this.dragButton.x = Math.min(Math.max(0, dx), this.barWidth);
     this.value = (this.valuePeak[1] - this.valuePeak[0]) * (this.dragButton.x / this.dragBar.width);
     this.refresh();
@@ -157,18 +160,28 @@ class Sprite_DragBar extends SpriteCanvas{
     this.addChild(this.dragBar);
   }
   /*-------------------------------------------------------------------------*/
+  setValue(v){
+    this.value = Math.min(this.valuePeak[1], Math.max(this.valuePeak[0], v));
+    this.refresh();
+  }
+  /*-------------------------------------------------------------------------*/
   updateButtonLocation(){
     this.dragButton.x = this.dragBar.x + this.valuedWidth - this.dragButton.width / 2;
   }
   /*-------------------------------------------------------------------------*/
   drawBar(){
     this.dragBar.clear();
-    this.dragBar.beginFill(Graphics.color.DeepSkyBlue);
+    this.dragBar.beginFill(this.fillColor);
     this.dragBar.drawRect(0, 0, this.valuedWidth, this.barHeight);
     this.dragBar.endFill();
     this.dragBar.beginFill(Graphics.color.Black);
     this.dragBar.drawRect(this.valuedWidth, 0, this.barWidth - this.valuedWidth, this.barHeight);
     this.dragBar.endFill();
+  }
+  /*-------------------------------------------------------------------------*/
+  changeColor(c){
+    this.fillColor = c;
+    this.refresh();
   }
   /*-------------------------------------------------------------------------*/
 }

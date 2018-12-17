@@ -5,6 +5,22 @@
   <title>Battle-Puno</title>
   <link rel="stylesheet" type="text/css" media="screen" href="tablestyle.css" />
   <link rel="icon" href="/favicon.ico">
+  <script>
+    function processPageHTML(){
+      let txt = 'Language';
+      if(Vocab.Language == 'zh_tw'){txt = "語言"}
+      $('#language').html(txt + ':');
+      let id = '#' + Vocab.Language;
+      $(id).attr('selected', "selected");
+    }
+
+    function changeLanguage(){
+      var e = document.getElementById('languageOptions');
+      DataManager.changeSetting(DataManager.kLanguage, e.options[e.selectedIndex].id);
+      location=location;
+    }
+    window.addEventListener("load", processPageHTML, false);
+  </script>
 </head>
 <body>  
   <script type="text/javascript" src="js/lib/jquery-3.3.1.min.js"></script>
@@ -21,6 +37,14 @@
   <script type="text/javascript" src="js/objects.js"></script>
   <script type="text/javascript" src="js/assets.js"></script>
   <script type="text/javascript" src="js/main.js"></script>
+  <div id='languageSelect'>
+    <span id="language"></span>
+    <select id='languageOptions'>
+      <option id="en_us">English(US)</option>
+      <option id="zh_tw">繁體中文</option>
+    </select>
+    <input type="button" value='GO' onclick="changeLanguage()">
+  </div>
   <div id='infos'></div>
 </body>
 </html>

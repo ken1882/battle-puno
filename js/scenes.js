@@ -252,6 +252,7 @@ class Scene_Base extends Stage{
     this.overlay.oriZ = ovs.z;
     this.overlay.setZ(0x111);
     this.children.forEach(function(sp){
+      if(sp.alwaysActive){return ;}
       if(sp !== ovs){
         sp.lastActiveState = sp.isActive();
         sp.deactivate();
@@ -601,7 +602,7 @@ class Scene_Title extends Scene_Base{
    */
   start(){
     super.start();
-    Sound.playBGM(Sound.Title);
+    Sound.fadeInBGM(Sound.Title, 500);
     Graphics.addWindow(this.menu);
     this.menu.activate();
     this.particles.forEach(function(sp){sp.render();})

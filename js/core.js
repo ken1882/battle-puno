@@ -315,6 +315,7 @@ class Graphics{
     this.optionSprite.drawIcon(this.IconID.Option,0,0);
     
     let handler = function(){
+      Sound.playSE(Sound.IconOK);
       if(Graphics.optionWindow.visible){
         SceneManager.scene.closeOverlay();
       }
@@ -325,7 +326,7 @@ class Graphics{
     this.optionSprite.on('click', handler);
     this.optionSprite.on('tap', handler);
     this.optionSprite.defaultActiveState = true;
-    this.optionSprite.setZ(0x10).setPOS(dx, dy);
+    this.optionSprite.setZ(0x200).setPOS(dx, dy).alwaysActive = true;
     this.globalSprites.push(this.optionSprite)
   }
   /**-------------------------------------------------------------------------
@@ -348,7 +349,7 @@ class Graphics{
     this.BGMSprite.on('click', handler);
     this.BGMSprite.on('tap', handler);
     this.BGMSprite.defaultActiveState = true;
-    this.BGMSprite.setZ(0x10).setPOS(dx, dy);
+    this.BGMSprite.setZ(0x200).setPOS(dx, dy).alwaysActive = true;
     if(Sound.isBGMEnabled){this.BGMSprite.Xmark.hide();}
     this.globalSprites.push(this.BGMSprite)
   }
@@ -372,7 +373,7 @@ class Graphics{
     this.SESprite.on('click', handler);
     this.SESprite.on('tap', handler);
     this.SESprite.defaultActiveState = true;
-    this.SESprite.setZ(0x10).setPOS(dx, dy);
+    this.SESprite.setZ(0x200).setPOS(dx, dy).alwaysActive = true;
     if(Sound.isSEEnabled){this.SESprite.Xmark.hide();}
     this.globalSprites.push(this.SESprite)
   }
@@ -419,6 +420,7 @@ class Graphics{
    */
   static initRenderer(){
     this.renderer = PIXI.autoDetectRenderer(this._width, this._height);
+    this.renderer.plugins.interaction.interactionFrequency = 100
     document.app = this.app;
     document.body.appendChild(this.app.view);
   }
@@ -1105,14 +1107,14 @@ class Sound{
    * > Play the audio file as Sound Effect of given symbol
    * @param {string} symbol - symbol of the audio file
    */
-  static playSE(symbol, volume = this._masterVolume){
+  static playSE(symbol, volume = this._seVolume){
     if(!this.isSEEnabled){return ;}
     if(!this.track[symbol]){
       throw new Error("Undefined audio track: " + symbol)
     }
     let pid = -1;
     pid = this.track[symbol].play();
-    this.track[symbol].volume(volume, pid);
+    this.track[symbol].volume(volume * this._masterVolume, pid);
     this.registerAudio( {id:pid, type:'SE', symbol:symbol} );
     return pid;
   }
@@ -1280,14 +1282,13 @@ class Sound{
   }
   /*-------------------------------------------------------------------------*/
   static changeBGMVolume(vol){
-    if(!this._currentBGM){return ;}
     this._bgmVolume = vol;
-    this.track[this._currentBGM.symbol].volume(this._masterVolume * vol);
     DataManager.changeSetting(DataManager.kVolume, this.volumeData)
+    if(!this._currentBGM){return ;}
+    this.track[this._currentBGM.symbol].volume(this._masterVolume * vol);
   }
   /*-------------------------------------------------------------------------*/
   static changeSEVolume(vol){
-    if(!this._currentBGM){return ;}
     this._seVolume = vol;
     for(let i=0;i<this._currentSE.length;++i){
       let s = this._currentSE[i];

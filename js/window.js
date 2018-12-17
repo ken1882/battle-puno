@@ -647,6 +647,7 @@ class Window_Menu extends Window_Selectable{
   }
   /*------------------------------------------------------------------------*/
   onOption(){
+    Sound.playOK();
     SceneManager.scene.raiseOverlay(Graphics.optionWindow);
   }
   /*------------------------------------------------------------------------*/
@@ -681,7 +682,7 @@ class Window_Option extends Window_Selectable{
     let dy = this.spacing;
     this.closeIcon = this.drawIcon(Graphics.IconID.Xmark, dx, dy);
     let handler = function(){
-      debug_log("close");
+      Sound.playCancel();
       SceneManager.scene.closeOverlay();
     }
     this.closeIcon.on('click', handler);
@@ -699,12 +700,24 @@ class Window_Option extends Window_Selectable{
     this.addBGMVolume();
     this.addSEVolume();
   }
-  /*------------------------------------------------------------------------*/
+  /**------------------------------------------------------------------------
+   * Draggable meter to adjust master volume
+   */
   addMasterVolume(){
     let pos = this.nextItemPOS;
     let sp  = new SpriteCanvas(0, 0, this.itemWidth, this.itemHeight);
     sp.drawText(0, 0, Vocab["MasterVolume"]);
     sp.setPOS(pos.x, pos.y);
+
+    let offset = this.spacing / 2;
+    let ts  = this.drawText(410, -offset, parseInt(Sound._masterVolume * 100));
+    sp.addChild(ts);
+    this.MVBar = new Sprite_DragBar(150, -offset, 250, null, null, null, parseInt(Sound._masterVolume * 100));
+    sp.addChild(this.MVBar);
+    this.MVBar.handler = function(v){
+      Sound.changeMasterVolume(v / 100.0);
+      ts.text = parseInt(Sound._masterVolume * 100);
+    }
     this.addSelection(sp);
   }
   /*------------------------------------------------------------------------*/
@@ -713,6 +726,16 @@ class Window_Option extends Window_Selectable{
     let sp  = new SpriteCanvas(0, 0, this.itemWidth, this.itemHeight);
     sp.drawText(0, 0, Vocab["BGMVolume"]);
     sp.setPOS(pos.x, pos.y);
+    let offset = this.spacing / 2;
+    let ts  = this.drawText(410, -offset, parseInt(Sound._bgmVolume * 100));
+    sp.addChild(ts);
+    this.BVBar = new Sprite_DragBar(150, -offset, 250, null, null, null, parseInt(Sound._bgmVolume * 100));
+    sp.addChild(this.BVBar);
+    this.BVBar.handler = function(v){
+      Sound.changeBGMVolume(v / 100.0);
+      ts.text = parseInt(Sound._bgmVolume * 100);
+    }
+    this.BVBar.changeColor(Graphics.color.Violet)
     this.addSelection(sp);
   }
   /*------------------------------------------------------------------------*/
@@ -721,7 +744,35 @@ class Window_Option extends Window_Selectable{
     let sp  = new SpriteCanvas(0, 0, this.itemWidth, this.itemHeight);
     sp.drawText(0, 0, Vocab["SEVolume"]);
     sp.setPOS(pos.x, pos.y);
+    let offset = this.spacing / 2;
+    let ts  = this.drawText(410, -offset, parseInt(Sound._seVolume * 100));
+    sp.addChild(ts);
+    this.SVBar = new Sprite_DragBar(150, -offset, 250, null, null, null, parseInt(Sound._seVolume * 100));
+    sp.addChild(this.SVBar);
+    this.SVBar.handler = function(v){
+      Sound.changeSEVolume(v / 100.0);
+      ts.text = parseInt(Sound._seVolume * 100);
+    }
+    this.SVBar.changeColor(Graphics.color.Orange)
     this.addSelection(sp);
   }
   /*------------------------------------------------------------------------*/
+  activate(){
+    super.activate();
+    this.MVBar.activate();
+  }
+  /*------------------------------------------------------------------------*/
+  deactivate(){
+    super.deactivate();
+    this.MVBar.deactivate();
+  }
+  /*------------------------------------------------------------------------*/
+}
+
+/**
+ * Simulate the HTML select tag
+ */
+class Input_Select extends SpriteCanvas{
+
+
 }
