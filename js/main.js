@@ -51,7 +51,7 @@ function initializeApplication(){
   DataManager.initialize();
   Vocab.initialize();
   // call start
-  setTimeout(start, 500);
+  setTimeout(start, 1000);
 }
 
 /**

@@ -198,7 +198,18 @@ function reportError(e, fatel = true){
   }
   FatelError = fatel;
 }
-
+/**----------------------------------------------------------------------------
+ * > Get a random int
+ * @param {Number} minn - minimum number
+ * @param {Number} maxn - maximum number
+ */
+function randInt(minn = 0, maxn){
+  let re = parseInt(Math.random(42) * 100000000)
+  if(maxn){
+    return re % (maxn - minn + 1) + minn
+  }
+  return minn + re;
+}
 /**----------------------------------------------------------------------------
  * >> The static class that carries out graphics processing.
  * @namespace Graphics
@@ -241,24 +252,30 @@ class Graphics{
     this.FPS_SampleIndex  = 0;
     this.FPS_SamplePool   = [];
     this.globalSprites    = [];
+    this.globalWindows    = [];
 
     this.createApp();
     this.initRenderer();
     this.initLoader();
     this.aliasFunctions();
-    this.createGlobalSprites();
+    this.createBasicSprites();
   }
   /*---------------------------------------------------------------------------*/
-  static createGlobalSprites(){
+  static createBasicSprites(){
     this.createFadingSprite();
+    this.createDimSprite();
     this.createUnfocusSprite();
     this.createFPSSprite();
   }
   /*---------------------------------------------------------------------------*/
-  static createOptionSprites(){
+  static createGlobalSprites(){
     this.createOptionSprite();
     this.createBGMSprite();
     this.createSESprite();
+  }
+  /*---------------------------------------------------------------------------*/
+  static createGlobalWindows(){
+    this.createOptionWindow();
   }
   /**----------------------------------------------------------------------------
    * > Sprite for fading effect
@@ -281,6 +298,13 @@ class Graphics{
     this.unfocusSprite.name = "Unfocus Sprite";
     this.unfocusSprite.hide();
   }
+  /*---------------------------------------------------------------------------*/
+  static createDimSprite(){
+    this.dimSprite = new Sprite();
+    this.dimSprite.fillRect(0, 0, this.width, this.height, Graphics.color.Black);
+    this.dimSprite.name = "Dim Sprite";
+    this.dimSprite.setZ(0x100).setOpacity(0.5);
+  }
   /**-------------------------------------------------------------------------
    * Option icon on bottom-left corner to open the option window
    */
@@ -290,7 +314,18 @@ class Graphics{
     let dx = this.spacing
     this.optionSprite.drawIcon(this.IconID.Option,0,0);
     
-    this.optionSprite.setZ(0x10).setPOS(dx, dy).activate();
+    let handler = function(){
+      if(Graphics.optionWindow.visible){
+        SceneManager.scene.closeOverlay();
+      }
+      else{
+        SceneManager.scene.raiseOverlay(Graphics.optionWindow);
+      }
+    }
+    this.optionSprite.on('click', handler);
+    this.optionSprite.on('tap', handler);
+    this.optionSprite.defaultActiveState = true;
+    this.optionSprite.setZ(0x10).setPOS(dx, dy);
     this.globalSprites.push(this.optionSprite)
   }
   /**-------------------------------------------------------------------------
@@ -312,7 +347,8 @@ class Graphics{
     }.bind(Sound);
     this.BGMSprite.on('click', handler);
     this.BGMSprite.on('tap', handler);
-    this.BGMSprite.setZ(0x10).setPOS(dx, dy).activate();
+    this.BGMSprite.defaultActiveState = true;
+    this.BGMSprite.setZ(0x10).setPOS(dx, dy);
     if(Sound.isBGMEnabled){this.BGMSprite.Xmark.hide();}
     this.globalSprites.push(this.BGMSprite)
   }
@@ -335,7 +371,8 @@ class Graphics{
     }.bind(Sound);
     this.SESprite.on('click', handler);
     this.SESprite.on('tap', handler);
-    this.SESprite.setZ(0x10).setPOS(dx, dy).activate();
+    this.SESprite.defaultActiveState = true;
+    this.SESprite.setZ(0x10).setPOS(dx, dy);
     if(Sound.isSEEnabled){this.SESprite.Xmark.hide();}
     this.globalSprites.push(this.SESprite)
   }
@@ -346,6 +383,13 @@ class Graphics{
     let font = clone(this.DefaultFontSetting)
     font.fontSize = 18;
     this.FPSSprite = new PIXI.Text("FPS: ", font);
+  }
+  /*---------------------------------------------------------------------------*/
+  static createOptionWindow(){
+    this.optionWindow = new Window_Option();
+    this.optionWindow.hide();
+    this.optionWindow.deactivate();
+    this.globalWindows.push(this.optionWindow);
   }
   /**----------------------------------------------------------------------------
    * > Create main viewport
@@ -410,7 +454,9 @@ class Graphics{
     this.loader.onProgress.add(progresshandler);
     this.loader.onError.add(this.onLoadError.bind(this));
     this.loader.load(load_ok_handler);
-    this.loader.onComplete.add( function(){Graphics._assetsReady = true;} );
+    this.loader.onComplete.add(function(){
+      this._assetsReady = true;
+    }.bind(this));
   }
   /*------------------------------------------------------------------------*/
   static onLoadError(msg, loader, rss){
@@ -540,7 +586,6 @@ class Graphics{
     if(instance_name == null){instance_name = image_name;}
     sprite.name = instance_name;
     this._spriteMap[instance_name] = sprite;
-    debug_log("Add sprite: " + sprite.name)
     return sprite;
   }
   /**-------------------------------------------------------------------------
@@ -555,7 +600,6 @@ class Graphics{
     if(instance_name == null){instance_name = text;}
     sprite.name = instance_name;
     this._spriteMap[instance_name] = sprite;
-    debug_log("Add text: " + sprite.name)
     return sprite;
   }
   /**-------------------------------------------------------------------------
@@ -565,7 +609,6 @@ class Graphics{
   static removeSprite(...args){
     args.forEach(function(obj){
       if(isClassOf(obj, String)){ obj = Graphics._spriteMap[obj]; }
-      debug_log("Remove sprite: " + obj.name)
       delete Graphics._spriteMap[obj.name];
       SceneManager.scene.removeChild(obj);
     })
@@ -663,7 +706,7 @@ class Graphics{
      * @property {boolean} unpause - won't pause regardless game unfocused
      */
     let sp = this.playAnimation(dx, dy, this.Clicking, 2);
-    sp.setZ(0x20).setOpacity(this.mouseClickOpacity).unpause = true;    
+    sp.setZ(0x1000).setOpacity(this.mouseClickOpacity).unpause = true;    
   }
   /**----------------------------------------------------------------------------
    * Mouse move trailing visual effect
@@ -676,7 +719,7 @@ class Graphics{
      * @property {boolean} unpause - won't pause regardless game unfocused
      */
     let sp = this.playAnimation(dx, dy, this.Trailing, 2)
-    sp.setOpacity(this.mouseTrailOpacity).setZ(0x20).unpause = true;
+    sp.setOpacity(this.mouseTrailOpacity).setZ(0x1000).unpause = true;
   }
   /*------------------------------------------------------------------------*/
   static generateAnimation(image){
@@ -712,10 +755,17 @@ class Graphics{
     animSprite.onComplete = function(){Graphics.removeSprite(holder)};
     let dx = align == 1 ? x : (x - animSprite.width  / 2);
     let dy = align == 1 ? y : (y - animSprite.height / 2);
-    holder.setPOS(dx, dy).setZ(0x20);
+    holder.setPOS(dx, dy).setZ(0x1000);
     this.renderSprite(holder);
     animSprite.play();
     return animSprite;
+  }
+  /**-------------------------------------------------------------------------
+   * If performance is lower, haste the object to make it looks normal
+   * @returns {Number} - the delta multiple factor
+   */
+  static get speedFactor(){
+    return 60.0 / this.FPS;
   }
   /*------------------------------------------------------------------------*/
 } // class Graphics
@@ -891,7 +941,6 @@ class Input{
   static isWheelDown(){
     return this.wheelstate == -1;  
   }
-
 } // class Input
 
 /**---------------------------------------------------------------------------
@@ -1317,7 +1366,7 @@ class Sprite extends PIXI.Sprite{
   /**-------------------------------------------------------------------------
    * @constructor
    * @memberof Sprite
-   * @param {Texture} - A PIXI.Texture to convert to sprite
+   * @param {Texture} texture - A PIXI.Texture to convert to sprite
    * @property {boolean} static - When is child, the position won't effected by
    *                              parent's display origin (ox/oy)
    */
@@ -1358,13 +1407,15 @@ class Sprite extends PIXI.Sprite{
     rect.zIndex = 2;
     rect.alpha = this.opacity;
     this.addChild(rect);
+    return rect;
   }
   /*-------------------------------------------------------------------------*/
   drawText(x, y, text, font = Graphics.DefaultFontSetting){
     let txt = new PIXI.Text(text, font);
     txt.alpha  = this.opacity;
-    txt.zIndex = 2;
+    txt.setPOS(x,y).setZ(2);
     this.addChild(txt);
+    return txt;
   }
   /**-------------------------------------------------------------------------
    * > Draw Icon in Iconset
@@ -1451,11 +1502,11 @@ class SpriteCanvas extends Sprite{
     this.ox = 0; this.oy = 0;
     this.lastDisplayOrigin = [0,0];
     this.applyMask();
+    this.hitArea = new Rect(0, 0, w, h);
   }
   /*-------------------------------------------------------------------------*/
   get width(){return this._width;}
   get height(){return this._height;}
-  get z(){return this.z;}
   /**------------------------------------------------------------------------
    * > Check whether the object is inside the visible area
    * @param {Sprite|Bitmap} obj - the DisplayObject to be checked
@@ -1497,6 +1548,7 @@ class SpriteCanvas extends Sprite{
     this._width  = w;
     this._height = h;
     this.drawMask();
+    this.hitArea = new Rect(0, 0, w, h);
     return this;
   }
   /**-------------------------------------------------------------------------

@@ -23,8 +23,7 @@ class Window_Base extends SpriteCanvas{
   constructor(x = 0, y = 0, w = 300, h = 150){
     super(x, y, w, h);
     this.drawnObjects = [];
-    this.changeSkin(Graphics.WSkinCelestia);
-    this.resize(w, h);
+    this.changeSkin(Graphics.DefaultWindowSkin);
   }
   /*------------------------------------------------------------------------*/
   get itemWidth(){
@@ -40,6 +39,7 @@ class Window_Base extends SpriteCanvas{
   changeSkin(skin_name){
     this._skin = skin_name;
     this.applySkin();
+    this.resize(this.width, this.height);
   }
   /*------------------------------------------------------------------------*/
   cursorRect(index){
@@ -62,12 +62,13 @@ class Window_Base extends SpriteCanvas{
   updateCursor(){
     if(this.cursorSprite.visible){
       let sp = this.cursorSprite;
+      let delta = 0.02 * Graphics.speedFactor;
       if(!sp.uFlag){
-        sp.setOpacity(sp.opacity - 0.02);
+        sp.setOpacity(sp.opacity - delta);
         if(sp.opacity < 0.1){sp.uFlag = true;}
       }
       else{
-        sp.setOpacity(sp.opacity + 0.02);
+        sp.setOpacity(sp.opacity + delta);
         if(sp.opacity >= 1){sp.uFlag = false;}
       }
     }
@@ -130,6 +131,7 @@ class Window_Base extends SpriteCanvas{
     
     for(let i=0;i<this.borderSprites.length;++i){
       this.borderSprites[i].setZ(5).static = true;
+      this.removeChild(this.borderSprites[i]);
       this.addChild(this.borderSprites[i]);
     }
   }
@@ -169,10 +171,12 @@ class Window_Base extends SpriteCanvas{
     this.cursorSprite = new SpriteCanvas(0,0,32,32);
     for(let i=0;i < cursorSprites.length;++i){
       cursorSprites[i].setZ(1.5).static = true;
+      this.cursorSprite.removeChild(cursorSprites[i]);
       this.cursorSprite.addChild(cursorSprites[i]);
     }
 
     this.cursorSprite.setZ(1.5).hide().static = true;
+    this.removeChild(this.cursorSprite);
     this.addChild(this.cursorSprite);
   }
   /**-------------------------------------------------------------------------
@@ -182,6 +186,7 @@ class Window_Base extends SpriteCanvas{
     let texture = Graphics.loadTexture(this._skin, Graphics.wSkinIndexRect);
     this.indexSprite = new Sprite(texture);
     this.indexSprite.setZ(0).setOpacity(0.5).static = true;
+    this.removeChild(this.indexSprite)
     this.addChild(this.indexSprite);
   }
   /**-------------------------------------------------------------------------
@@ -191,6 +196,7 @@ class Window_Base extends SpriteCanvas{
     let texture = Graphics.loadTexture(this._skin, Graphics.wSkinPatternRect);
     this.patternSprite = new Sprite(texture);
     this.patternSprite.setZ(1).setOpacity(0.5).static = true;
+    this.removeChild(this.patternSprite);
     this.addChild(this.patternSprite);
   }
   /**-------------------------------------------------------------------------
@@ -210,6 +216,7 @@ class Window_Base extends SpriteCanvas{
     this.buttonSprite.setZ(3).static = true;
     this.buttonSprite.animationSpeed = 0.25;
     this.buttonSprite.hide();
+    this.removeChild(this.buttonSprite);
     this.addChild(this.buttonSprite);
   }
   /**-------------------------------------------------------------------------
@@ -230,6 +237,7 @@ class Window_Base extends SpriteCanvas{
     ]
     for(let i=0;i<4;++i){
       this.arrowSprites[i].setZ(6).hide().static = true;
+      this.removeChild(this.arrowSprites[i]);
       this.addChild(this.arrowSprites[i]);
     }
   }
@@ -252,13 +260,14 @@ class Window_Base extends SpriteCanvas{
    * @param {Number} y - the y position of the text to draw
    * @param {Object} font - the font settings
    */
-  drawText(text, x = 0, y = 0, font = Graphics.DefaultFontSetting){
+  drawText(x = 0, y = 0, text = '', font = Graphics.DefaultFontSetting){
     let ts = new PIXI.Text(text, font);
     x += this.spacing; y += this.spacing;
     ts.setPOS(x, y).setZ(2);
     this.drawnObjects.push(ts);
     this.addChild(ts);
     this.refresh();
+    return ts;
   }
   /*------------------------------------------------------------------------*/
   refresh(){
@@ -375,14 +384,13 @@ class Window_Selectable extends Window_Base{
    * @constructor
    * @memberof Window_Selectable
    */
-  constructor(x = 0, y = 0, w = 300, h = 150){
+  constructor(x, y, w, h){
     super(x, y, w, h);
     this._active     = false;
     this._selections = [];
     this._index      = -1;
     this.on('tap', this.onSelfTrigger.bind(this));
     this.on('click', this.onSelfTrigger.bind(this));
-    this.hitArea = new Rect(0, 0, w, h);
   }
   /**------------------------------------------------------------------------
    * Max item count in each row
@@ -424,7 +432,6 @@ class Window_Selectable extends Window_Base{
   }
   /*------------------------------------------------------------------------*/
   onSelfTrigger(){
-    console.log('trigger')
     if(this.index < 0){return ;}
     debug_log(getClassName(this) + " triggered index: " + this.index);
     if(this.isCurrentItemEnabled){
@@ -467,15 +474,17 @@ class Window_Selectable extends Window_Base{
     for(let i=0;i<arguments.length;++i){
       let item = arguments[i];
       let crect = this.cursorRect(this._selections.length);
-      item.setZ((item.z || 0) + this.patternSprite.z + 1);
-      item._index = this._selections.length;
-      item.hitArea = new Rect(0,0,this.itemWidth, this.itemHeight);
-      item.hitArea.x = crect.x - item.x;
-      item.hitArea.y = crect.y - item.y;
-      item.on('mouseover', this.onMouseover.bind(this, item));
-      item.on('mouseout', this.onMouseOut.bind(this, item));
+      if(item){
+        item.setZ((item.z || 0) + this.patternSprite.z + 1);
+        item._index = this._selections.length;
+        item.hitArea = new Rect(0,0,this.itemWidth, this.itemHeight);
+        item.hitArea.x = crect.x - item.x;
+        item.hitArea.y = crect.y - item.y;
+        item.on('mouseover', this.onMouseover.bind(this, item));
+        item.on('mouseout', this.onMouseOut.bind(this, item));
+        this.addChild(item);
+      }
       this._selections.push(item);
-      this.addChild(item);
     }
     this.refresh();
   }
@@ -568,6 +577,8 @@ class Window_Selectable extends Window_Base{
     return rect;
   }
   /*------------------------------------------------------------------------*/
+  get isWindow(){return true;}
+  /*------------------------------------------------------------------------*/
 }
 /**
  * Menu window in title screen
@@ -580,6 +591,7 @@ class Window_Menu extends Window_Selectable{
    */
   constructor(x, y, w, h){
     super(x, y, w, h);
+    this.changeSkin(Graphics.WSkinCelestia)
     this.addAllSelections();
   }
   /*------------------------------------------------------------------------*/
@@ -602,7 +614,7 @@ class Window_Menu extends Window_Selectable{
   addRules(){
     let opt = {
       text: Vocab.Rules,
-      handler: this.onGameStart.bind(this),
+      handler: this.onRules.bind(this),
       align: 1,
     }
     this.addTextSelection(opt);
@@ -611,7 +623,7 @@ class Window_Menu extends Window_Selectable{
   addOptions(){
     let opt = {
       text: Vocab.Options,
-      handler: this.onGameStart.bind(this),
+      handler: this.onOption.bind(this),
       align: 1,
     }
     this.addTextSelection(opt);
@@ -620,14 +632,96 @@ class Window_Menu extends Window_Selectable{
   addCredits(){
     let opt = {
       text: Vocab.Credits,
-      handler: this.onGameStart.bind(this),
+      handler: this.onCredits.bind(this),
       align: 1,
     }
     this.addTextSelection(opt);
   }
   /*------------------------------------------------------------------------*/
   onGameStart(){
+    
+  }
+  /*------------------------------------------------------------------------*/
+  onRules(){
 
+  }
+  /*------------------------------------------------------------------------*/
+  onOption(){
+    SceneManager.scene.raiseOverlay(Graphics.optionWindow);
+  }
+  /*------------------------------------------------------------------------*/
+  onCredits(){
+
+  }
+  /*------------------------------------------------------------------------*/
+}
+/**
+ * Option window 
+ * @class
+ * @extends Window_Selectable
+ */
+class Window_Option extends Window_Selectable{
+  /**-------------------------------------------------------------------------
+   * @constructor
+   */
+  constructor(){
+    super();
+    this.resize(this.WindowWidth, this.WindowHeight);
+    this.setPOS(Graphics.appCenterWidth(this.width), Graphics.appCenterHeight(this.height));
+    this.drawTitle();
+    this.addClose();
+    this.addOptions();
+  }
+  /*------------------------------------------------------------------------*/
+  get WindowWidth(){return 500;}
+  get WindowHeight(){return 400;}
+  /*------------------------------------------------------------------------*/
+  addClose(){
+    let dx = this.width - this.spacing - Graphics.IconRect.width;
+    let dy = this.spacing;
+    this.closeIcon = this.drawIcon(Graphics.IconID.Xmark, dx, dy);
+    let handler = function(){
+      debug_log("close");
+      SceneManager.scene.closeOverlay();
+    }
+    this.closeIcon.on('click', handler);
+    this.closeIcon.on('tap', handler);
+    this.addSelection(null);
+  }
+  /*------------------------------------------------------------------------*/
+  drawTitle(){
+    let txt = this.drawText(0, this.spacing, Vocab["Options"]);
+    txt.x = (this.width - txt.width) / 2;
+  }
+  /*------------------------------------------------------------------------*/
+  addOptions(){
+    this.addMasterVolume();
+    this.addBGMVolume();
+    this.addSEVolume();
+  }
+  /*------------------------------------------------------------------------*/
+  addMasterVolume(){
+    let pos = this.nextItemPOS;
+    let sp  = new SpriteCanvas(0, 0, this.itemWidth, this.itemHeight);
+    sp.drawText(0, 0, Vocab["MasterVolume"]);
+    sp.setPOS(pos.x, pos.y);
+    this.addSelection(sp);
+  }
+  /*------------------------------------------------------------------------*/
+  addBGMVolume(){
+    let pos = this.nextItemPOS;
+    let sp  = new SpriteCanvas(0, 0, this.itemWidth, this.itemHeight);
+    sp.drawText(0, 0, Vocab["BGMVolume"]);
+    sp.setPOS(pos.x, pos.y);
+    this.addSelection(sp);
+  }
+  /*------------------------------------------------------------------------*/
+  addSEVolume(){
+    let pos = this.nextItemPOS;
+    let sp  = new SpriteCanvas(0, 0, this.itemWidth, this.itemHeight);
+    sp.drawText(0, 0, Vocab["SEVolume"]);
+    sp.setPOS(pos.x, pos.y);
+    this.addSelection(sp);
   }
   /*------------------------------------------------------------------------*/
 }

@@ -11,5 +11,8 @@
   "StartGame": "Start Game",
   "Rules": "Rules",
   "Options": "Options",
-  "Credits": "Credits"
+  "Credits": "Credits",
+  "MasterVolume": "Master Volume",
+  "BGMVolume": "BGM Volume",
+  "SEVolume": "SE Volume"
 }

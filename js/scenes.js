@@ -4,25 +4,18 @@
  * @class Scene_Base
  * @constructor 
  * @extends Stage
+ * @property {boolean} _active      - acitve flag
+ * @property {number}  _fadingFlag  - fade type flag
+ * @property {number}  _fadingTimer - timer of fade effect
+ * @property {Sprite}  _fadeSprite  - sprite of fade effect
  */
 class Scene_Base extends Stage{
   /**-------------------------------------------------------------------------
    * @constructor
    * @memberof Scene_Base
    */
-  constructor(...args){
-    super(...args);
-    this.initialize.apply(this, arguments);
-  }
-  /**-------------------------------------------------------------------------
-   * > Object initialization
-   * @memberof Scene_Base
-   * @property {boolean}     _active      - acitve flag
-   * @property {number}      _fadingFlag  - fade type flag
-   * @property {number}      _fadingTimer - timer of fade effect
-   * @property {PIXI.Sprite} _fadeSprite  - sprite of fade effect
-   */
-  initialize(){
+  constructor(){
+    super();
     this._active  = false;
     this._windows = [];
     this._fadingFlag = 0;
@@ -37,19 +30,16 @@ class Scene_Base extends Stage{
   update(){
     this.updateFading();
     this.updateChildren();
-    this.updateAllWindow();
   }
   /*-------------------------------------------------------------------------*/
   updateChildren(){
     this.children.forEach(function(child){
-      if(child.update){child.update();}
-    })
-  }
-  /*-------------------------------------------------------------------------*/
-  updateAllWindow(){
-    this._windows.forEach(function(win){
-      win.update();
-    })
+      if(child.update){
+        if(!this.overlay || !child.isWindow || child === this.overlay){
+          child.update();
+        }
+      }
+    }.bind(this))
   }
   /**-------------------------------------------------------------------------
    * @returns {boolean} - whether scene is fading
@@ -127,6 +117,7 @@ class Scene_Base extends Stage{
     this._fadingSprite = Graphics.fadingSprite;
     if(DebugMode){this.addChild(Graphics.FPSSprite)}
     this.renderGlobalSprites();
+    this.renderGlobalWindows();
   }
   /*-------------------------------------------------------------------------*/
   stop(){
@@ -135,7 +126,15 @@ class Scene_Base extends Stage{
   /*-------------------------------------------------------------------------*/
   renderGlobalSprites(){
     Graphics.globalSprites.forEach(function(sp){
-      Graphics.renderSprite(sp); sp.activate();
+      Graphics.renderSprite(sp);
+      if(sp.defaultActiveState){sp.activate(); sp.show();}
+    });
+  }
+  /*-------------------------------------------------------------------------*/
+  renderGlobalWindows(){
+    Graphics.globalWindows.forEach(function(win){
+      Graphics.renderWindow(win);
+      if(win.defaultActiveState){win.activate(); win.show();}
     });
   }
   /*-------------------------------------------------------------------------*/
@@ -246,6 +245,36 @@ class Scene_Base extends Stage{
     return (this._buttonCooldown[kid] || 0) == 0;
   }
   /*-------------------------------------------------------------------------*/
+  raiseOverlay(ovs){
+    if(!ovs){return ;}
+    debug_log("Raise overlay: " + getClassName(ovs));
+    this.overlay = ovs;
+    this.overlay.oriZ = ovs.z;
+    this.overlay.setZ(0x111);
+    this.children.forEach(function(sp){
+      if(sp !== ovs){
+        sp.lastActiveState = sp.isActive();
+        sp.deactivate();
+      }
+    })
+    Graphics.renderSprite(Graphics.dimSprite);
+    ovs.show(); ovs.activate();
+  }
+  /*-------------------------------------------------------------------------*/
+  closeOverlay(){
+    if(!this.overlay){return ;}
+    debug_log("Close overlay");
+    this.overlay.hide(); this.overlay.deactivate();
+    this.children.forEach(function(sp){
+      if(sp !== this.overlay && sp.lastActiveState){
+        sp.activate();
+      }
+    }.bind(this))
+    Graphics.removeSprite(Graphics.dimSprite);
+    this.overlay.setZ(this.overlay.oriZ);
+    this.overlay = null;
+  }
+  /*-------------------------------------------------------------------------*/
 } // Scene_Base
 
 /**
@@ -253,6 +282,7 @@ class Scene_Base extends Stage{
  * 
  * @class Scene_Load
  * @extends Scene_Base
+ * @property {number} loading_timer - timer record of loading phase
  */
 class Scene_Load extends Scene_Base{
   /**-------------------------------------------------------------------------
@@ -260,18 +290,9 @@ class Scene_Load extends Scene_Base{
    * @memberof Scene_Load
    * @property {boolean} allLoaded - Graphics and Audio are both loaded
    */
-  constructor(...args){
-    super(...args)
-    this.initialize.apply(this, arguments);
+  constructor(){
+    super()
     this.allLoaded = false;
-  }
-  /**-------------------------------------------------------------------------
-   * > Object Initializatoin
-   * @memberof Scene_Load
-   * @property {number} loading_timer - timer record of loading phase
-   */
-  initialize(){
-    super.initialize();
     this.loading_timer = 0;
   }
   /**-------------------------------------------------------------------------
@@ -451,11 +472,6 @@ class Scene_Intro extends Scene_Base{
     this.createHowlerSplash();
   }
   /*-------------------------------------------------------------------------*/
-  terminate(){
-    super.terminate();
-    Graphics.createOptionSprites();
-  }
-  /*-------------------------------------------------------------------------*/
   createBackground(){
     this.backgroundImage = new PIXI.Graphics();
     this.backgroundImage.beginFill(0);
@@ -543,6 +559,12 @@ class Scene_Intro extends Scene_Base{
     Graphics.renderSprite(this.howlerSplash);
   }
   /*-------------------------------------------------------------------------*/
+  terminate(){
+    super.terminate();
+    Graphics.createGlobalWindows();
+    Graphics.createGlobalSprites();
+  }
+  /*-------------------------------------------------------------------------*/
   processNTOUSplash(){
     this.ntouSplash.filters = []
     Graphics.removeSprite(this.pixiSplash, this.howlerSplash);
@@ -569,16 +591,10 @@ class Scene_Title extends Scene_Base{
    * @constructor
    * @memberof Scene_Title
    */
-  constructor(...args){
-    super(...args)
-    this.initialize.apply(this, arguments);
-  }
-  /**-------------------------------------------------------------------------
-   * > Object Initializatoin
-   * @memberof Scene_Title
-   */
-  initialize(){
-    super.initialize();
+  constructor(){
+    super()
+    this.particles = [];
+    this.particleNumber = 16;
   }
   /**-------------------------------------------------------------------------
    * > Start processing
@@ -588,16 +604,28 @@ class Scene_Title extends Scene_Base{
     Sound.playBGM(Sound.Title);
     Graphics.addWindow(this.menu);
     this.menu.activate();
+    this.particles.forEach(function(sp){sp.render();})
   }
   /*-------------------------------------------------------------------------*/
   create(){
     super.create();
     this.createMenu();
+    this.createparticles();
   }
   /*-------------------------------------------------------------------------*/
   update(){
     super.update();
-    // reserved
+    this.updateparticles();
+  }
+  /*-------------------------------------------------------------------------*/
+  updateparticles(){
+    for(let i=0;i<this.particleNumber;++i){
+      let sp = this.particles[i];
+      sp.y -= sp.speedFactor;
+      if(!(i&1)){sp.rotation += sp.rotationDelta * Graphics.speedFactor;}
+      if(sp.opacity < 0.6){sp.setOpacity(sp.opacity + 0.05 * Graphics.speedFactor);}
+      if(sp.y < -50){this.setParticlePosition(i);}
+    }
   }
   /*-------------------------------------------------------------------------*/
   createBackground(){
@@ -610,6 +638,32 @@ class Scene_Title extends Scene_Base{
     let wx = Graphics.width - ww - Graphics.padding / 2;
     let wy = Graphics.height / 2;
     this.menu = new Window_Menu(wx, wy, ww, wh);
+  }
+  /*-------------------------------------------------------------------------*/
+  createparticles(){
+    let p = Graphics.Particle, p2 = Graphics.Particle2;
+    for(let i=0;i<this.particleNumber;++i){
+      let pn = !(i&1) ? p2: p;
+      let sp = new Sprite(Graphics.loadTexture(pn));
+      sp.setZ(0.1);
+      this.particles.push(sp);
+      this.setParticlePosition(i, true);
+    }
+  }
+  /*-------------------------------------------------------------------------*/
+  setParticlePosition(index, randomDist = false){
+    let sp = this.particles[index];
+    let ux = (Graphics.width - Graphics.padding) / this.particleNumber;
+    let dx = ux * index, dy = Graphics.height - Graphics.padding * 2;
+    dx = randInt(dx, dx + ux);
+    dy = randInt(randomDist ? Graphics.padding : dy, Graphics.height);
+    sp.speedFactor = randInt(10,50) / 10.0
+    sp.filters = [new PIXI.filters.AdjustmentFilter({red: 1, green: 1, blue: 1})]
+    sp.anchor.set(0.5);
+    sp.setPOS(dx, dy).setOpacity(0);
+    if(!(index & 1)){
+      sp.rotationDelta = randInt(20,100) / 2000.0
+    }
   }
   /*-------------------------------------------------------------------------*/
 }

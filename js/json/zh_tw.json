@@ -11,5 +11,8 @@
   "StartGame": "開始遊戲",
   "Rules": "遊戲規則",
   "Options": "系統選項",
-  "Credits": "製作群"
+  "Credits": "製作群",
+  "MasterVolume": "主音量",
+  "BGMVolume": "背景音量",
+  "SEVolume": "效果音量"
 }
