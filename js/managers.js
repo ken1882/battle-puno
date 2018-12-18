@@ -48,8 +48,7 @@ class SceneManager{
     for(let i=0;i<mouseKeys.length;++i){
       let key = mouseKeys[i];
       if(Input.isTriggered(key)){
-        if(!Input.isTriggerArea(key, Graphics.app)){return false;}
-        else{return true;}
+        return Graphics.pointerInside;
       }
     }
     return this._focused;

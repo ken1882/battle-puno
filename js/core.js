@@ -255,6 +255,7 @@ class Graphics{
     this.globalWindows    = [];
 
     this.createApp();
+    this.registerCanvasListener();
     this.initRenderer();
     this.initLoader();
     this.aliasFunctions();
@@ -412,8 +413,19 @@ class Graphics{
     this.app.view.style.left = this.app.x + 'px';
     this.app.view.style.top  = this.app.y + 'px';
     this.app.view.style.zIndex = 0;
-    this.app.view.addEventListener('mousemove', this.mouseMoveTrailingEffect.bind(this));
-    this.app.view.addEventListener('click', this.clickEffect.bind(this));
+  }
+  /*-------------------------------------------------------------------------*/
+  static registerCanvasListener(){
+    let app = Graphics.app.view;
+    app.addEventListener('mousemove', this.mouseMoveTrailingEffect.bind(this));
+    app.addEventListener('click', this.clickEffect.bind(this));
+    
+    app.addEventListener('mouseover', function(){
+      this.pointerInside = true;
+    }.bind(this));
+    app.addEventListener('mouseout', function(){
+      this.pointerInside = false;
+    }.bind(this));
   }
   /**----------------------------------------------------------------------------
    * @property {PIXI.WebGLRenderer} renderer - the rending software of the app
@@ -422,7 +434,8 @@ class Graphics{
     this.renderer = PIXI.autoDetectRenderer(this._width, this._height);
     this.renderer.plugins.interaction.interactionFrequency = 100
     document.app = this.app;
-    document.body.appendChild(this.app.view);
+    document.getElementById('GAME').replaceWith(this.app.view);
+    $('#languageSelect').css('top', this.app.y + this.app.height + this.spacing + 'px');
   }
   /**-------------------------------------------------------------------------
    * > Initialize PIXI Loader

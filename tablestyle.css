@@ -8,13 +8,27 @@
   src: url('fonts/NotoSansCJKtc-Regular.otf') format('opentype');
 }
 
+
 body{
   background-color: black;  
   text-align: center;
   font-family: 'CelestiaMediumRedux';
   color: white;
+  /* Prevent selection */
+  -webkit-user-select: none; /* webkit (safari, chrome) browsers */
+  -moz-user-select: none; /* mozilla browsers */
+  -khtml-user-select: none; /* webkit (konqueror) browsers */
+  -ms-user-select: none; /* IE10+ */
 }
 
 canvas{
   position: absolute;
+}
+
+#languageSelect{
+  position: absolute;
+  margin-left:auto;
+  margin-right:auto;
+  left: 0;
+  right: 0;
 }

@@ -615,6 +615,10 @@ class Scene_Title extends Scene_Base{
     super.create();
     this.createMenu();
     this.createparticles();
+    this.createGameModeWindow();
+    this.createGameOptionWindow();
+    this.createBackButton();
+    this.createDimBack();
   }
   /*-------------------------------------------------------------------------*/
   update(){
@@ -644,6 +648,12 @@ class Scene_Title extends Scene_Base{
     this.menu = new Window_Menu(wx, wy, ww, wh);
   }
   /*-------------------------------------------------------------------------*/
+  createDimBack(){
+    this.dimBack = new Sprite(0, 0, Graphics.width, Graphics.height);
+    this.dimBack.fillRect(0, 0, Graphics.width, Graphics.height);
+    this.dimBack.setOpacity(0.7).setZ(0x0a).hide();
+  }
+  /*-------------------------------------------------------------------------*/
   createparticles(){
     let p = Graphics.Particle, p2 = Graphics.Particle2;
     for(let i=0;i<this.particleNumber;++i){
@@ -668,6 +678,39 @@ class Scene_Title extends Scene_Base{
     if(!(index & 1)){
       sp.rotationDelta = randInt(20,100) / 2000.0
     }
+  }
+  /*-------------------------------------------------------------------------*/
+  createGameModeWindow(){
+    this.gameModeWindow = new Window_GameModeSelect(0, 0, 300, 400);
+    let wx = (Graphics.width - this.gameModeWindow.width) / 3
+    this.gameModeWindow.setPOS(wx, 150).setZ(0x10).hide();
+  }
+  /*-------------------------------------------------------------------------*/
+  createGameOptionWindow(){
+    this.gameOptionWindow = new Window_GameOption(0, 0, 300, 400);
+    let wx = (Graphics.width - this.gameOptionWindow.width) * 2 / 3
+    this.gameOptionWindow.setPOS(wx,150).setZ(0x10).hide();
+  }
+  /*-------------------------------------------------------------------------*/
+  createBackButton(){
+    this.backButton = new Window_Back(0, 0, this.onActionBack.bind(this));
+    let wx = Graphics.width - this.backButton.width - Graphics.padding;
+    let wy = Graphics.padding;
+    this.backButton.setPOS(wx, wy).setZ(0x10).hide();
+  }
+  /*-------------------------------------------------------------------------*/
+  onGameStart(){
+    this.gameModeWindow.show().activate().render();
+    this.gameOptionWindow.show().activate().render();
+    this.backButton.show().activate().render();
+    this.dimBack.show().render();
+  }
+  /*-------------------------------------------------------------------------*/
+  onActionBack(){
+    this.gameModeWindow.hide().deactivate();
+    this.gameOptionWindow.hide().deactivate();
+    this.backButton.hide().deactivate();
+    this.dimBack.hide().remove();
   }
   /*-------------------------------------------------------------------------*/
 }

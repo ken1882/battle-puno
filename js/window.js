@@ -27,7 +27,7 @@ class Window_Base extends SpriteCanvas{
   }
   /*------------------------------------------------------------------------*/
   get itemWidth(){
-    return this.width - this.padding;
+    return this.contentWidth;
   }
   /*------------------------------------------------------------------------*/
   get itemHeight(){
@@ -45,7 +45,7 @@ class Window_Base extends SpriteCanvas{
   cursorRect(index){
     let rect = new Rect(0,0,0,0);
     let pos  = this.getIndexItemPOS(index);
-    rect.x = pos.x - this.spacing;
+    rect.x = pos.x;
     rect.y = pos.y - this.spacing;
     rect.width = this.itemWidth;
     rect.height = this.itemHeight;
@@ -90,6 +90,8 @@ class Window_Base extends SpriteCanvas{
   get padding(){return Graphics.padding;}
   get spacing(){return Graphics.spacing;}
   get lineHeight(){return Graphics.lineHeight;}
+  get contentWidth(){return this.width - this.padding - this.spacing;}
+  get contentHeight(){return this.height - this.padding - this.spacing;}
   /**-------------------------------------------------------------------------
    * > Draw window skin
    */
@@ -307,6 +309,11 @@ class Window_Base extends SpriteCanvas{
     super.refresh();
     this.checkArrowsVisibility();
   }
+  /*------------------------------------------------------------------------*/
+  changeBackOpaicty(v){
+    this.indexSprite.setOpacity(v);
+    this.patternSprite.setOpacity(v);
+  }
   /**------------------------------------------------------------------------
    * Check whether to show surplus navigation arrows 
    */
@@ -326,18 +333,27 @@ class Window_Base extends SpriteCanvas{
     w = Math.min(Math.max(1, w), 4096);
     h = Math.min(Math.max(1, h), 4096);
     super.resize(w, h);
-    if(this.isDisposed()){return ;}
-    
+    if(this.isDisposed()){return ;}    
+    this.resizeIndex();
+    this.resizeBorder();
+    this.resizeCursor();
+    this.resizeArrows();
+    this.resizeButton();
+    return this;
+  
+  /*------------------------------------------------------------------------*/}
+  resizeIndex(){
+    let ixmpr = [this.width / Graphics.wSkinIndexRect.width, this.height / Graphics.wSkinIndexRect.height];
+    this.indexSprite.scale.set(ixmpr[0], ixmpr[1]);
+    this.patternSprite.scale.set(ixmpr[0], ixmpr[1]);
+  }
+  /*------------------------------------------------------------------------*/
+  resizeBorder(){
     // Window resize scale number
     let blen  = Graphics.wSkinBorderUP.width;
     let cblen = Graphics.wSkinBorderUL.width + Graphics.wSkinBorderUR.height;
     let brmpr = [(this.width - cblen) / blen, (this.height - cblen) / blen]
-    let ixmpr = [this.width / Graphics.wSkinIndexRect.width, this.height / Graphics.wSkinIndexRect.height];
 
-    // Resize index
-    this.indexSprite.scale.set(ixmpr[0], ixmpr[1]);
-    this.patternSprite.scale.set(ixmpr[0], ixmpr[1]);
-    
     // Resize borders
     this.borderSpriteUP.scale.set(brmpr[0], 1);
     this.borderSpriteBT.scale.set(brmpr[0], 1);
@@ -352,16 +368,20 @@ class Window_Base extends SpriteCanvas{
     this.borderSpriteBT.setPOS(this.borderSpriteUP.x, this.borderSpriteBL.y);
     this.borderSpriteBR.setPOS(this.borderSpriteUR.x, this.borderSpriteBL.y);
     this.borderSpriteRT.setPOS(this.borderSpriteUR.x, this.borderSpriteLT.y);
-
-    // Resize & Relocate cursor
+  }
+  /**------------------------------------------------------------------------
+   * Resize and Relocate cursor
+   */
+  resizeCursor(){
     let clen  = Graphics.wSkinCursorUP.width;
     let crect = this.cursorRect(0);
     let crmpr = [crect.width / clen, crect.height / clen]
-
+    
     if(crmpr[0] < 1){crmpr[0] = 1;}
     if(crmpr[1] < 1){crmpr[1] = 1;}
     
-    this.cursorSprite.resize(w, h);
+    let offset = Graphics.wSkinCursorUL.width + Graphics.wSkinCursorUR.width
+    this.cursorSprite.resize(crect.width + offset, crect.height + offset);
     this.cursorSpriteIX.scale.set(crmpr[0], crmpr[1]);
     this.cursorSpriteUP.scale.set(crmpr[0], 1);
     this.cursorSpriteBT.scale.set(crmpr[0], 1);
@@ -375,19 +395,18 @@ class Window_Base extends SpriteCanvas{
     this.cursorSpriteBT.setPOS(this.cursorSpriteUP.x, this.cursorSpriteBL.y);
     this.cursorSpriteBR.setPOS(this.cursorSpriteUR.x, this.cursorSpriteBL.y);
     this.cursorSpriteRT.setPOS(this.cursorSpriteUR.x, this.cursorSpriteLT.y);
-
-    // Relocate arrows
+  }
+  /*------------------------------------------------------------------------*/
+  resizeArrows(){
     let offset = [Graphics.wSkinArrowUP.width, Graphics.wSkinArrowUP.height];
-
     this.arrowUpSprite.setPOS((this.width - offset[0]) / 2, this.spacing);
     this.arrowLeftSprite.setPOS(this.spacing, (this.height - offset[0]) / 2);
     this.arrowDownSprite.setPOS(this.arrowUpSprite.x, this.height - this.spacing - offset[1])
     this.arrowRightSprite.setPOS(this.width - this.spacing - offset[1], this.arrowLeftSprite.y);
-
-    // Relocate button
+  }
+  /*------------------------------------------------------------------------*/
+  resizeButton(){
     this.buttonSprite.setPOS((this.width - this.spacing * 2) / 2, this.height - this.spacing * 2);
-
-    return this;
   }
   /**-------------------------------------------------------------------------
    * > Dispose window
@@ -424,6 +443,7 @@ class Window_Selectable extends Window_Base{
     this._active     = false;
     this._selections = [];
     this._index      = -1;
+    this._handlers   = {};
     this.on('tap', this.onSelfTrigger.bind(this));
     this.on('click', this.onSelfTrigger.bind(this));
   }
@@ -437,7 +457,7 @@ class Window_Selectable extends Window_Base{
   get colMax(){return -1;}
   /*------------------------------------------------------------------------*/
   get itemWidth(){
-    return (this.width - this.padding) / this.rowMax;
+    return (this.contentWidth) / this.rowMax;
   }
   /**------------------------------------------------------------------------
    * Get item padding direction
@@ -460,6 +480,11 @@ class Window_Selectable extends Window_Base{
   refresh(){
     super.refresh();
     this.syncChildrenProperties();
+  }
+  /*------------------------------------------------------------------------*/
+  resize(w, h){
+    super.resize(w, h);
+    
   }
   /*------------------------------------------------------------------------*/
   get currentItem(){
@@ -560,6 +585,17 @@ class Window_Selectable extends Window_Base{
     this._index = -1;
     this.cursorSprite.hide();
   }
+  /*------------------------------------------------------------------------*/
+  setHandler(symbol, method){
+    this._handlers[symbol] = method;
+    for(let i=0;i<this._selections.length;++i){
+      let item = this._selections[i];
+      if(item.symbol == symbol){
+        item.on('click', method);
+        item.on('tap', method);
+      }
+    }
+  }
   /**------------------------------------------------------------------------
    * Add pure text selection item
    * @param {Object} args - option object argument
@@ -567,6 +603,7 @@ class Window_Selectable extends Window_Base{
    * @param {Object} [args.font=Graphics.DefaultFontSetting] - text font
    * @param {Number} [args.align=0] - text alignment, 0: left, 1: center, 2: right
    * @param {function} args.handler - the function to call when it's clicked
+   * @param {String} args.symbol - symbol of the selection
    */
   addTextSelection(args){
     if(!args.text){
@@ -585,6 +622,7 @@ class Window_Selectable extends Window_Base{
     else if(args.align == 2){
       pos.x = Math.max((pos.x + this.itemWidth - item.width) , pos.x);
     }
+    if(args.symbol){item.symbol = args.symbol;}
     item.setPOS(pos.x, pos.y);
     this.addSelection(item)
     return item;
@@ -604,19 +642,19 @@ class Window_Selectable extends Window_Base{
    */
   getIndexItemPOS(index){
     let divmod = (this.isVertical ? this.rowMax : this.colMax)
-    let nx = (index % divmod) * (this.itemWidth + this.spacing) + this.spacing;
-    let ny = (index / divmod) * (this.itemHeight + this.spacing) + this.spacing;
-    nx += this.spacing; ny += this.spacing;
+    let nx = (index % divmod) * (this.itemWidth + this.spacing);
+    let ny = (index / divmod) * (this.itemHeight + this.spacing);
+    nx += this.padding / 2; ny += this.padding / 2;
     return {x: nx, y:ny};
   }
   /*------------------------------------------------------------------------*/
   cursorRect(index){
     let rect = super.cursorRect(index);
     if(this.isVertical){
-      rect.width  = (this.width / this.rowMax) - this.padding / 2;
+      rect.width  = this.contentWidth / this.rowMax;
     }
     else{
-      rect.height = (this.height / this.colMax) - this.padding / 2;
+      rect.height = this.contentHeight / this.colMax;
     }
     return rect;
   }
@@ -649,8 +687,9 @@ class Window_Menu extends Window_Selectable{
   addStartGame(){
     let opt = {
       text: Vocab.StartGame,
-      handler: this.onGameStart.bind(this),
       align: 1,
+      symbol: 'gameStart',
+      handler: SceneManager.scene.onGameStart.bind(SceneManager.scene)
     }
     this.addTextSelection(opt);
   }
@@ -682,15 +721,19 @@ class Window_Menu extends Window_Selectable{
     this.addTextSelection(opt);
   }
   /*------------------------------------------------------------------------*/
-  onGameStart(){
-    
-  }
-  /*------------------------------------------------------------------------*/
   onRules(){
-    setTimeout(function(){
-      let b = window.confirm(Vocab["RulesRedirect"]);
-      if(b){window.open(Vocab["RulesLink"], "_blank")}
-    }, 300);
+    Sound.playOK();
+    let okHandler = function(){
+      Sound.playOK();
+      window.open(Vocab["RulesLink"], "_blank");
+      SceneManager.scene.closeOverlay();
+    }
+    let noHandler = function(){Sound.playCancel(); SceneManager.scene.closeOverlay();}
+    let win = new Window_Confirm(0, 0, 300, 150, Vocab["RulesRedirect"]);
+    win.setPOS(Graphics.appCenterWidth(win.width), Graphics.appCenterHeight(win.height));
+    win.setHandler('yes', okHandler);
+    win.setHandler('no', noHandler);
+    win.raise();
   }
   /*------------------------------------------------------------------------*/
   onOption(){
@@ -699,10 +742,21 @@ class Window_Menu extends Window_Selectable{
   }
   /*------------------------------------------------------------------------*/
   onCredits(){
-    setTimeout(function(){
-      let b = window.confirm(Vocab["CreditsRedirect"]);
-      if(b){window.open(Vocab["CreditsLink"], "_blank")}
-    }, 300);
+    Sound.playOK();
+    let okHandler = function(){
+      Sound.playOK();
+      window.open(Vocab["CreditsLink"], "_blank");
+      SceneManager.scene.closeOverlay();
+    }
+    let noHandler = function(){
+      Sound.playCancel();
+      SceneManager.scene.closeOverlay();
+    }
+    let win = new Window_Confirm(0, 0, 300, 150, Vocab["CreditsRedirect"]);
+    win.setPOS(Graphics.appCenterWidth(win.width), Graphics.appCenterHeight(win.height));
+    win.setHandler('yes', okHandler);
+    win.setHandler('no', noHandler);
+    win.raise();
   }
   /*------------------------------------------------------------------------*/
 }
@@ -741,7 +795,10 @@ class Window_Option extends Window_Selectable{
   }
   /*------------------------------------------------------------------------*/
   drawTitle(){
-    let txt = this.drawText(0, this.spacing, Vocab["Options"]);
+    let font = clone(Graphics.DefaultFontSetting);
+    font.fill = Graphics.color.MistyRose;
+    font.fontSize = 28;
+    let txt = this.drawText(0, 0, Vocab["Options"], font);
     txt.x = (this.width - txt.width) / 2;
   }
   /*------------------------------------------------------------------------*/
@@ -756,7 +813,7 @@ class Window_Option extends Window_Selectable{
   addMasterVolume(){
     let pos = this.nextItemPOS;
     let sp  = new SpriteCanvas(0, 0, this.itemWidth, this.itemHeight);
-    sp.drawText(0, 0, Vocab["MasterVolume"]);
+    sp.drawText(4, 0, Vocab["MasterVolume"]);
     sp.setPOS(pos.x, pos.y);
 
     let offset = this.spacing / 2;
@@ -775,7 +832,7 @@ class Window_Option extends Window_Selectable{
   addBGMVolume(){
     let pos = this.nextItemPOS;
     let sp  = new SpriteCanvas(0, 0, this.itemWidth, this.itemHeight);
-    sp.drawText(0, 0, Vocab["BGMVolume"]);
+    sp.drawText(4, 0, Vocab["BGMVolume"]);
     sp.setPOS(pos.x, pos.y);
     let offset = this.spacing / 2;
     let ts  = this.drawText(410, 0, parseInt(Sound._bgmVolume * 100));
@@ -794,7 +851,7 @@ class Window_Option extends Window_Selectable{
   addSEVolume(){
     let pos = this.nextItemPOS;
     let sp  = new SpriteCanvas(0, 0, this.itemWidth, this.itemHeight);
-    sp.drawText(0, 0, Vocab["SEVolume"]);
+    sp.drawText(4, 0, Vocab["SEVolume"]);
     sp.setPOS(pos.x, pos.y);
     let offset = this.spacing / 2;
     let ts  = this.drawText(410, 0, parseInt(Sound._seVolume * 100));
@@ -859,7 +916,8 @@ class Window_Back extends Window_Selectable{
     this.backSprite = this.addTextSelection({
       text: Vocab["Back"],
       align: 2,
-      handler: this.handler
+      handler: this.handler,
+      symbol: 'back'
     });
     this.backSprite.setPOS((this.width - this.backSprite.width)/2, (this.height - this.backSprite.height)/2);
   }
@@ -877,6 +935,75 @@ class Window_Back extends Window_Selectable{
 }
 
 /**
+ * A confirm window works like window.confirm, should be called as overlay
+ */
+class Window_Confirm extends Window_Selectable{
+  /**------------------------------------------------------------------------
+   * @constructor
+   * @param {Number} x
+   * @param {Number} y
+   * @param {Number} w
+   * @param {Number} h
+   * @param {String} message - the message to display when raised
+   */
+  constructor(x, y, w, h, message){
+    super(x, y, w, h);
+    this.value = undefined;
+    this.yesHandler = undefined;
+    this.noHandler  = undefined;
+    this.drawMessage(message);
+    this.changeSkin(Graphics.WSkinRD);
+    this.createOptions();
+    this.resizeCursor();
+    this.activate();
+  }
+  /**------------------------------------------------------------------------
+   * Max item count in each row
+   */
+  get rowMax(){return 2;}
+  /*------------------------------------------------------------------------*/
+  raise(){
+    this.render();
+    SceneManager.scene.raiseOverlay(this);
+  }
+  /*------------------------------------------------------------------------*/
+  drawMessage(msg){
+    this.drawText(0, 0, msg, null, true);
+  }
+  /*------------------------------------------------------------------------*/
+  get itemWidth(){
+    if(!this.yesSprite){return super.itemWidth}
+    return this.width / 5;
+  }
+  /*------------------------------------------------------------------------*/
+  cursorRect(index){
+    if(!this.yesSprite){return super.cursorRect(index);}
+    let dx = 0 ,dy = 0;
+    if(index == 0){
+      dx = this.yesSprite.x - (this.itemWidth - this.yesSprite.width + this.spacing) / 2
+      dy = this.yesSprite.y - this.spacing;
+    }
+    else if(index == 1){
+      dx = this.noSprite.x - (this.itemWidth - this.noSprite.width + this.spacing) / 2
+      dy = this.noSprite.y - this.spacing;
+    }
+    return new Rect(dx, dy, this.itemWidth, this.itemHeight);
+  }
+  /*------------------------------------------------------------------------*/
+  createOptions(){
+    let dx = (this.width - this.padding) / 5;
+    let dy = (this.height - this.padding - this.spacing * 2);
+    this.yesSprite = this.drawText(dx, dy, Vocab["Yes"]);
+    this.noSprite  = this.drawText(dx * 3, dy, Vocab["Cancel"])
+    this.yesSprite.symbol = 'yes';
+    this.noSprite.symbol  = 'no';
+    this.addSelection(this.yesSprite);
+    this.addSelection(this.noSprite);
+  }
+  /*------------------------------------------------------------------------*/
+}
+
+/**
  *  Window for selecting game mode 
  */
 class Window_GameModeSelect extends Window_Selectable{
@@ -889,8 +1016,11 @@ class Window_GameModeSelect extends Window_Selectable{
     }
     /*------------------------------------------------------------------------*/
     drawTitle(){
-      this.titleSprite = this.drawText(0, 0, Vocab["GameMode"]);
-      this.titleSprite.x = (this.width - this.titleSprite) / 2;
+      let font = clone(Graphics.DefaultFontSetting);
+      font.fill = Graphics.color["SlateBlue"];
+      font.fontSize = 28;
+      this.titleSprite = this.drawText(0, 4, Vocab["GameMode"], font);
+      this.titleSprite.x = (this.width - this.titleSprite.width) / 2;
       this.addSelection(null);
     }
     /*------------------------------------------------------------------------*/
@@ -902,9 +1032,9 @@ class Window_GameModeSelect extends Window_Selectable{
     /*------------------------------------------------------------------------*/
     addTraditionalSelection(){
       let opt = {
-        text: Vocab["GameModeTraditoinal"],
+        text: Vocab["GameModeTraditional"],
         handler: function(){},
-        align: 2,
+        align: 1,
       }
       this.addSelection(null);
       this.addTextSelection(opt);
@@ -914,7 +1044,7 @@ class Window_GameModeSelect extends Window_Selectable{
       let opt = {
         text: Vocab["GameModeBattlePuno"],
         handler: function(){},
-        align: 2,
+        align: 1,
       }
       this.addSelection(null);
       this.addTextSelection(opt);
@@ -924,7 +1054,7 @@ class Window_GameModeSelect extends Window_Selectable{
       let opt = {
         text: Vocab["GameModeDeathMatch"],
         handler: function(){},
-        align: 2,
+        align: 1,
       }
       this.addSelection(null);
       this.addTextSelection(opt);
@@ -945,7 +1075,10 @@ class Window_GameOption extends Window_Selectable{
   }
   /*------------------------------------------------------------------------*/
   drawTitle(){
-    let ts = this.drawText(0, 0, Vocab["GameOptions"]);
+    let font = clone(Graphics.DefaultFontSetting);
+    font.fill = Graphics.color["MediumSeaGreen"];
+    font.fontSize = 28;
+    let ts = this.drawText(0, 4, Vocab["GameOptions"], font);
     ts.x = (this.width - ts.width) / 2;
     this.addSelection(null);
   }

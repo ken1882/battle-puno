@@ -15,7 +15,7 @@
       let id = '#' + currentLanguage;
       $(id).attr('selected', "selected");
     }
-
+  
     function changeLanguage(){
       var e = document.getElementById('languageOptions');
       DataManager.changeSetting(DataManager.kLanguage, e.options[e.selectedIndex].id);
@@ -29,6 +29,7 @@
   <script type="text/javascript" src="js/lib/howler.js"></script>
   <script type="text/javascript" src="js/lib/pixi.js"></script>
   <script type="text/javascript" src="js/lib/pixi_filters.min.js"></script>
+  <script type="text/javascript" src="js/lib/CanvasInput.min.js"></script>
   <script type="text/javascript" src="js/addon.js"></script>
   <script type="text/javascript" src="js/errno.js"></script>
   <script type="text/javascript" src="js/core.js"></script>
@@ -39,6 +40,7 @@
   <script type="text/javascript" src="js/objects.js"></script>
   <script type="text/javascript" src="js/assets.js"></script>
   <script type="text/javascript" src="js/main.js"></script>
+  <canvas id="GAME"></canvas>
   <div id='languageSelect'>
     <span id="language"></span>
     <select id='languageOptions'>
