@@ -20,10 +20,13 @@
   "CreditsRedirect": "Browser will open the credits file in github page, continue?",
   "RulesLink": "https://github.com/battle-puno/battle-puno#general-rules",
   "CreditsLink": "https://github.com/battle-puno/battle-puno#credits",
+  "GameMode": "Game Mode",
   "GameModeTraditional": "Traditional",
   "GameModeBattlePuno": "Battle Puno!",
   "GameModeDeathMatch": "Death Match",
   "HelpTraditional": "Traditional UNO Game, the first one plays all cards in hand wins.",
   "HelpBattlePuno": "Battle PUNO! The one reaches the certain score wins.",
-  "HelpDeathMatch": "The game will continue endlessly until player is knocked out. How many scores can you receive?"
+  "HelpDeathMatch": "The game will continue endlessly until player is knocked out. How many scores can you receive?",
+  "GameOptions": "Game Options",
+  "Back": "Back"
 }

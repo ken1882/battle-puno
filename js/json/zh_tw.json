@@ -20,10 +20,13 @@
   "CreditsRedirect": "瀏覽器將會開啟在Github內的製作群名單, 是否繼續?",
   "RulesLink": "https://github.com/battle-puno/battle-puno#general-rules",
   "CreditsLink": "https://github.com/battle-puno/battle-puno#credits",
+  "GameMode": "遊戲模式",
   "GameModeTraditional": "傳統",
   "GameModeBattlePuno": "Battle Puno!",
   "GameModeDeathMatch": "死鬥",
   "HelpTraditional": "傳統UNO模式, 目標是搶先將手牌打光",
   "HelpBattlePuno": "Battle PUNO! 當任意玩家奪得指定分數後, 遊戲將會結束",
-  "HelpDeathMatch": "遊戲將無限進行到玩者HP歸零為止(玩到掛), 你能夠拿到幾分呢?"
+  "HelpDeathMatch": "遊戲將無限進行到玩者HP歸零為止(玩到掛), 你能夠拿到幾分呢?",
+  "GameOptions": "遊戲選項",
+  "Back": "返回"
 }

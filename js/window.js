@@ -543,12 +543,12 @@ class Window_Selectable extends Window_Base{
     this.helpWindow = win;
   }
   /*------------------------------------------------------------------------*/
-  select(idx){
+  select(idx, se = true){
     this._index = idx;
     let crect = this.cursorRect(idx);
     this.cursorSprite.show();
     this.cursorSprite.setPOS(crect.x, crect.y);
-    Sound.playCursor();
+    if(se){Sound.playCursor();}
     if(this.helpWindow){
       if(this._index >= 0){
         this.helpWindow.setText(this.currentItem.help || '');
@@ -687,8 +687,10 @@ class Window_Menu extends Window_Selectable{
   }
   /*------------------------------------------------------------------------*/
   onRules(){
-    let b = window.confirm(Vocab["RulesRedirect"]);
-    if(b){window.open(Vocab["RulesLink"], "_blank")}
+    setTimeout(function(){
+      let b = window.confirm(Vocab["RulesRedirect"]);
+      if(b){window.open(Vocab["RulesLink"], "_blank")}
+    }, 300);
   }
   /*------------------------------------------------------------------------*/
   onOption(){
@@ -697,8 +699,10 @@ class Window_Menu extends Window_Selectable{
   }
   /*------------------------------------------------------------------------*/
   onCredits(){
-    let b = window.confirm(Vocab["CreditsRedirect"]);
-    if(b){window.open(Vocab["CreditsLink"], "_blank")}
+    setTimeout(function(){
+      let b = window.confirm(Vocab["CreditsRedirect"]);
+      if(b){window.open(Vocab["CreditsLink"], "_blank")}
+    }, 300);
   }
   /*------------------------------------------------------------------------*/
 }
@@ -756,7 +760,8 @@ class Window_Option extends Window_Selectable{
     sp.setPOS(pos.x, pos.y);
 
     let offset = this.spacing / 2;
-    let ts  = this.drawText(410, -offset, parseInt(Sound._masterVolume * 100));
+    let ts  = this.drawText(410, 0, parseInt(Sound._masterVolume * 100));
+    ts.y = offset;
     sp.addChild(ts);
     this.MVBar = new Sprite_DragBar(150, -offset, 250, null, null, null, parseInt(Sound._masterVolume * 100));
     sp.addChild(this.MVBar);
@@ -773,7 +778,8 @@ class Window_Option extends Window_Selectable{
     sp.drawText(0, 0, Vocab["BGMVolume"]);
     sp.setPOS(pos.x, pos.y);
     let offset = this.spacing / 2;
-    let ts  = this.drawText(410, -offset, parseInt(Sound._bgmVolume * 100));
+    let ts  = this.drawText(410, 0, parseInt(Sound._bgmVolume * 100));
+    ts.y = offset;
     sp.addChild(ts);
     this.BVBar = new Sprite_DragBar(150, -offset, 250, null, null, null, parseInt(Sound._bgmVolume * 100));
     sp.addChild(this.BVBar);
@@ -791,7 +797,8 @@ class Window_Option extends Window_Selectable{
     sp.drawText(0, 0, Vocab["SEVolume"]);
     sp.setPOS(pos.x, pos.y);
     let offset = this.spacing / 2;
-    let ts  = this.drawText(410, -offset, parseInt(Sound._seVolume * 100));
+    let ts  = this.drawText(410, 0, parseInt(Sound._seVolume * 100));
+    ts.y = offset;
     sp.addChild(ts);
     this.SVBar = new Sprite_DragBar(150, -offset, 250, null, null, null, parseInt(Sound._seVolume * 100));
     sp.addChild(this.SVBar);
@@ -836,30 +843,91 @@ class Window_Help extends Window_Base{
 }
 
 /**
+ *  Window as back button
+ */
+class Window_Back extends Window_Selectable{
+  /*------------------------------------------------------------------------*/
+  constructor(x, y, handler){
+    super(x, y, 80, 50);
+    this.handler = handler;
+    this.changeSkin(Graphics.WSkinPinkie);
+    this.addBackSelection();
+    this.activate();
+  }
+  /*------------------------------------------------------------------------*/
+  addBackSelection(){
+    this.backSprite = this.addTextSelection({
+      text: Vocab["Back"],
+      align: 2,
+      handler: this.handler
+    });
+    this.backSprite.setPOS((this.width - this.backSprite.width)/2, (this.height - this.backSprite.height)/2);
+  }
+  /*------------------------------------------------------------------------*/
+  onSelfTrigger(){
+    if(this.index < 0){return ;}
+    if(this.isCurrentItemEnabled){
+      Sound.playCancel();
+    }
+    else{
+      Sound.playBuzzer();
+    }
+  }
+  /*------------------------------------------------------------------------*/
+}
+
+/**
  *  Window for selecting game mode 
  */
 class Window_GameModeSelect extends Window_Selectable{
     /*------------------------------------------------------------------------*/
     constructor(x, y, w, h){
       super(x, y, w, h);
+      this.drawTitle();
       this.changeSkin(Graphics.WSkinLuna)
       this.createSelections();
     }
     /*------------------------------------------------------------------------*/
+    drawTitle(){
+      this.titleSprite = this.drawText(0, 0, Vocab["GameMode"]);
+      this.titleSprite.x = (this.width - this.titleSprite) / 2;
+      this.addSelection(null);
+    }
+    /*------------------------------------------------------------------------*/
     createSelections(){
-
+      this.addTraditionalSelection();
+      this.addBattlePunoSelection();
+      this.addDeathMatchSelection();
     }
     /*------------------------------------------------------------------------*/
     addTraditionalSelection(){
-
+      let opt = {
+        text: Vocab["GameModeTraditoinal"],
+        handler: function(){},
+        align: 2,
+      }
+      this.addSelection(null);
+      this.addTextSelection(opt);
     }
     /*------------------------------------------------------------------------*/
     addBattlePunoSelection(){
-
+      let opt = {
+        text: Vocab["GameModeBattlePuno"],
+        handler: function(){},
+        align: 2,
+      }
+      this.addSelection(null);
+      this.addTextSelection(opt);
     }
     /*------------------------------------------------------------------------*/
     addDeathMatchSelection(){
-
+      let opt = {
+        text: Vocab["GameModeDeathMatch"],
+        handler: function(){},
+        align: 2,
+      }
+      this.addSelection(null);
+      this.addTextSelection(opt);
     }
     /*------------------------------------------------------------------------*/
 }
@@ -872,13 +940,23 @@ class Window_GameOption extends Window_Selectable{
   constructor(x, y, w, h){
     super(x, y, w, h);
     this.changeSkin(Graphics.WSkinRarity)
+    this.drawTitle();
     this.createOptions();
+  }
+  /*------------------------------------------------------------------------*/
+  drawTitle(){
+    let ts = this.drawText(0, 0, Vocab["GameOptions"]);
+    ts.x = (this.width - ts.width) / 2;
+    this.addSelection(null);
   }
   /**------------------------------------------------------------------------
    * Create all available options
    */
   createOptions(){
-
+    this.addHandCardOption();
+    this.addExtraCardOption();
+    this.addHPOption();
+    this.addScoreGoalOption();
   }
   /**------------------------------------------------------------------------
    * Option defines how many cards player have at beginning, default is 7

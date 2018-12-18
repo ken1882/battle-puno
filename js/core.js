@@ -6,7 +6,7 @@
 var isFirefox = typeof InstallTrigger !== 'undefined';
 
 // Chrome 1+
-var isChrome = !!window.chrome && !!window.chrome.webstore;
+var isChrome = !!window.chrome;
 
 // Safari 3.0+ "[object HTMLElementConstructor]" 
 var isSafari = /constructor/i.test(window.HTMLElement) || (function (p) { return p.toString() === "[object SafariRemoteNotification]"; })(!window['safari'] || (typeof safari !== 'undefined' && safari.pushNotification));
