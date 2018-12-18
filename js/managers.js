@@ -20,9 +20,7 @@ class SceneManager{
     this._backgroundSprite  = null;
     this._focused           = true;
 
-    this.initGraphics();
-    this.initSound();
-    this.initInput();
+    this.initModules();
   }
   /*-------------------------------------------------------------------------*/
   static updateMain(){
@@ -44,7 +42,7 @@ class SceneManager{
   }
   /*-------------------------------------------------------------------------*/
   static isGameFocused(){
-    if(!GameStarted)return true;
+    if(!GameStarted || this._alwaysFocus)return true;
     if(!document.hasFocus())return false;
     let mouseKeys = [1,2,3];
     for(let i=0;i<mouseKeys.length;++i){
@@ -56,6 +54,9 @@ class SceneManager{
     }
     return this._focused;
   }
+  /*-------------------------------------------------------------------------*/
+  static alwaysFocus(){this._alwaysFocus = true;}
+  static autoFocus(){this._alwaysFocus = false;}
   /*-------------------------------------------------------------------------*/
   static focusGame(){
     if(SceneManager._focused){return ;}
@@ -100,16 +101,11 @@ class SceneManager{
     return this._scene;
   }
   /*-------------------------------------------------------------------------*/
-  static initGraphics(){
+  static initModules(){
     Graphics.initialize();
-  }
-  /*-------------------------------------------------------------------------*/
-  static initSound(){
     Sound.initialize();
-  }
-  /*-------------------------------------------------------------------------*/
-  static initInput(){
     Input.initialize();
+    GameManager.initialize();
   }
   /*-------------------------------------------------------------------------*/
   static goto(sceneClass, args){
@@ -328,5 +324,88 @@ class DataManager{
   static get language(){return this.setting[this.kLanguage];}
   static get volume(){return this.setting[this.kVolume];}
   static get audioEnable(){return this.setting[this.kAudioEnable];}
+  /*-------------------------------------------------------------------------*/
+}
+/**---------------------------------------------------------------------------
+ * > GameManager:
+ *    The static class that manage the game information
+ * @namespace
+ */
+class GameManager{
+  /*-------------------------------------------------------------------------*/
+  constructor(){
+    throw new Error('This is a static class');
+  }
+  /*-------------------------------------------------------------------------*/
+  static initialize(){
+    this._mode = null;
+    this.initCardNumber = 7;
+    this.initHP = 200;
+    this.extraCardDisabled = false;
+    this.scoreGoal = 500;
+    this.initGameKeys();
+    this.loadGameSettings();
+  }
+  /*-------------------------------------------------------------------------*/
+  static initGameKeys(){
+    this.kInitCardNumber = 'initCardNumber';
+    this.kInitHP = 'iniHP';
+    this.kExtraCardDisabled = 'extraCardDisabled';
+    this.kScoreGoal = 'scoreGoal';
+  }
+  /*-------------------------------------------------------------------------*/
+  static loadGameSettings(){ 
+    let keys = [this.kInitCardNumber, this.kInitHP, this.kScoreGoal, this.kExtraCardDisabled];
+    for(let i=0;i<keys.length;++i){
+      let k = keys[i];
+      let ok = this.changeGameSetting(k, DataManager.getSetting(k));
+      if(!ok){
+        let v = null;
+        if(k == this.kInitCardNumber){v = this.initCardNumber;}
+        else if(k == this.kInitHP){v = this.initHP;}
+        else if(k == this.kScoreGoal){v = this.scoreGoal;}
+        else if(k == this.kExtraCardDisabled){v = this.extraCardDisabled;}
+        DataManager.changeSetting(k, v);
+      }
+    }
+  }
+  /*-------------------------------------------------------------------------*/
+  static changeGameSetting(k, v){
+    let ok = false;
+    if(k == this.kInitCardNumber){
+      if(this.isCardNumberValid(v)){this.initCardNumber = v; ok = true;}
+    }
+    else if(k == this.kInitHP){
+      if(this.isHPValid(v)){this.initHP = v; ok = true;}
+    }
+    else if(k == this.kScoreGoal){
+      if(this.isScoreGoalValid(v)){this.scoreGoal = v; ok = true;}
+    }
+    else if(k == this.kExtraCardDisabled){
+      ok = true;
+      v = !!(v);
+      this.extraCardDisabled = v;
+    }
+
+    if(ok){
+      DataManager.changeSetting(k, v);
+    }
+
+    return ok;
+  }
+  /*-------------------------------------------------------------------------*/
+  static isCardNumberValid(n){
+    return validNumericCount(function(n){return 4 < n && n <= 10;}, n) == 1;
+  }
+  /*-------------------------------------------------------------------------*/
+  static isHPValid(n){
+    return validNumericCount(function(n){return 50 < n && n <= 1000;}, n) == 1;
+  }
+  /*-------------------------------------------------------------------------*/
+  static isScoreGoalValid(n){
+    return validNumericCount(function(n){return 100 < n && n <= 3000;}, n) == 1;
+  }
+  /*-------------------------------------------------------------------------*/
+  static get extraCardEnabled(){return !this.extraCardDisabled;}
   /*-------------------------------------------------------------------------*/
 }

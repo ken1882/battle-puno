@@ -446,7 +446,10 @@ class Scene_Load extends Scene_Base{
     debug_log("Loading Complete called");
     this.loading_timer = 0xff;
     GameStarted = true;
-    if(QuickStart){
+    if(TestMode){
+      SceneManager.goto(Scene_Test);
+    }
+    else if(QuickStart){
       SceneManager.goto(Scene_Title);
     }
     else{
@@ -667,4 +670,12 @@ class Scene_Title extends Scene_Base{
     }
   }
   /*-------------------------------------------------------------------------*/
+}
+/**
+ * Test scene
+ */
+class Scene_Test extends Scene_Base{
+  constructor(){
+    super();
+  }
 }

@@ -87,7 +87,8 @@ Sound.fadeDurationBGM = 3000;
 Sound.fadeDurationSE  = 2000;
 
 
-// Source Slice Rect of Windowskin Image           X   Y   W   H
+// Source Slice Rect of Windowskin Image           
+//                                       X   Y   W   H
 Graphics.wSkinIndexRect     = new Rect(  0,  0, 64, 64); // Window Index Fill
 Graphics.wSkinPatternRect   = new Rect(  0, 64, 64, 64); // Window Index back-pattern fill
 

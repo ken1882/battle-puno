@@ -33,7 +33,7 @@ PIXI.Sprite.prototype.setOpacity = function(opa){
  * Set sprite position
  */
 PIXI.Sprite.prototype.setPOS = function(x, y){
-  this.position.set(x ? x : this.x, y ? y : this.y);
+  this.position.set(x == null ? this.x : x, y == null? this.y : y);
   return this;
 }
 /**-------------------------------------------------------------------------

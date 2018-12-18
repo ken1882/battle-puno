@@ -1049,7 +1049,6 @@ class Sound{
   /*-------------------------------------------------------------------------*/
   static registerAudio(soundInstance){
     Sound._audioMap[soundInstance.id] = soundInstance;
-    debug_log("Audio registered:", soundInstance.id, soundInstance.symbol);
     if(soundInstance.type == 'SE'){
       Sound._currentSE.push(soundInstance);
     }
@@ -1063,7 +1062,6 @@ class Sound{
     if(!soundInstance){return ;}
     let soundContext = Sound.track[soundInstance.symbol];
     if(soundInstance && !soundContext.loop(soundID)){
-      debug_log("Audio unregisterd:", soundID, soundInstance.symbol)
       if(soundInstance.type == 'SE'){
         let index = Sound._currentSE.indexOf(soundInstance);
         Sound._currentSE.splice(index, 1);
@@ -1376,7 +1374,6 @@ class Sprite extends PIXI.Sprite{
     this.setZ(0);
     this.static = false;
     this.interactive = false;
-    this._active = false;
     return this;
   }
   /*-------------------------------------------------------------------------*/
@@ -1411,7 +1408,9 @@ class Sprite extends PIXI.Sprite{
     return rect;
   }
   /*-------------------------------------------------------------------------*/
-  drawText(x, y, text, font = Graphics.DefaultFontSetting){
+  drawText(x, y, text, font = Graphics.DefaultFontSetting, autowrap = true){
+    if(!font){font = Graphics.DefaultFontSetting}
+    if(autowrap){text = this.textWrap(text, font);}
     let txt = new PIXI.Text(text, font);
     txt.alpha  = this.opacity;
     txt.setPOS(x,y).setZ(2);
@@ -1450,6 +1449,82 @@ class Sprite extends PIXI.Sprite{
   /*-------------------------------------------------------------------------*/
   remove(){
     Graphics.removeSprite(this);
+  }
+  /*-------------------------------------------------------------------------*/
+  getStringWidth(text, font = Graphics.DefaultFontSetting){
+    return new PIXI.Text(text, font).width;
+  }
+  /*-------------------------------------------------------------------------*/
+  textWrap(text, font = Graphics.DefaultFontSetting){
+    if(!text){return ;}
+    let paddingW = Graphics.padding / 2; // Padding width
+    if(this.width - paddingW - Graphics.spacing < 0){
+      console.error("Window too small to text warp: " + getClassName(text));
+      return text;
+    }
+
+    // Line width
+    let lineWidth = this.width - paddingW;
+
+    let formated = "";  // Formated string to return
+    let curW = 0;       // Current Line Width
+    let line = "";      // Current line string
+    let strings = text.split(/[\r\n ]+/) // Split strings
+    let minusW = this.getStringWidth('-', font);
+    let spaceW = this.getStringWidth(' ', font);
+    let endl = false;   // End Of Line Flag
+    let strW = 0;       // Current processing string width
+
+    let str = null; // Current processing string
+    while(str = strings[0]){
+      if((str || '').length == 0){continue;}
+      strW = this.getStringWidth(str, font);
+      endl = false; 
+      // String excessed line limit
+      if(strW + paddingW > lineWidth){
+        line = "";
+        let curW = minusW, last_i = 0;
+        let processed = false;
+        // Process each character in current string
+        for(let i=0;i<str.length;++i){
+          strW = this.getStringWidth(str[i], font);
+          last_i = i;
+          // Display not possible
+          if(!processed && curW + strW >= lineWidth){
+            return text;
+          } // Current character acceptable
+          else if(curW + strW < lineWidth){
+            curW += strW;
+            line += str[i];
+            processed = true;
+          } // Unable to add more
+          else{
+            break;
+          }
+        }
+
+        line += '-'
+        strings[0] = str.substr(last_i, str.length);
+        endl = true;
+      } // current string can fully add to line
+      else if(curW + strW < lineWidth){
+        curW += strW + spaceW;
+        line += strings.shift() + ' ';
+        if(strings.length == 0){endl = true;}
+      }
+      else{
+        endl = true;
+      }
+
+      if(endl){
+        formated += line;
+        if(strings.length > 0){formated += '\n';}
+        console.log(formated);
+        line = "";
+        curW = paddingW;
+      }
+    }
+    return formated;
   }
   /**-------------------------------------------------------------------------
    * > Getter function

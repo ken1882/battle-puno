@@ -105,6 +105,14 @@ class Window_Base extends SpriteCanvas{
    * > Draw the border of skin
    */
   drawSkinBorder(){
+    if(this.borderSprites){
+      this.borderSprites.forEach(function(sp){
+        this.removeChild(sp);
+        sp.clear();
+      }.bind(this))
+      this.borderSprites = [];
+    }
+
     let tUL = Graphics.loadTexture(this._skin, Graphics.wSkinBorderUL);
     let tUP = Graphics.loadTexture(this._skin, Graphics.wSkinBorderUP);
     let tUR = Graphics.loadTexture(this._skin, Graphics.wSkinBorderUR);
@@ -131,7 +139,6 @@ class Window_Base extends SpriteCanvas{
     
     for(let i=0;i<this.borderSprites.length;++i){
       this.borderSprites[i].setZ(5).static = true;
-      this.removeChild(this.borderSprites[i]);
       this.addChild(this.borderSprites[i]);
     }
   }
@@ -139,6 +146,13 @@ class Window_Base extends SpriteCanvas{
    * > Draw the hover cursor of skin
    */
   drawSkinCursor(){
+    if(this.cursorSprites){
+      this.removeChild(this.cursorSprite);
+      this.cursorSprites.forEach(function(sp){sp.clear();})
+      this.cursorSprites = [];
+      this.cursorSprite = null;
+    }
+    
     let tix = Graphics.loadTexture(this._skin, Graphics.wSkinCursorIndex);
     let tUL = Graphics.loadTexture(this._skin, Graphics.wSkinCursorUL);
     let tUP = Graphics.loadTexture(this._skin, Graphics.wSkinCursorUP);
@@ -158,7 +172,7 @@ class Window_Base extends SpriteCanvas{
     this.cursorSpriteBR = new Sprite(tBR);
     this.cursorSpriteLT = new Sprite(tLT);
     this.cursorSpriteRT = new Sprite(tRT);
-    
+
     let cursorSprites = [
       this.cursorSpriteIX,
       this.cursorSpriteUL, this.cursorSpriteUP, this.cursorSpriteUR,
@@ -176,33 +190,44 @@ class Window_Base extends SpriteCanvas{
     }
 
     this.cursorSprite.setZ(1.5).hide().static = true;
-    this.removeChild(this.cursorSprite);
     this.addChild(this.cursorSprite);
   }
   /**-------------------------------------------------------------------------
    * > Draw the index background of skin
    */
   drawSkinIndex(){
+    if(this.indexSprite){
+      this.removeChild(this.indexSprite)
+      this.indexSprite.clear();
+      this.indexSprite = null;
+    }
     let texture = Graphics.loadTexture(this._skin, Graphics.wSkinIndexRect);
     this.indexSprite = new Sprite(texture);
     this.indexSprite.setZ(0).setOpacity(0.5).static = true;
-    this.removeChild(this.indexSprite)
     this.addChild(this.indexSprite);
   }
   /**-------------------------------------------------------------------------
    * > Draw index pattern of skin
    */
   drawSkinPattern(){
+    if(this.patternSprite){
+      this.removeChild(this.patternSprite);
+      this.patternSprite.clear();
+      this.patternSprite = null;
+    }
     let texture = Graphics.loadTexture(this._skin, Graphics.wSkinPatternRect);
     this.patternSprite = new Sprite(texture);
     this.patternSprite.setZ(1).setOpacity(0.5).static = true;
-    this.removeChild(this.patternSprite);
     this.addChild(this.patternSprite);
   }
   /**-------------------------------------------------------------------------
    * > Draw continue icon of skin
    */
   drawSkinButton(){
+    if(this.buttonSprite){
+      this.removeChild(this.buttonSprite);
+      this.buttonSprite = null;
+    }
     let rect  = Graphics.wSkinButton;
     rect.width /= 2; rect.height /= 2;
     let d = rect.width;
@@ -216,13 +241,19 @@ class Window_Base extends SpriteCanvas{
     this.buttonSprite.setZ(3).static = true;
     this.buttonSprite.animationSpeed = 0.25;
     this.buttonSprite.hide();
-    this.removeChild(this.buttonSprite);
     this.addChild(this.buttonSprite);
   }
   /**-------------------------------------------------------------------------
    * > Draw scroll arrows of skin
    */
   drawSkinArrows(){
+    if(this.arrowSprites){
+      this.arrowSprites.forEach(function(sp){
+        this.removeChild(sp);
+        sp.clear();
+      }.bind(this))
+      this.arrowSprites = [];
+    }
     let tAU = Graphics.loadTexture(this._skin, Graphics.wSkinArrowUP);
     let tAD = Graphics.loadTexture(this._skin, Graphics.wSkinArrowBT);
     let tAL = Graphics.loadTexture(this._skin, Graphics.wSkinArrowLT);
@@ -237,7 +268,6 @@ class Window_Base extends SpriteCanvas{
     ]
     for(let i=0;i<4;++i){
       this.arrowSprites[i].setZ(6).hide().static = true;
-      this.removeChild(this.arrowSprites[i]);
       this.addChild(this.arrowSprites[i]);
     }
   }
@@ -247,7 +277,8 @@ class Window_Base extends SpriteCanvas{
    * @param {Number} x - the draw position of X
    * @param {Number} y - the draw position of Y
    */
-  drawIcon(icon_index, x, y){
+  drawIcon(icon_index, x = 0, y = 0){
+    x += this.padding / 2; y += this.padding / 2;
     let iconSprite = super.drawIcon(icon_index, x, y);
     this.drawnObjects.push(iconSprite);
     this.refresh();
@@ -260,9 +291,11 @@ class Window_Base extends SpriteCanvas{
    * @param {Number} y - the y position of the text to draw
    * @param {Object} font - the font settings
    */
-  drawText(x = 0, y = 0, text = '', font = Graphics.DefaultFontSetting){
+  drawText(x = 0, y = 0, text = '', font = Graphics.DefaultFontSetting, autowrap = false){
+    if(!font){font = Graphics.DefaultFontSetting;}
+    if(autowrap){text = this.textWrap(text);}
     let ts = new PIXI.Text(text, font);
-    x += this.spacing; y += this.spacing;
+    x += this.padding / 2; y += this.padding / 2;
     ts.setPOS(x, y).setZ(2);
     this.drawnObjects.push(ts);
     this.addChild(ts);
@@ -299,10 +332,11 @@ class Window_Base extends SpriteCanvas{
     let blen  = Graphics.wSkinBorderUP.width;
     let cblen = Graphics.wSkinBorderUL.width + Graphics.wSkinBorderUR.height;
     let brmpr = [(this.width - cblen) / blen, (this.height - cblen) / blen]
-    
+    let ixmpr = [this.width / Graphics.wSkinIndexRect.width, this.height / Graphics.wSkinIndexRect.height];
+
     // Resize index
-    this.indexSprite.scale.set(brmpr[0], brmpr[1]);
-    this.patternSprite.scale.set(brmpr[0], brmpr[1]);
+    this.indexSprite.scale.set(ixmpr[0], ixmpr[1]);
+    this.patternSprite.scale.set(ixmpr[0], ixmpr[1]);
     
     // Resize borders
     this.borderSpriteUP.scale.set(brmpr[0], 1);
@@ -352,6 +386,7 @@ class Window_Base extends SpriteCanvas{
 
     // Relocate button
     this.buttonSprite.setPOS((this.width - this.spacing * 2) / 2, this.height - this.spacing * 2);
+
     return this;
   }
   /**-------------------------------------------------------------------------
@@ -427,6 +462,10 @@ class Window_Selectable extends Window_Base{
     this.syncChildrenProperties();
   }
   /*------------------------------------------------------------------------*/
+  get currentItem(){
+    return this._selections[this._index];
+  }
+  /*------------------------------------------------------------------------*/
   get isCurrentItemEnabled(){
     return true;
   }
@@ -500,8 +539,8 @@ class Window_Selectable extends Window_Base{
     }
   }
   /*------------------------------------------------------------------------*/
-  onClick(){
-
+  setHelpWindow(win){
+    this.helpWindow = win;
   }
   /*------------------------------------------------------------------------*/
   select(idx){
@@ -510,6 +549,11 @@ class Window_Selectable extends Window_Base{
     this.cursorSprite.show();
     this.cursorSprite.setPOS(crect.x, crect.y);
     Sound.playCursor();
+    if(this.helpWindow){
+      if(this._index >= 0){
+        this.helpWindow.setText(this.currentItem.help || '');
+      }else{this.helpWindow.setText('');}
+    }
   }
   /*------------------------------------------------------------------------*/
   unselect(){
@@ -643,7 +687,8 @@ class Window_Menu extends Window_Selectable{
   }
   /*------------------------------------------------------------------------*/
   onRules(){
-
+    let b = window.confirm(Vocab["RulesRedirect"]);
+    if(b){window.open(Vocab["RulesLink"], "_blank")}
   }
   /*------------------------------------------------------------------------*/
   onOption(){
@@ -652,7 +697,8 @@ class Window_Menu extends Window_Selectable{
   }
   /*------------------------------------------------------------------------*/
   onCredits(){
-
+    let b = window.confirm(Vocab["CreditsRedirect"]);
+    if(b){window.open(Vocab["CreditsLink"], "_blank")}
   }
   /*------------------------------------------------------------------------*/
 }
@@ -678,8 +724,8 @@ class Window_Option extends Window_Selectable{
   get WindowHeight(){return 400;}
   /*------------------------------------------------------------------------*/
   addClose(){
-    let dx = this.width - this.spacing - Graphics.IconRect.width;
-    let dy = this.spacing;
+    let dx = this.width - this.padding - Graphics.IconRect.width;
+    let dy = 0;
     this.closeIcon = this.drawIcon(Graphics.IconID.Xmark, dx, dy);
     let handler = function(){
       Sound.playCancel();
@@ -770,9 +816,94 @@ class Window_Option extends Window_Selectable{
 }
 
 /**
- * Simulate the HTML select tag
+ * Window that displays help message
  */
-class Input_Select extends SpriteCanvas{
+class Window_Help extends Window_Base{
+  /*------------------------------------------------------------------------*/
+  constructor(x, y, w, h){
+    super(x, y, w, h);
+    this.message = ''
+  }
+  /*------------------------------------------------------------------------*/
+  setText(...args){
+    this.clear();
+    let dy = 0;
+    for(let i=0;i<args.length;++i){
+      dy += this.drawText(0, dy, args[i], null, true).height;
+    }
+  }
+  /*------------------------------------------------------------------------*/
+}
 
+/**
+ *  Window for selecting game mode 
+ */
+class Window_GameModeSelect extends Window_Selectable{
+    /*------------------------------------------------------------------------*/
+    constructor(x, y, w, h){
+      super(x, y, w, h);
+      this.changeSkin(Graphics.WSkinLuna)
+      this.createSelections();
+    }
+    /*------------------------------------------------------------------------*/
+    createSelections(){
 
+    }
+    /*------------------------------------------------------------------------*/
+    addTraditionalSelection(){
+
+    }
+    /*------------------------------------------------------------------------*/
+    addBattlePunoSelection(){
+
+    }
+    /*------------------------------------------------------------------------*/
+    addDeathMatchSelection(){
+
+    }
+    /*------------------------------------------------------------------------*/
+}
+
+/**
+ *  Window for custom in-game options
+ */
+class Window_GameOption extends Window_Selectable{
+  /*------------------------------------------------------------------------*/
+  constructor(x, y, w, h){
+    super(x, y, w, h);
+    this.changeSkin(Graphics.WSkinRarity)
+    this.createOptions();
+  }
+  /**------------------------------------------------------------------------
+   * Create all available options
+   */
+  createOptions(){
+
+  }
+  /**------------------------------------------------------------------------
+   * Option defines how many cards player have at beginning, default is 7
+   */
+  addHandCardOption(){
+
+  }
+  /**------------------------------------------------------------------------
+   * Whether enable extra cards(trade/wild chaos/discard all/wild hit),
+   * default is enabled
+   */
+  addExtraCardOption(){
+
+  }
+  /**------------------------------------------------------------------------
+   * Max HP at beginning in Battle Puno and Death Match, default is 200
+   */
+  addHPOption(){
+
+  }
+  /**------------------------------------------------------------------------
+   * Score thereshold to end the game in battle puno, default is 500
+   */
+  addScoreGoalOption(){
+
+  }
+  /*------------------------------------------------------------------------*/
 }

@@ -7,10 +7,12 @@
   <link rel="icon" type="image/x-icon" href="favicon.ico">
   <script>
     function processPageHTML(){
+      let currentLanguage = JSON.parse(window.localStorage.getItem("language")) || ''
+      if(currentLanguage.length == 0){currentLanguage = 'en_us';}
       let txt = 'Language';
-      if(Vocab.Language == 'zh_tw'){txt = "語言"}
+      if(currentLanguage == 'zh_tw'){txt = "語言"}
       $('#language').html(txt + ':');
-      let id = '#' + Vocab.Language;
+      let id = '#' + currentLanguage;
       $(id).attr('selected', "selected");
     }
 

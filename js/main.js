@@ -11,6 +11,9 @@
  */
 const DebugMode   = true;
 
+// Will stay in load-complete scene
+const TestMode    = true;
+
 /**
  * Flag that determines whether skips the intro scene
  * @global

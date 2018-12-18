@@ -15,5 +15,15 @@
   "Credits": "Credits",
   "MasterVolume": "Master Volume",
   "BGMVolume": "BGM Volume",
-  "SEVolume": "SE Volume"
+  "SEVolume": "SE Volume",
+  "RulesRedirect": "Browser will open the rules file in github page, continue?",
+  "CreditsRedirect": "Browser will open the credits file in github page, continue?",
+  "RulesLink": "https://github.com/battle-puno/battle-puno#general-rules",
+  "CreditsLink": "https://github.com/battle-puno/battle-puno#credits",
+  "GameModeTraditional": "Traditional",
+  "GameModeBattlePuno": "Battle Puno!",
+  "GameModeDeathMatch": "Death Match",
+  "HelpTraditional": "Traditional UNO Game, the first one plays all cards in hand wins.",
+  "HelpBattlePuno": "Battle PUNO! The one reaches the certain score wins.",
+  "HelpDeathMatch": "The game will continue endlessly until player is knocked out. How many scores can you receive?"
 }
