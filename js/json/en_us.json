@@ -30,5 +30,17 @@
   "HelpBattlePuno": "Battle PUNO! The one reaches the certain score wins.",
   "HelpDeathMatch": "The game will continue endlessly until player is knocked out. How many scores can you receive?",
   "GameOptions": "Game Options",
-  "Back": "Back"
+  "Back": "Back",
+  "InitHandCard": "Initial hand cards",
+  "InitHP": "Initial hit point",
+  "ExtraCard": "Extended Cardset",
+  "ScoreGoal": "Score goal",
+  "Enable": "Enable",
+  "Disable": "Disable",
+  "HPInput": "Enter the HP value: ",
+  "ScoreInput": "Enter the score goal: ",
+  "HelpExtraCard": "Whether add extra special cards to deck(trade/wild hit/wild chaos/discard all)",
+  "HelpInitHP": "Hitpoint each player has at beginning, does not affect Traditional Mode",
+  "HelpInitHandCard": "How many cards each player has at beginning",
+  "HelpScoreGoal": "Score to achieve to end the game, only affect to 'Battle Puno!' Mode"
 }

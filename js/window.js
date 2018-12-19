@@ -470,6 +470,12 @@ class Window_Selectable extends Window_Base{
    */
   update(){
     super.update();
+    this.checkMouseSelection();
+  }
+  /*------------------------------------------------------------------------*/
+  checkMouseSelection(){
+    if(this.index < 0){return ;}
+    if(!Input.isMouseInArea(this.rect)){this.unselect();}
   }
   /*------------------------------------------------------------------------*/
   clear(){
@@ -570,10 +576,17 @@ class Window_Selectable extends Window_Base{
   /*------------------------------------------------------------------------*/
   select(idx, se = true){
     this._index = idx;
-    let crect = this.cursorRect(idx);
-    this.cursorSprite.show();
-    this.cursorSprite.setPOS(crect.x, crect.y);
-    if(se){Sound.playCursor();}
+    if(idx >= 0){
+      let crect = this.cursorRect(idx);
+      this.cursorSprite.show();
+      this.cursorSprite.setPOS(crect.x, crect.y);
+      if(se){Sound.playCursor();}
+    }
+    else{this.cursorSprite.hide();}
+    this.updateHelp();
+  }
+  /*------------------------------------------------------------------------*/
+  updateHelp(){
     if(this.helpWindow){
       if(this._index >= 0){
         this.helpWindow.setText(this.currentItem.help || '');
@@ -582,8 +595,7 @@ class Window_Selectable extends Window_Base{
   }
   /*------------------------------------------------------------------------*/
   unselect(){
-    this._index = -1;
-    this.cursorSprite.hide();
+    this.select(-1);
   }
   /*------------------------------------------------------------------------*/
   setHandler(symbol, method){
@@ -604,6 +616,7 @@ class Window_Selectable extends Window_Base{
    * @param {Number} [args.align=0] - text alignment, 0: left, 1: center, 2: right
    * @param {function} args.handler - the function to call when it's clicked
    * @param {String} args.symbol - symbol of the selection
+   * @param {String} args.help   - the help message
    */
   addTextSelection(args){
     if(!args.text){
@@ -623,6 +636,7 @@ class Window_Selectable extends Window_Base{
       pos.x = Math.max((pos.x + this.itemWidth - item.width) , pos.x);
     }
     if(args.symbol){item.symbol = args.symbol;}
+    item.help = args.help || '';
     item.setPOS(pos.x, pos.y);
     this.addSelection(item)
     return item;
@@ -782,15 +796,19 @@ class Window_Option extends Window_Selectable{
   get WindowHeight(){return 400;}
   /*------------------------------------------------------------------------*/
   addClose(){
-    let dx = this.width - this.padding - Graphics.IconRect.width;
-    let dy = 0;
+    let dx = this.width - this.padding -  Graphics.IconRect.width / 2;
+    let dy = Graphics.IconRect.width / 2;
     this.closeIcon = this.drawIcon(Graphics.IconID.Xmark, dx, dy);
     let handler = function(){
       Sound.playCancel();
       SceneManager.scene.closeOverlay();
-    }
+      this.closeIcon.scale.set(1, 1);
+    }.bind(this);
     this.closeIcon.on('click', handler);
     this.closeIcon.on('tap', handler);
+    this.closeIcon.anchor.set(0.5)
+    this.closeIcon.on('mouseover', function(){this.closeIcon.scale.set(1.5, 1.5)}.bind(this))
+    this.closeIcon.on('mouseout', function(){this.closeIcon.scale.set(1, 1)}.bind(this))
     this.addSelection(null);
   }
   /*------------------------------------------------------------------------*/
@@ -1035,6 +1053,7 @@ class Window_GameModeSelect extends Window_Selectable{
         text: Vocab["GameModeTraditional"],
         handler: function(){},
         align: 1,
+        help: Vocab["HelpTraditional"]
       }
       this.addSelection(null);
       this.addTextSelection(opt);
@@ -1045,6 +1064,7 @@ class Window_GameModeSelect extends Window_Selectable{
         text: Vocab["GameModeBattlePuno"],
         handler: function(){},
         align: 1,
+        help: Vocab["HelpBattlePuno"]
       }
       this.addSelection(null);
       this.addTextSelection(opt);
@@ -1055,6 +1075,7 @@ class Window_GameModeSelect extends Window_Selectable{
         text: Vocab["GameModeDeathMatch"],
         handler: function(){},
         align: 1,
+        help: Vocab["HelpDeathMatch"]
       }
       this.addSelection(null);
       this.addTextSelection(opt);
@@ -1080,14 +1101,14 @@ class Window_GameOption extends Window_Selectable{
     font.fontSize = 28;
     let ts = this.drawText(0, 4, Vocab["GameOptions"], font);
     ts.x = (this.width - ts.width) / 2;
-    this.addSelection(null);
+    this.addSelection(null, null);
   }
   /**------------------------------------------------------------------------
    * Create all available options
    */
   createOptions(){
-    this.addHandCardOption();
     this.addExtraCardOption();
+    this.addHandCardOption();
     this.addHPOption();
     this.addScoreGoalOption();
   }
@@ -1095,26 +1116,141 @@ class Window_GameOption extends Window_Selectable{
    * Option defines how many cards player have at beginning, default is 7
    */
   addHandCardOption(){
+    let pos = this.nextItemPOS;
+    let sp  = new SpriteCanvas(0, 0, this.itemWidth, this.itemHeight);
+    sp.drawText(4, 0, Vocab["InitHandCard"]);
+    sp.setPOS(pos.x, pos.y).help = Vocab["HelpInitHandCard"];
 
+    let offset = this.spacing / 2;
+    let value  = GameManager.initCardNumber;
+    let peak   = GameManager.initCardPeak;
+    let ts     = this.drawText(410, 0, value);
+    ts.y       = offset;
+    sp.addChild(ts);
+    this.HCBar = new Sprite_DragBar(170, -offset, 250, null, peak[0], peak[1], value);
+    sp.addChild(this.HCBar);
+    this.HCBar.handler = function(v){
+      GameManager.changeGameSetting(GameManager.kInitCardNumber, parseInt(v));
+      ts.text = parseInt(GameManager.initCardNumber);
+    }
+    this.HCBar.changeColor(Graphics.color.Fuchsia)
+    this.addSelection(sp);
   }
   /**------------------------------------------------------------------------
    * Whether enable extra cards(trade/wild chaos/discard all/wild hit),
    * default is enabled
    */
   addExtraCardOption(){
-
+    let pos = this.nextItemPOS;
+    let sp = new SpriteCanvas(0, 0, this.itemWidth, this.itemHeight);
+    sp.drawText(4, 0, Vocab["ExtraCard"]);
+    sp.setPOS(pos.x, pos.y).help = Vocab["HelpExtraCard"];
+    let dx = (this.itemWidth - pos.x) / 5;
+    let font = clone(Graphics.DefaultFontSetting);
+    font.fill = Graphics.color.LightSkyBlue;
+    sp.okSprite = sp.drawText(dx * 2, 0, Vocab["Enable"], font);
+    font.fill = Graphics.color.Red;
+    sp.noSprite = sp.drawText(dx * 3, 0, Vocab["Disable"], font);
+    
+    let b = GameManager.extraCardEnabled;
+    if(b){
+      sp.okSprite.setOpacity(0xff);
+      sp.noSprite.setOpacity(sp.translucentAlpha);
+    }
+    else{
+      sp.okSprite.setOpacity(sp.translucentAlpha);
+      sp.noSprite.setOpacity(0xff);
+    }
+    let handler = function(){
+      let b = !!(GameManager.extraCardDisabled ^ true);
+      // console.log(b);
+      GameManager.changeGameSetting(GameManager.kExtraCardDisabled, b);
+      if(!b){
+        sp.okSprite.setOpacity(0xff);
+        sp.noSprite.setOpacity(sp.translucentAlpha);
+      }
+      else{
+        sp.okSprite.setOpacity(sp.translucentAlpha);
+        sp.noSprite.setOpacity(0xff);
+      }
+    }
+    sp.on('click', handler);
+    sp.on('tap', handler);
+    
+    this.addSelection(sp);
   }
   /**------------------------------------------------------------------------
    * Max HP at beginning in Battle Puno and Death Match, default is 200
    */
   addHPOption(){
+    let pos = this.nextItemPOS;
+    let sp  = new SpriteCanvas(0, 0, this.itemWidth, this.itemHeight);
+    sp.drawText(4, 0, Vocab["InitHP"]);
+    sp.setPOS(pos.x, pos.y).help = Vocab["HelpInitHP"];
 
+    let offset = this.spacing / 2;
+    let value  = GameManager.initHP;
+    let peak   = GameManager.initHPPeak;
+    let ts     = this.drawText(410, 0, value);
+    ts.y       = offset;
+    sp.addChild(ts);
+    this.HPBar = new Sprite_DragBar(170, -offset, 250, null, peak[0], peak[1], value);
+
+    sp.addChild(this.HPBar);
+    this.HPBar.handler = function(v){
+      GameManager.changeGameSetting(GameManager.kInitHP, parseInt(v));
+      ts.text = parseInt(GameManager.initHP);
+    }
+    this.HPBar.changeColor(Graphics.color.Chartreuse)
+
+    ts.interactive = true;
+    let handler = function(){
+      SceneManager.alwaysFocus();
+      let msg = `${Vocab["HPInput"]} (${GameManager.initHPPeak[0]} ~ ${GameManager.initHPPeak[1]})`
+      let v = window.prompt(msg);
+      GameManager.changeGameSetting(GameManager.kInitHP, parseInt(v));
+      this.HPBar.setValue(GameManager.initHP);
+      setTimeout(function(){SceneManager.autoFocus();}, 1000);
+    }.bind(this);
+    ts.on('click', handler);
+    ts.on('tap', handler);
+    this.addSelection(sp);
   }
   /**------------------------------------------------------------------------
    * Score thereshold to end the game in battle puno, default is 500
    */
   addScoreGoalOption(){
+    let pos = this.nextItemPOS;
+    let sp  = new SpriteCanvas(0, 0, this.itemWidth, this.itemHeight);
+    sp.drawText(4, 0, Vocab["ScoreGoal"]);
+    sp.setPOS(pos.x, pos.y).help = Vocab["HelpScoreGoal"];
 
+    let offset = this.spacing / 2;
+    let value  = GameManager.scoreGoal;
+    let peak   = GameManager.scoreGoalPeak;
+    let ts     = this.drawText(410, 0, value);
+    ts.y       = offset;
+    sp.addChild(ts);
+    this.SGBar = new Sprite_DragBar(170, -offset, 250, null, peak[0], peak[1], value);
+    sp.addChild(this.SGBar);
+    this.SGBar.handler = function(v){
+      GameManager.changeGameSetting(GameManager.kScoreGoal, parseInt(v));
+      ts.text = parseInt(GameManager.scoreGoal);
+    }
+    this.SGBar.changeColor(Graphics.color.Gold);
+
+    ts.interactive = true;
+    let handler = function(){
+      SceneManager.alwaysFocus();
+      let msg = `${Vocab["ScoreInput"]} (${GameManager.scoreGoalPeak[0]} ~ ${GameManager.scoreGoalPeak[1]})`
+      let v = window.prompt(msg);
+      GameManager.changeGameSetting(GameManager.kScoreGoal, parseInt(v));
+      this.SGBar.setValue(GameManager.scoreGoal);
+      setTimeout(function(){SceneManager.autoFocus();}, 1000);
+    }.bind(this);
+    ts.on('click', handler);
+    ts.on('tap', handler);
+    this.addSelection(sp);
   }
   /*------------------------------------------------------------------------*/
 }

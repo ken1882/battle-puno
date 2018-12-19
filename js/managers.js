@@ -338,10 +338,13 @@ class GameManager{
   /*-------------------------------------------------------------------------*/
   static initialize(){
     this._mode = null;
+    this.initCardPeak   = [4, 10];
     this.initCardNumber = 7;
-    this.initHP = 200;
+    this.initHPPeak     = [50, 1000];
+    this.initHP         = 200;
+    this.scoreGoalPeak  = [100, 5000];
+    this.scoreGoal      = 500;
     this.extraCardDisabled = false;
-    this.scoreGoal = 500;
     this.initGameKeys();
     this.loadGameSettings();
   }
@@ -394,15 +397,24 @@ class GameManager{
   }
   /*-------------------------------------------------------------------------*/
   static isCardNumberValid(n){
-    return validNumericCount(function(n){return 4 < n && n <= 10;}, n) == 1;
+    let h = function(n){
+      return n.between(this.initCardPeak[0], this.initCardPeak[1], false)
+    }.bind(this);
+    return validNumericCount(h, n) == 1;
   }
   /*-------------------------------------------------------------------------*/
   static isHPValid(n){
-    return validNumericCount(function(n){return 50 < n && n <= 1000;}, n) == 1;
+    let h = function(n){
+      return n.between(this.initHPPeak[0], this.initHPPeak[1], false)
+    }.bind(this);
+    return validNumericCount(h, n) == 1;
   }
   /*-------------------------------------------------------------------------*/
   static isScoreGoalValid(n){
-    return validNumericCount(function(n){return 100 < n && n <= 3000;}, n) == 1;
+    let h = function(n){
+      return n.between(this.scoreGoalPeak[0], this.scoreGoalPeak[1], false)
+    }.bind(this);
+    return validNumericCount(h, n) == 1;
   }
   /*-------------------------------------------------------------------------*/
   static get extraCardEnabled(){return !this.extraCardDisabled;}

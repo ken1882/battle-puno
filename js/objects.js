@@ -86,6 +86,7 @@ class Sprite_DragBar extends SpriteCanvas{
    * @param {Number} x
    * @param {Number} y
    * @param {Number} width
+   * @param {Number} height
    * @param {Number} minn  - minimum value
    * @param {Number} maxn  - maximum value
    * @param {Number} initn - initial value
@@ -110,7 +111,7 @@ class Sprite_DragBar extends SpriteCanvas{
   get xOffset(){return this.dragButton.width / 2;}
   /*-------------------------------------------------------------------------*/
   get valuedWidth(){
-    return this.barWidth * this.value / (this.valuePeak[1] - this.valuePeak[0]);
+    return this.barWidth * (this.value - this.valuePeak[0]) / (this.valuePeak[1] - this.valuePeak[0]);
   }
   /*-------------------------------------------------------------------------*/
   refresh(){
@@ -149,7 +150,7 @@ class Sprite_DragBar extends SpriteCanvas{
     let offset = this.xOffset;
     let dx = event.data.global.x - this.worldTransform.tx - offset;
     this.dragButton.x = Math.min(Math.max(0, dx), this.barWidth);
-    this.value = (this.valuePeak[1] - this.valuePeak[0]) * (this.dragButton.x / this.dragBar.width);
+    this.value = this.valuePeak[0] + (this.valuePeak[1] - this.valuePeak[0]) * (this.dragButton.x / this.dragBar.width);
     this.refresh();
   }
   /*-------------------------------------------------------------------------*/

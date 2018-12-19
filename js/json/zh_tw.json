@@ -30,5 +30,17 @@
   "HelpBattlePuno": "Battle PUNO! 當任意玩家奪得指定分數後, 遊戲將會結束",
   "HelpDeathMatch": "遊戲將無限進行到玩者HP歸零為止(玩到掛), 你能夠拿到幾分呢?",
   "GameOptions": "遊戲選項",
-  "Back": "返回"
+  "Back": "返回",
+  "InitHandCard": "起始手牌數",
+  "InitHP": "起始生命值",
+  "ExtraCard": "特殊卡片",
+  "ScoreGoal": "勝利分數",
+  "Enable": "啟用",
+  "Disable": "停用",
+  "HPInput": "請輸入起始生命值: ",
+  "ScoreInput": "請輸入勝利分數: ",
+  "HelpExtraCard": "是否加入額外Wild特殊卡牌(換牌/混亂/丟棄/攻擊)",
+  "HelpInitHP": "每個玩家的起始生命值, 傳統模式不受此影響",
+  "HelpInitHandCard": "每個玩家的起始手牌數量",
+  "HelpScoreGoal": "結束遊戲所需的分數, 只會影響到'Battle Puno!'模式"
 }

@@ -446,6 +446,7 @@ class Scene_Load extends Scene_Base{
     debug_log("Loading Complete called");
     this.loading_timer = 0xff;
     GameStarted = true;
+    Sound.playSaveLoad();
     if(TestMode){
       SceneManager.goto(Scene_Test);
     }
@@ -617,6 +618,7 @@ class Scene_Title extends Scene_Base{
     this.createparticles();
     this.createGameModeWindow();
     this.createGameOptionWindow();
+    this.createHelpWindow();
     this.createBackButton();
     this.createDimBack();
   }
@@ -682,14 +684,25 @@ class Scene_Title extends Scene_Base{
   /*-------------------------------------------------------------------------*/
   createGameModeWindow(){
     this.gameModeWindow = new Window_GameModeSelect(0, 0, 300, 400);
-    let wx = (Graphics.width - this.gameModeWindow.width) / 3
+    let wx = (Graphics.width - this.gameModeWindow.width) / 5;
     this.gameModeWindow.setPOS(wx, 150).setZ(0x10).hide();
   }
   /*-------------------------------------------------------------------------*/
   createGameOptionWindow(){
-    this.gameOptionWindow = new Window_GameOption(0, 0, 300, 400);
-    let wx = (Graphics.width - this.gameOptionWindow.width) * 2 / 3
+    this.gameOptionWindow = new Window_GameOption(0, 0, 520, 400);
+    let wx = (Graphics.width - this.gameOptionWindow.width) * 7 / 10;
     this.gameOptionWindow.setPOS(wx,150).setZ(0x10).hide();
+  }
+  /*-------------------------------------------------------------------------*/
+  createHelpWindow(){
+    let wx = this.gameModeWindow.x, wy = this.gameModeWindow.y;
+    let ww = this.gameOptionWindow.width + this.gameOptionWindow.x - wx;
+    let wh = 80;
+    wy -= wh;
+    this.helpWindow = new Window_Help(wx, wy, ww, wh);
+    this.helpWindow.setZ(0x10).hide();
+    this.gameModeWindow.helpWindow = this.helpWindow;
+    this.gameOptionWindow.helpWindow = this.helpWindow;
   }
   /*-------------------------------------------------------------------------*/
   createBackButton(){
@@ -700,6 +713,7 @@ class Scene_Title extends Scene_Base{
   }
   /*-------------------------------------------------------------------------*/
   onGameStart(){
+    this.helpWindow.show().activate().render();
     this.gameModeWindow.show().activate().render();
     this.gameOptionWindow.show().activate().render();
     this.backButton.show().activate().render();
@@ -707,6 +721,8 @@ class Scene_Title extends Scene_Base{
   }
   /*-------------------------------------------------------------------------*/
   onActionBack(){
+    Sound.playCancel();
+    this.helpWindow.hide().deactivate();
     this.gameModeWindow.hide().deactivate();
     this.gameOptionWindow.hide().deactivate();
     this.backButton.hide().deactivate();

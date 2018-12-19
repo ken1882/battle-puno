@@ -532,6 +532,9 @@ class Graphics{
   /*-------------------------------------------------------------------------*/
   static removeBitmap(bmp){
     document.body.removeChild(bmp.canvas);
+    if(bmp.input){
+      document.body.removeChild(bmp.input);
+    }
   }
   /**-------------------------------------------------------------------------
    * > Remove the window that rendered to page
@@ -776,6 +779,38 @@ class Graphics{
     return animSprite;
   }
   /**-------------------------------------------------------------------------
+   * > Creates an input canvas
+   * @param {Number} x
+   * @param {Number} y
+   * @param {Number} width
+   * @param {Number} height
+   * @param {Object} args - the options
+   * @param {Function} args.handler - the handler to call when input submitted
+   * @param {String} args.message - same as text input's place holder
+   * @param {Number} args.fontSize
+   */
+  static createInputCanvas(x, y, w, h, args = {}){
+    let bmp = new Bitmap(x, y, w, h);
+    if(!args.fontSize){args.fontSize = 18;}
+    bmp.input = new CanvasInput({
+      canvas: bmp._canvas,
+      fontSize: args.fontSize,
+      fontFamily: 'Arial',
+      fontColor: '#212121',
+      fontWeight: 'bold',
+      width: w - Graphics.padding,
+      padding: 8,
+      borderWidth: 1,
+      borderColor: '#000',
+      borderRadius: 3,
+      boxShadow: '1px 1px 0px #fff',
+      innerShadow: '0px 0px 5px rgba(0, 0, 0, 0.5)',
+      placeHolder: args.message || '',
+      onsubmit: args.handler
+    });
+    return bmp;
+  }
+  /**-------------------------------------------------------------------------
    * If performance is lower, haste the object to make it looks normal
    * @returns {Number} - the delta multiple factor
    */
@@ -789,6 +824,9 @@ class Graphics{
  * The static class handles the input
  *
  * @class Input
+ * @property {Array.<Number>} mousePagePOS - mouse position in the web page
+ * @property {Array.<Nunber>} mouseClientPOS - mouse position in window viewport
+ * @property {Array.<Nunber>} mouseAppPOS - mouse position inside the application
  */
 class Input{
   /**-------------------------------------------------------------------------
@@ -888,6 +926,7 @@ class Input{
   static processMouseMove(event){
     this.mousePagePOS   = [event.pageX || 0, event.pageY || 0];
     this.mouseClientPOS = [event.clientX || 0, event.clientY || 0];
+    this.mouseAppPOS    = [this.mousePagePOS[0] - Graphics.app.x, this.mousePagePOS[1] - Graphics.app.y];
   }
   /*-------------------------------------------------------------------------*/
   static setupEventHandlers(){
@@ -912,6 +951,13 @@ class Input{
       for(let i=0;i<0xff;++i){this.keystate_trigger[i] = false;}
       this.wheelstate = 0;
     }
+  }
+  /**-------------------------------------------------------------------------
+   * > Check whether mouse is in certain area
+   * @param {Rect} crect - the collision rect
+   */
+  static isMouseInArea(crect){
+    return crect.contains(this.mouseAppPOS[0], this.mouseAppPOS[1]);
   }
   /**-------------------------------------------------------------------------
    * > Check whether key is triggered in certain area
@@ -1361,6 +1407,7 @@ class Sound{
   static playBuzzer(){this.playSE(this.Buzzer);}
   static playCursor(){this.playSE(this.Cursor);}
   static playCancel(){this.playSE(this.Cancel);}
+  static playSaveLoad(){this.playSE(this.SaveLoad);}
   static get volumeData(){return [this._masterVolume, this._bgmVolume, this._seVolume];}
   static get isBGMEnabled(){return this.audioEnable[0];}
   static get isSEEnabled(){return this.audioEnable[1];}
@@ -1391,6 +1438,10 @@ class Sprite extends PIXI.Sprite{
   }
   /*-------------------------------------------------------------------------*/
   get z(){return this.zIndex;}
+  /*-------------------------------------------------------------------------*/
+  get rect(){
+    return new Rect(this.x, this.y, this.width, this.height);
+  }
   /*-------------------------------------------------------------------------*/
   resize(w, h){
     var scale = [w / this.width, h / this.height]
@@ -1532,13 +1583,14 @@ class Sprite extends PIXI.Sprite{
       if(endl){
         formated += line;
         if(strings.length > 0){formated += '\n';}
-        console.log(formated);
         line = "";
         curW = paddingW;
       }
     }
     return formated;
   }
+  /*-------------------------------------------------------------------------*/
+  get translucentAlpha(){return 0.4;}
   /**-------------------------------------------------------------------------
    * > Getter function
    */
@@ -1783,10 +1835,20 @@ class Bitmap{
   dispose(){
     this._canvas  = null;
     this._context = null;
+    if(this.input){this.input.destroy();}
+    this.input = null;
   }
   /*-------------------------------------------------------------------------*/
   isDisposed(){
     return this._canvas === null;
+  }
+  /*-------------------------------------------------------------------------*/
+  render(){
+    Graphics.renderBitmap(this);
+  }
+  /*-------------------------------------------------------------------------*/
+  remove(){
+    Graphics.removeBitmap(this);
   }
   /*-------------------------------------------------------------------------*/
   get canvas(){return this._canvas;}
