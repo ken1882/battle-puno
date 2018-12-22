@@ -1,6 +1,7 @@
 /**
  * > Add-ons for library/default classes
  */
+
 /**--------------------------------------------------------------------------
  * Check whether number between two value
  */
@@ -8,6 +9,17 @@ Number.prototype.between = function(a, b, closeure = true) {
   let minn = Math.min.apply(Math, [a, b]), maxn = Math.max.apply(Math, [a, b]);
   return closeure ? (this > minn && this < maxn) : (this >= minn && this <= maxn);
 };
+
+/**--------------------------------------------------------------------------
+ * Check whether two array contains same object
+ */
+Array.prototype.alike = function(ar){
+  if(!ar || this.length != ar.length){return false;}
+  for(let i=0;i<ar.length;++i){
+    if(ar[i] !== this[i]){return false;}
+  }
+  return true;
+}
 /**--------------------------------------------------------------------------
  * Make sprite visible
  */

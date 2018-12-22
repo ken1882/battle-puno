@@ -255,7 +255,6 @@ class Graphics{
     this.globalWindows    = [];
 
     this.createApp();
-    this.registerCanvasListener();
     this.initRenderer();
     this.initLoader();
     this.aliasFunctions();
@@ -413,19 +412,6 @@ class Graphics{
     this.app.view.style.left = this.app.x + 'px';
     this.app.view.style.top  = this.app.y + 'px';
     this.app.view.style.zIndex = 0;
-  }
-  /*-------------------------------------------------------------------------*/
-  static registerCanvasListener(){
-    let app = Graphics.app.view;
-    app.addEventListener('mousemove', this.mouseMoveTrailingEffect.bind(this));
-    app.addEventListener('click', this.clickEffect.bind(this));
-    
-    app.addEventListener('mouseover', function(){
-      this.pointerInside = true;
-    }.bind(this));
-    app.addEventListener('mouseout', function(){
-      this.pointerInside = false;
-    }.bind(this));
   }
   /**----------------------------------------------------------------------------
    * @property {PIXI.WebGLRenderer} renderer - the rending software of the app
@@ -585,6 +571,13 @@ class Graphics{
    * @memberof Graphics
    */  
   static update(){
+    this.updateFPS();
+    this.updateMouseEffect();
+  }
+  /**-------------------------------------------------------------------------
+   * > Update FPS information
+   */
+  static updateFPS(){
     this._frameCount += 1;
     this.FPS_Sum -= (this.FPS_SamplePool[this.FPS_SampleIndex] || 0);
     this.FPS_SamplePool[this.FPS_SampleIndex] = this.app.ticker.FPS;
@@ -592,6 +585,17 @@ class Graphics{
     this.FPS_SampleIndex = (this.FPS_SampleIndex + 1) % this.FPS_MaxSample;
     this.FPS = Math.floor(this.FPS_Sum / this.FPS_MaxSample);
     this.FPSSprite.text = "FPS: " + this.FPS;
+  }
+  /**-------------------------------------------------------------------------
+   * > Update mouse trailing effect
+   */
+  static updateMouseEffect(){
+    if(Input.isMouseMoved){
+      this.mouseMoveTrailingEffect();
+    }
+    if(Input.isTriggered(Input.keymap.kMOUSE1)){
+      this.mouseClickEffect();
+    }
   }
   /**-------------------------------------------------------------------------
    * > Add sprite and build a instance name map
@@ -716,10 +720,10 @@ class Graphics{
   /**----------------------------------------------------------------------------
    * Clicking feedback effect
    */
-  static clickEffect(event){
+  static mouseClickEffect(){
     if(!this.isReady()){return ;}
-    let dx = event.clientX - this.app.x;
-    let dy = event.clientY - this.app.y;
+    let dx = Input.mouseAppPOS[0];
+    let dy = Input.mouseAppPOS[1];
     /**
      * @property {boolean} unpause - won't pause regardless game unfocused
      */
@@ -729,10 +733,10 @@ class Graphics{
   /**----------------------------------------------------------------------------
    * Mouse move trailing visual effect
    */
-  static mouseMoveTrailingEffect(event){
+  static mouseMoveTrailingEffect(){
     if(!this.isReady()){return ;}
-    let dx = event.clientX - this.app.x;
-    let dy = event.clientY - this.app.y;
+    let dx = Input.mouseAppPOS[0];
+    let dy = Input.mouseAppPOS[1];
     /**
      * @property {boolean} unpause - won't pause regardless game unfocused
      */
@@ -924,9 +928,12 @@ class Input{
    * @param {MouseEvent} event 
    */
   static processMouseMove(event){
-    this.mousePagePOS   = [event.pageX || 0, event.pageY || 0];
+    let px = event.pageX || 0, py = event.pageY || 0;
+    this._mouseMoved    = ![px, py].alike(this.mousePagePOS);
+    this.mousePagePOS   = [px, py];
     this.mouseClientPOS = [event.clientX || 0, event.clientY || 0];
     this.mouseAppPOS    = [this.mousePagePOS[0] - Graphics.app.x, this.mousePagePOS[1] - Graphics.app.y];
+    this.state_changed  = true;
   }
   /*-------------------------------------------------------------------------*/
   static setupEventHandlers(){
@@ -936,6 +943,10 @@ class Input{
     window.addEventListener("mouseup", this.onKeyup.bind(this));
     window.addEventListener("mousewheel", this.processMouseWheel.bind(this));
     document.addEventListener("mousemove", this.processMouseMove.bind(this));
+
+    let app = Graphics.app.view;
+    app.addEventListener('mouseover', function(){this._pointerInside = true;}.bind(this));
+    app.addEventListener('mouseout', function(){this._pointerInside = false;}.bind(this));
   }
   /**-------------------------------------------------------------------------
    * > Frame update
@@ -947,6 +958,7 @@ class Input{
       this.reset_needed  = true;
     }
     else if(this.reset_needed){
+      this._mouseMoved  = false;
       this.reset_needed = false;
       for(let i=0;i<0xff;++i){this.keystate_trigger[i] = false;}
       this.wheelstate = 0;
@@ -989,6 +1001,18 @@ class Input{
    */
   static isPressed(key_id){
     return this.keystate_press[key_id];
+  }
+  /**-------------------------------------------------------------------------
+   * > Check whether mouse moved
+   */
+  static get isMouseMoved(){
+    return this._mouseMoved;
+  }
+  /**-------------------------------------------------------------------------
+   * > Check whether pointer is inside the app
+   */
+  static get isPointerInside(){
+    return this._pointerInside;
   }
   /**-------------------------------------------------------------------------
    * > Check whether mouse wheel scrolled up
