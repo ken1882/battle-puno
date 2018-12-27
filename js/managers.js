@@ -239,6 +239,7 @@ class SceneManager{
  * > DataManager:
  *    The static class that manages data and settings.
  * @namespace
+ * @property {object} database - The Local Storage
  */
 class DataManager{
   /*-------------------------------------------------------------------------*/
@@ -335,6 +336,15 @@ class DataManager{
  * > GameManager:
  *    The static class that manage the game information
  * @namespace
+ * @property {Array.[Number,Number]} initCardPeak - the min/max value of initial
+ *                                                  card number in hand
+ * @property {Array.[Number,Number]} initHPPeak - the min/max value of initial hitpoint
+ * @property {Array.[Number,Number]} scoreGoalPeak - the min/max value of score needed
+ *                                                   to end the game
+ * @property {Number} initCardNumber - Initial card number in hand
+ * @property {Number} initHP - Initial hitpoint
+ * @property {Number} scoreGoal - Score needed to end the game
+ * @property {Boolean} extraCardDisabled - Whether not using extra black cards
  */
 class GameManager{
   /*-------------------------------------------------------------------------*/
@@ -361,7 +371,9 @@ class GameManager{
     this.kExtraCardDisabled = 'extraCardDisabled';
     this.kScoreGoal = 'scoreGoal';
   }
-  /*-------------------------------------------------------------------------*/
+  /**-------------------------------------------------------------------------
+   * Load game setting from database
+   */
   static loadGameSettings(){ 
     let keys = [this.kInitCardNumber, this.kInitHP, this.kScoreGoal, this.kExtraCardDisabled];
     for(let i=0;i<keys.length;++i){
@@ -421,6 +433,12 @@ class GameManager{
       return n.between(this.scoreGoalPeak[0], this.scoreGoalPeak[1], false)
     }.bind(this);
     return validNumericCount(h, n) == 1;
+  }
+  /*-------------------------------------------------------------------------*/
+  static getCardImageById(cid){
+    let color = '', id = '';
+    
+    return color + id + '.png';
   }
   /*-------------------------------------------------------------------------*/
   static get extraCardEnabled(){return !this.extraCardDisabled;}

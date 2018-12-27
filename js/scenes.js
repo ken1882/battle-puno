@@ -730,6 +730,7 @@ class Scene_Title extends Scene_Base{
   }
   /*-------------------------------------------------------------------------*/
 }
+
 /**
  * Test scene
  */
@@ -737,4 +738,37 @@ class Scene_Test extends Scene_Base{
   constructor(){
     super();
   }
+}
+
+/**
+ * The main scene during gameplay
+ * @class Scene_Game
+ */
+class Scene_Game extends Scene_Base{
+  /**
+   * @constructors
+   */
+  constructor(){
+    super();
+    this.fetchGameSetting();
+  }
+  /*-------------------------------------------------------------------------*/
+  create(){
+    super.create();
+    
+  }
+  /*-------------------------------------------------------------------------*/
+  update(){
+    super.update();
+  }
+  /**-------------------------------------------------------------------------
+   * Get game setting from database
+   */
+  fetchGameSetting(){
+    this.initCardNumber = GameManager.initCardNumber;
+    this.initHP         = GameManager.initHP;
+    this.extraCards     = !(GameManager.extraCardDisabled);
+    this.scoreGoal      = GameManager.scoreGoal; 
+  }
+  /*-------------------------------------------------------------------------*/
 }

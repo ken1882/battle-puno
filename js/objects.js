@@ -186,3 +186,15 @@ class Sprite_DragBar extends SpriteCanvas{
   }
   /*-------------------------------------------------------------------------*/
 }
+
+
+class Game_Card extends SpriteCanvas{
+
+  constructor(cardId){
+    super(0, 0, 212, 300);
+  }
+  
+  loadSprite(){
+    
+  }
+}
