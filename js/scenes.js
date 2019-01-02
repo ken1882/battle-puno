@@ -751,25 +751,18 @@ class Scene_Game extends Scene_Base{
    */
   constructor(){
     super();
-    this.fetchGameSetting();
+    GameManager.initStage();
+    this.game = GameManager.game;
   }
   /*-------------------------------------------------------------------------*/
   create(){
-    super.create();
-    
+    super.create();  
   }
   /*-------------------------------------------------------------------------*/
   update(){
     super.update();
   }
-  /**-------------------------------------------------------------------------
-   * Get game setting from database
-   */
-  fetchGameSetting(){
-    this.initCardNumber = GameManager.initCardNumber;
-    this.initHP         = GameManager.initHP;
-    this.extraCards     = !(GameManager.extraCardDisabled);
-    this.scoreGoal      = GameManager.scoreGoal; 
-  }
+  /*-------------------------------------------------------------------------*/
+  
   /*-------------------------------------------------------------------------*/
 }

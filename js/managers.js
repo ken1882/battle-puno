@@ -1,3 +1,8 @@
+import PunoGame from "../src/game";
+import Effect from "../src/effect";
+import Value from "../src/card/value";
+import Color from "../src/card/color";
+
 /**---------------------------------------------------------------------------
  * > SceneManager:
  *    The static class that manages scene transitions.
@@ -345,6 +350,8 @@ class DataManager{
  * @property {Number} initHP - Initial hitpoint
  * @property {Number} scoreGoal - Score needed to end the game
  * @property {Boolean} extraCardDisabled - Whether not using extra black cards
+ * 
+ * @property {object} game - The PunoGame instance
  */
 class GameManager{
   /*-------------------------------------------------------------------------*/
@@ -362,6 +369,7 @@ class GameManager{
     this.scoreGoal      = 500;
     this.extraCardDisabled = false;
     this.playerNumber   = 4;
+    this.gameMode       = 0;
     this.initGameKeys();
     this.loadGameSettings();
   }
@@ -443,11 +451,82 @@ class GameManager{
   }
   /*-------------------------------------------------------------------------*/
   static get extraCardEnabled(){return !this.extraCardDisabled;}
+  /*-------------------------------------------------------------------------*/
+  static changeGameMode(gm){
+    this.gameMode = gm;
+  }
   /**-------------------------------------------------------------------------
    * Initialize game stage
    */
   static initStage(){
-    
+    this.game = new PunoGame(this.initCardNumber, this.initHP, this.scoreGoal, 
+                             this.extraCardDisabled, this.gameMode);
+  }
+  /**-------------------------------------------------------------------------
+   * Get the effect ID after card played
+   */
+  static interpretCardAbility(card, ext){
+    switch(card.value){
+      case Value.DRAW_TWO:
+        return [Effect.DRAW_TWO];
+      // ext=0: normal;  ext=1: reactive;
+      case Value.SKIP:
+        return ext ? [Effect.SKIP] : [Effect.SKIP_PENALTY];
+      // ext=0: normal;  ext=1: reactive;
+      case Value.REVERSE:
+        return ext ? [Effect.REVERSE] : [Effect.REVERSE_PENALTY];
+      // ext=0: reset;  ext=1: +10;
+      case Value.ZERO:
+        return ext ? [Effect.CLEAR_DAMAGE] : [Effect.ADD_DAMAGE];
+      case Value.WILD:
+        return [Effect.CHOOSE_COLOR];
+      case Value.WILD_DRAW_FOUR:
+        return [Effect.CHOOSE_COLOR, Effect.DRAW_FOUR];
+      case Value.WILD_HIT_ALL:
+        return [Effect.CHOOSE_COLOR, Effect.HIT_ALL];
+      case Value.WILD_CHAOS:
+        return [Effect.WILD_CHAOS]
+      case Value.TRADE:
+        return [Effect.TRADE];
+      case Value.DISCARD_ALL:
+        return [Effect.DISCARD_ALL];
+      default:
+        return [Effect.ADD_DAMAGE];
+    }
+  }
+  /**-------------------------------------------------------------------------
+   * Fired when a card is played onto table
+   * @param {Number} player_id - the player id, 0 is the user
+   * @param {Number} hand_index - the index of card gonna be played in the hand
+   * @param {Number} ext - The extra information value
+   */
+  static onCardPlay(player_id, hand_index, ext = null){
+    let card_instance = this.game.players[player_id].hand[hand_index];
+    effects = this.interpretCardAbility(card_instance, ext);
+    effects.forEach(effect_id => {
+      if(effect_id === Effect.CHOOSE_COLOR){this.changeColor(ext)}
+      else{
+        // Reserved
+      }
+    });
+  }
+  /*-------------------------------------------------------------------------*/
+  static changeColor(color_id){
+    if(color_id == Color.WILD){
+      throw new Error("Color Id should not be zero!")
+    }
+    else if(color_id == Color.RED){
+      // Reserved
+    }
+    else if(color_id == Color.YELLOW){
+      // Reserved
+    }
+    else if(color_id == Color.GREEN){
+      // Reserved
+    }
+    else if(color_id == Color.BLUE){
+      // Reserved
+    }
   }
   /*-------------------------------------------------------------------------*/
 }

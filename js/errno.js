@@ -81,6 +81,6 @@ class TypeError extends Errno{
    */
   constructor(ex, re){
     if(re){re = getClassName(re);}
-    super("Type Error:\n" + "Expected " + ex.name + ", got " + getClassName(re));
+    super("Type Error:\n" + "Expected " + ex.name + ", got " + re);
   }
 }
