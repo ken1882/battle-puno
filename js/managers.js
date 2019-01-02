@@ -1,8 +1,3 @@
-import PunoGame from "../src/game";
-import Effect from "../src/effect";
-import Value from "../src/card/value";
-import Color from "../src/card/color";
-
 /**---------------------------------------------------------------------------
  * > SceneManager:
  *    The static class that manages scene transitions.
@@ -370,8 +365,13 @@ class GameManager{
     this.extraCardDisabled = false;
     this.playerNumber   = 4;
     this.gameMode       = 0;
+    this.importModules();
     this.initGameKeys();
     this.loadGameSettings();
+  }
+/*-------------------------------------------------------------------------*/
+  static importModules(){
+    
   }
   /*-------------------------------------------------------------------------*/
   static initGameKeys(){

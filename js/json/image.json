@@ -1,7 +1,9 @@
 {
   "Title": "assets/Title.png",
-  "Background": "assets/backgorund.png",
+  "Background0": "assets/background0.png",
+  "Background1": "assets/background1.png",
   "Background2": "assets/background2.png",
+  "Background3": "assets/background3.png",
   "Particle": "assets/particle.png",
   "Particle2": "assets/particle2.png",
   "ntouSplash": "assets/ntou.png",
@@ -17,6 +19,7 @@
   "WSkinPinkie": "assets/wskin_pinkie.png",
   "WSkinRD": "assets/wskin_rd.png",
 
+  "CardEmpty": "assets/empty.png",
   "CardBack": "assets/back.png",
   "Blue0": "assets/b_0.png",
   "Blue1": "assets/b_1.png",
