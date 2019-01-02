@@ -217,7 +217,7 @@ class PunoGame {
     console.log("score goal", this.scoreGoal);
     let scoreBoard = [this.players[0].score, this.players[1].score,
                       this.players[2].score, this.players[3].score];
-    while (Math.max(scoreBoard) < this.scoreGoal) {
+    while (Math.max(...scoreBoard) < this.scoreGoal) {
       this.initialize();
       let round = 0;
       while (!this.isGameOver()) {
