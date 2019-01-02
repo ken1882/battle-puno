@@ -99,7 +99,12 @@ class PunoGame {
 
   calcScore() {
     for (let i in this.players) {
-      this.players[i].calcScore();
+      if (this.gameMode === Mode.TRADITIONAL) {
+        this.players[i].score += this.players[i].cardsPointSum();
+      } else if (this.gameMode === Mode.BATTLE_PUNO) {
+        this.players[i].hp -= this.players[i].cardsPointSum();
+        this.players[i].score += Math.max(this.players[i].hp, 0);
+      }
     }
   }
 
@@ -142,8 +147,7 @@ class PunoGame {
 
   beginTurn() {
     console.log(this.currentPlayer().name, "round");
-    const hand = this.currentPlayer().hand.slice();
-    console.log("hand", hand);
+    console.log("hand", this.currentPlayer().hand.slice());
     console.log("last card:", this.lastCard());
     console.log("color:", this.currentColor);
     console.log("value:", this.currentValue);
@@ -175,19 +179,26 @@ class PunoGame {
     let matchedCard = this.currentPlayer().discard(this.currentColor,
                                                    this.currentValue);
     while (matchedCard === null) {
-      let card = this.deck.draw(1)[0];
-      console.log("draw", card);
-      if (card === undefined) {
-        this.currentPlayer().knockOut = true;
-        console.log("deck empty => player knocked out");
-        return;
-      }
-      if (card.color === this.currentColor ||
-          card.value === this.currentValue ||
-          card.color === Color.WILD) {
-        matchedCard = card;
-      } else {
-        this.currentPlayer().deal(card);
+      if (this.gameMode === Mode.TRADITIONAL) {
+        let card = this.deck.draw(1)[0];
+        console.log("draw", card);
+        if (card === undefined) {
+          this.currentPlayer().knockOut = true;
+          console.log("deck empty => player knocked out");
+          return;
+        }
+        if (card.color === this.currentColor ||
+            card.value === this.currentValue ||
+            card.color === Color.WILD) {
+          matchedCard = card;
+        } else {
+          this.currentPlayer().deal([card]);
+        }
+      } else if (this.gameMode === Mode.BATTLE_PUNO) {
+        this.currentPlayer().deal(this.deck.draw(1));
+        this.currentPlayer().hp -= damagePool;
+        this.currentPlayer().knockOut = this.currentPlayer().hp <= 0;
+        damagePool = 0;
       }
     }
     if (matchedCard.value === Value.REVERSE) {
@@ -206,7 +217,7 @@ class PunoGame {
     console.log("score goal", this.scoreGoal);
     let scoreBoard = [this.players[0].score, this.players[1].score,
                       this.players[2].score, this.players[3].score];
-    while (maxElement(scoreBoard) < this.scoreGoal) {
+    while (Math.max(scoreBoard) < this.scoreGoal) {
       this.initialize();
       let round = 0;
       while (!this.isGameOver()) {
@@ -242,16 +253,6 @@ function getRandom(a, b, filter=undefined) {
 
 function mod(n, m) {
   return ((n % m) + m) % m;
-}
-
-function maxElement(arr) {
-  let max = arr[0];
-  for (let i in arr) {
-    if (arr[i] > max) {
-      max = arr[i];
-    }
-  }
-  return max;
 }
 /*********************************************************************/
 

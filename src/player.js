@@ -5,6 +5,7 @@ class Player {
   constructor(name, initHP, AI=true) {
     this.name = name;
     this.score = 0;
+    this.initHP = initHP;
     this.hp = initHP;
     this.ai = AI;
     this.knockOut = false;
@@ -94,6 +95,7 @@ class Player {
   }
 
   reset() {
+    this.hp = this.initHP;
     this.hand.length = 0;
     this.knockOut = false;
   }
