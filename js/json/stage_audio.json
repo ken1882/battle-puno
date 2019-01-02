@@ -1,0 +1,9 @@
+{
+  "Stage0": "audio/bgm/stage0.mp3",
+  "Stage1": "audio/bgm/stage1.mp3",
+  "Stage2": "audio/bgm/stage2.mp3",
+  "Defeat": "audio/bgm/defeat.mp3",
+  "Victory0": "audio/bgm/victory0.mp3",
+  "Victory1": "audio/bgm/victory1.mp3",
+  "Victory2": "audio/bgm/victory2.mp3"
+}

@@ -361,6 +361,7 @@ class GameManager{
     this.scoreGoalPeak  = [100, 5000];
     this.scoreGoal      = 500;
     this.extraCardDisabled = false;
+    this.playerNumber   = 4;
     this.initGameKeys();
     this.loadGameSettings();
   }
@@ -442,5 +443,11 @@ class GameManager{
   }
   /*-------------------------------------------------------------------------*/
   static get extraCardEnabled(){return !this.extraCardDisabled;}
+  /**-------------------------------------------------------------------------
+   * Initialize game stage
+   */
+  static initStage(){
+    
+  }
   /*-------------------------------------------------------------------------*/
 }

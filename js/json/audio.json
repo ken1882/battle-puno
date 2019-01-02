@@ -6,10 +6,19 @@
   "Get": "audio/se/KHSE_ItemGet.wav",
   "SaveLoad": "audio/se/KHSE_SaveLoad.wav",
   "OK": "audio/se/KHSE_Select.wav",
+  "OK2": "audio/se/AOE_Confirm.mp3",
   "Error": "audio/se/Buzzer1.mp3",
   "Wave": "audio/se/seawave.wav",
   "IconOK": "audio/se/Cursor1.mp3",
+  "Shuffle": "audio/se/cardShuffle.mp3",
+  "Deal": "audio/se/cardDeal.mp3",
 
   "_comment": "Other un-named resrouce files",
-  "resources": []
+  "resources": [
+    "audio/se/cardDraw.mp3",
+    "audio/se/cardDraw2.mp3",
+    "audio/se/cardPlace1.mp3",
+    "audio/se/cardPlace2.mp3",
+    "audio/se/cardPlace3.mp3"
+  ]
 }

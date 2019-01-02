@@ -8,7 +8,7 @@ resources.each do |path|
   files = Dir.glob(path)
   puts(path + "\n------------------------------------\n")
   files.each do |file|
-    puts sprintf("'#{file}',\n")
+    puts sprintf("\"#{file}\",\n")
   end
   puts("\n------------------------------------\n\n")
 end

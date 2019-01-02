@@ -186,15 +186,94 @@ class Sprite_DragBar extends SpriteCanvas{
   }
   /*-------------------------------------------------------------------------*/
 }
+/**
+ * This object represent the deck durnig the game
+ */
+class Game_Deck{
+  /**
+   * @constructor
+   * @param {boolean} extraCardsEnabled
+   */
+  constructor(extraCardsEnabled){
+    this.extraCardsEnabled = extraCardsEnabled;
+    this.deck = [];
+    if(this.extraCardsEnabled){this.totalCardsNumber = 116;}
+    else{this.totalCardsNumber = 108;}
+  }
+  /*-------------------------------------------------------------------------*/
+  get size(){return this.deck.length;}
+  /**-------------------------------------------------------------------------
+   * Shuffle the deck
+   */ 
+  shuffle(){
+    this.deck.shuffle();
+    return this;
+  }
+  /**-------------------------------------------------------------------------
+   * Restore all cards
+   */
+  restore(){
 
+  }
+  /*-------------------------------------------------------------------------*/
+  push(){
 
+  }
+  /*-------------------------------------------------------------------------*/
+  pop(){
+
+  }
+  /*-------------------------------------------------------------------------*/
+  insert(){
+
+  }
+  /*-------------------------------------------------------------------------*/
+  remove(){
+
+  }
+  /*-------------------------------------------------------------------------*/
+  top(){
+    return this.deck[this.size - 1];
+  }
+  /*-------------------------------------------------------------------------*/
+  /**
+   * Get the card sprite at the top of the deck
+   * @param {Boolean} covered - Return the card cover if true
+   */
+  getTopImage(covered = false){
+    if(covered){
+      return Graphics.CardBack;
+    }
+
+  }
+  /*-------------------------------------------------------------------------*/
+}
+/**
+ * The basic puno card object
+ */
 class Game_Card extends SpriteCanvas{
-
+  /**
+   * @constructor
+   * @param {Number} cardId - Id of the card
+   */
   constructor(cardId){
     super(0, 0, 212, 300);
+    this.cardId = cardId;
   }
-  
+  /*-------------------------------------------------------------------------*/
   loadSprite(){
     
   }
+  /*-------------------------------------------------------------------------*/
+}
+/**
+ * The player object, also including NPC
+ */
+class Game_Player{
+
+  constructor(){
+    this.hands = [];
+  }
+
+  
 }

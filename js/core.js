@@ -303,7 +303,7 @@ class Graphics{
     this.dimSprite = new Sprite();
     this.dimSprite.fillRect(0, 0, this.width, this.height, Graphics.color.Black);
     this.dimSprite.name = "Dim Sprite";
-    this.dimSprite.setZ(0x100).setOpacity(0.5);
+    this.dimSprite.setZ(0x100).setOpacity(0.7);
   }
   /**-------------------------------------------------------------------------
    * Option icon on bottom-left corner to open the option window
@@ -1115,18 +1115,35 @@ class Sound{
   /*-------------------------------------------------------------------------*/
   static preloadAllAudio(){
     debug_log("Load audios...")
-    Sound.resources.forEach(filename => {
-      this.track[filename] = new Howl({
-        src: [filename],
-        volume: Sound._masterVolume,
-        onload: function(){Sound.reportLoadProgress(filename)},
-        onfade: this.onAudioFadeComplete,
-        onstop: function(soundID){Sound.unregisterAudio(soundID);}, 
-        onend: function(soundID){Sound.unregisterAudio(soundID);},
-        onloaderror: function(sid, msg){
-          reportError(new ResourceError(msg + ' ' + filename));
-        },
-      })
+    Sound.resources.forEach((filename) => {
+      this.loadAudio(filename)
+    })
+  }
+  /*-------------------------------------------------------------------------*/
+  static loadAudio(filename){
+    this.track[filename] = new Howl({
+      src: [filename],
+      volume: Sound._masterVolume,
+      onload: function(){Sound.reportLoadProgress(filename)},
+      onfade: this.onAudioFadeComplete,
+      onstop: function(soundID){Sound.unregisterAudio(soundID);}, 
+      onend: function(soundID){Sound.unregisterAudio(soundID);},
+      onloaderror: function(sid, msg){
+        reportError(new ResourceError(msg + ' ' + filename));
+      },
+    });
+    return this.track[filename];
+  }
+  /*-------------------------------------------------------------------------*/
+  static loadStageAudio(){
+    debug_log("Load stage audios...")
+    $.getJSON('js/json/stage_audio.json', function(data){
+      for(prop in data){
+        if(prop == "resources" || prop == "_comment"){continue;}
+        Sound[prop] = data[prop];
+        Sound.resources.push(data[prop]);
+        Sound.loadAudio(data[prop])
+      }
     })
   }
   /*-------------------------------------------------------------------------*/
@@ -1210,7 +1227,7 @@ class Sound{
       this._stackedBGM = symbol;
       return 0;
     }
-    if(this._currentBGM){this.fadeOutBGM();}
+    if(this._currentBGM){this.stopBGM();}
     let pid = -1;
     pid = this.track[symbol].play();
     this.track[symbol].loop(true, pid);
@@ -1427,11 +1444,49 @@ class Sound{
     }
   }
   /*-------------------------------------------------------------------------*/
+  static playCardDraw(){
+    let cand = ["audio/se/cardDraw.mp3", "audio/se/cardDraw2.mp3"]
+    this.playSE(cand[parseInt(randInt(0, cand.length-1))])
+  }
+  /*-------------------------------------------------------------------------*/
+  static playCardPlace(){
+    let cand = ["audio/se/cardPlace1.mp3", "audio/se/cardPlace2.mp3", "audio/se/cardPlace3.mp3"]
+    this.playSE(cand[parseInt(randInt(0, cand.length-1))])
+  }
+  /*-------------------------------------------------------------------------*/
+  static playVictory(id = -1){
+    let cand = [this.Victory0, this.Victory1, this.Victory2]
+    if(id < 0 || id >= cand.length){
+      id = parseInt(randInt(0, cand.length-1))
+    }
+    this.playBGM(cand[id])
+  }
+  /*-------------------------------------------------------------------------*/
+  static playStage(id = -1){
+    let cand = [this.Stage0, this.Stage1, this.Stage2]
+    if(id < 0 || id >= cand.length){
+      id = parseInt(randInt(0, cand.length-1))
+    }
+    this.playBGM(cand[id])
+  }
+  /*-------------------------------------------------------------------------*/
+  static playDefeat(){
+    this.playBGM(this.Defeat);
+  }
+  /*-------------------------------------------------------------------------*/
+  static playCardPlace(){
+    let cand = ["audio/se/cardPlace1.mp3", "audio/se/cardPlace2.mp3", "audio/se/cardPlace3.mp3"]
+    this.playSE(cand[parseInt(randInt(0, cand.length-1))])
+  }
+  /*-------------------------------------------------------------------------*/
   static playOK(){this.playSE(this.OK);}
+  static playOK2(){this.playSE(this.OK2);}
   static playBuzzer(){this.playSE(this.Buzzer);}
   static playCursor(){this.playSE(this.Cursor);}
   static playCancel(){this.playSE(this.Cancel);}
   static playSaveLoad(){this.playSE(this.SaveLoad);}
+  static playShuffle(){this.playSE(this.Shuffle);}
+  static playDeal(){this.playSE(this.Deal);}
   static get volumeData(){return [this._masterVolume, this._bgmVolume, this._seVolume];}
   static get isBGMEnabled(){return this.audioEnable[0];}
   static get isSEEnabled(){return this.audioEnable[1];}
@@ -1914,3 +1969,4 @@ class Rect extends PIXI.Rectangle{
     }
   }
 }
+;

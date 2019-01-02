@@ -492,6 +492,7 @@ class Scene_Intro extends Scene_Base{
     this.NTOUmoment   = 150;
     this.ENDmoment    = 500;
     this.drawLibrarySplash();
+    Sound.loadStageAudio();
   }
   /*-------------------------------------------------------------------------*/
   update(){
