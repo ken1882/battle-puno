@@ -536,6 +536,19 @@ class GameManager{
   static onCardDraw(player_id, amount = 1){
     SceneManager.scene.onCardDraw(player_id, amount);
   }
+  /**-------------------------------------------------------------------------
+   * Fired when a user's turn begins
+   */
+  static onUserTurnBegin(){
+    SceneManager.scene.processUserTurn();
+  }
+  /**-------------------------------------------------------------------------
+   * Fired when other player/NPC's turn begins
+   * @param {Number} player_id - the player's id
+   */
+  static onNPCTurnBegin(player_id){
+    SceneManager.scene.processNPCTurn(player_id);
+  }
   /*-------------------------------------------------------------------------*/
   static changeColor(color_id){
     if(color_id == Color.WILD){
