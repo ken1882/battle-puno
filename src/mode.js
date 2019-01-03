@@ -3,5 +3,3 @@ const Mode = {
   BATTLE_PUNO: 1,
   DEATH_MATCH: 2
 };
-
-export default Mode;

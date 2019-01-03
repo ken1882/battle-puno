@@ -1,8 +1,4 @@
-import Color from './card/color.js';
-import Value from './card/value.js';
-import Card from './card/card.js';
-
-class Deck{
+class Deck {
   constructor(extraCardDisabled) {
     this.deck = [];
     // colored cards
@@ -76,5 +72,3 @@ class Deck{
     this.deck = cards.concat(this.deck);
   }
 }
-
-export default Deck;

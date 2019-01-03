@@ -1,6 +1,3 @@
-import Color from './color.js'
-import Value from './value.js'
-
 /** Class Card
   * A card consists of 5 properties
   * color, value, point, optional, number of cards
@@ -53,5 +50,3 @@ class Card {
                       value === Value.WILD_DRAW_FOUR);
   }
 }
-
-export default Card;

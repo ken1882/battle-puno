@@ -26,5 +26,3 @@ const Value = {
   WILD_HIT_ALL: 17,
   WILD_DRAW_FOUR: 18
 };
-
-export default Value;

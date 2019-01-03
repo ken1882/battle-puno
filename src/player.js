@@ -1,6 +1,3 @@
-import Color from './card/color.js';
-import Value from './card/value.js'
-
 class Player {
   constructor(name, initHP, AI=true) {
     this.name = name;
@@ -56,12 +53,28 @@ class Player {
     return -1;
   }
 
-  discard(color, value) {
-    let matchedCard = this.findMatchedCard(color, value);
-    if (matchedCard === -1) {
+  discard(index) {
+    return this.hand.splice(index, 1)[0];
+  }
+
+  matching(color, value) {
+    let matchedCardIndex = this.findMatchedCard(color, value);
+    if (matchedCardIndex === -1) {
       return null;
     }
-    return this.hand.splice(matchedCard, 1)[0];
+    return this.discard(matchedCardIndex);
+  }
+
+  discardAllByColor(color) {
+    let matched = [];
+    for (let i in this.hand) {
+      if (this.hand[i].color === color) {
+        matched.push(i);
+      }
+    }
+    while (matched.length != 0) {
+      this.discard(matched.pop());
+    }
   }
 
   receivePenalty(penaltyCard, currentColor) {
@@ -100,5 +113,3 @@ class Player {
     this.knockOut = false;
   }
 }
-
-export default Player;

@@ -1,10 +1,3 @@
-import Color from './card/color.js';
-import Value from './card/value.js';
-import Card from './card/card.js';
-import Deck from './deck.js';
-import Mode from './mode.js'
-import Player from './player.js'
-
 class PunoGame {
   constructor(initCardNumber, initHP, scoreGoal, extraCardDisabled, gameMode) {
     this.players = [new Player("User", initHP, false),
@@ -30,11 +23,9 @@ class PunoGame {
     let deadlock = true;
     while (deadlock) {
       let firstDraw = this.deck.drawNumbered(4);
-      /***********************  LOG  ***********************/
       for (let i in firstDraw) {
         console.log(this.players[i].name, firstDraw[i]);
       }
-      /*****************************************************/
       deadlock = false;
       for (let i = 1; i < 4; ++i) {
         if (firstDraw[i].value > firstDraw[highest].value) {
@@ -97,7 +88,35 @@ class PunoGame {
     this.clockwise = !this.clockwise;
   }
 
-  calcScore() {
+  findTarget() {
+    let target = undefined;
+    for (let i in this.players) {
+      if (i != this.currentPlayerIndex && !this.players[i].knockOut) {
+        if (target === undefined ||
+           this.players[i].hand.length < this.players[target].hand.length) {
+          target = i;
+        }
+      }
+    }
+    return target;
+  }
+
+  trade(player1, player2) {
+    console.log("swap", this.players[player1].name, this.players[player2].name);
+    const temp = this.players[player1].hand.slice();
+    this.players[player1].hand = this.players[player2].hand.slice();
+    this.players[player2].hand = temp;
+  }
+
+  wildHitAll() {
+    for (let i in this.players) {
+      if (i != this.currentPlayerIndex) {
+        this.players[i].deal(this.deck.draw(2));
+      }
+    }
+  }
+
+  gameResult() {
     for (let i in this.players) {
       if (this.gameMode === Mode.TRADITIONAL) {
         this.players[i].score += this.players[i].cardsPointSum();
@@ -127,7 +146,7 @@ class PunoGame {
   discard(card) {
     console.log("discard: ", card);
     this.discardPile.push(card);
-    if (card.value === 0) {
+    if (card.value === Value.ZERO) {
       if (this.damagePool < 20) {
         this.damagePool += 10;
       } else {
@@ -135,6 +154,13 @@ class PunoGame {
       }
     } else if (Value.ONE <= card.value && card.value <= Value.NINE) {
       this.damagePool += card.value;
+    } else if (card.value === Value.WILD_HIT_ALL) {
+      this.wildHitAll();
+    } else if (card.value === Value.TRADE) {
+      const target = this.findTarget();
+      this.trade(this.currentPlayerIndex, target);
+    } else if (card.value === Value.DISCARD_ALL) {
+      this.currentPlayer().discardAllByColor(this.currentColor);
     }
     this.setNextColorAndValue(card);
     if (card.penalty) {
@@ -176,35 +202,26 @@ class PunoGame {
       return;
     }
 
-    let matchedCard = this.currentPlayer().discard(this.currentColor,
-                                                   this.currentValue);
-    while (matchedCard === null) {
-      if (this.gameMode === Mode.TRADITIONAL) {
-        let card = this.deck.draw(1)[0];
-        console.log("draw", card);
-        if (card === undefined) {
-          this.currentPlayer().knockOut = true;
-          console.log("deck empty => player knocked out");
-          return;
-        }
-        if (card.color === this.currentColor ||
-            card.value === this.currentValue ||
-            card.color === Color.WILD) {
-          matchedCard = card;
-        } else {
-          this.currentPlayer().deal([card]);
-        }
-      } else if (this.gameMode === Mode.BATTLE_PUNO) {
-        this.currentPlayer().deal(this.deck.draw(1));
+    let matchedCard = this.currentPlayer().matching(this.currentColor,
+                                                    this.currentValue);
+    if (matchedCard == null) {
+      if (this.gameMode === Mode.BATTLE_PUNO ||
+          this.gameMode === Mode.DEATH_MATCH) {
         this.currentPlayer().hp -= damagePool;
         this.currentPlayer().knockOut = this.currentPlayer().hp <= 0;
-        damagePool = 0;
+        this.damagePool = 0;
       }
+      const card = this.deck.draw(1)[0];
+      if (card === undefined) {
+        console.log("deck empty => player knocked out");
+        this.currentPlayer().knockOut = true;
+      } else {
+        console.log("no matched card => draw");
+        this.currentPlayer().deal([card]);
+      }
+    } else {
+      this.discard(matchedCard);
     }
-    if (matchedCard.value === Value.REVERSE) {
-      this.reverse();
-    }
-    this.discard(matchedCard);
   }
 
   endTurn() {
@@ -213,35 +230,27 @@ class PunoGame {
                        : mod(this.currentPlayerIndex - 1, 4);
   }
 
+  scoreBoard() {
+    return [this.players[0].score, this.players[1].score,
+            this.players[2].score, this.players[3].score];
+  }
+
   start() {
     console.log("score goal", this.scoreGoal);
-    let scoreBoard = [this.players[0].score, this.players[1].score,
-                      this.players[2].score, this.players[3].score];
-    while (Math.max(...scoreBoard) < this.scoreGoal) {
+    while (Math.max(...this.scoreBoard()) < this.scoreGoal) {
       this.initialize();
-      let round = 0;
+      let round = 20;
       while (!this.isGameOver()) {
         if (!this.currentPlayer().knockOut) {
           this.beginTurn();
         }
         this.endTurn();
       }
-      this.calcScore();
-      scoreBoard = [this.players[0].score, this.players[1].score,
-                    this.players[2].score, this.players[3].score];
-      console.log(scoreBoard);
+      this.gameResult();
+      console.log(this.scoreBoard());
+      break;
     }
   }
-
-  /*********************************************************************/
-  totalCards() {
-    let numCards = this.deck.deck.length + this.discardPile.length;
-    for (let i in this.players) {
-      numCards += this.players[i].hand.length;
-    }
-    return numCards;
-  }
-  /*********************************************************************/
 }
 
 
@@ -255,5 +264,3 @@ function mod(n, m) {
   return ((n % m) + m) % m;
 }
 /*********************************************************************/
-
-export default PunoGame;

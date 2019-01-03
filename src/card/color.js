@@ -9,5 +9,3 @@ const Color = {
   GREEN: 3,
   BLUE: 4
 };
-
-export default Color;

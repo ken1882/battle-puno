@@ -22,5 +22,3 @@ const Effect = {
   TRADE: 12,          // Exchange all hand cards with another player
   WILD_CHAOS: 13      // Random decide color and number
 };
-
-export default Effect;
