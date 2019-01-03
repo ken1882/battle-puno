@@ -42,5 +42,7 @@
   "HelpExtraCard": "是否加入額外Wild特殊卡牌(換牌/混亂/丟棄/攻擊)",
   "HelpInitHP": "每個玩家的起始生命值, 傳統模式不受此影響",
   "HelpInitHandCard": "每個玩家的起始手牌數量",
-  "HelpScoreGoal": "結束遊戲所需的分數, 只會影響到'Battle Puno!'模式"
+  "HelpScoreGoal": "結束遊戲所需的分數, 只會影響到'Battle Puno!'模式",
+  "HelpDeck": "牌堆, 點擊此處將會抽卡並結束你的回合.\n剩餘卡片: ",
+  "HelpDiscard": "上一張被打出的牌為: "
 }

@@ -622,6 +622,13 @@ class Scene_Title extends Scene_Base{
     this.createHelpWindow();
     this.createBackButton();
     this.createDimBack();
+    this.assignHandlers();
+  }
+  /*-------------------------------------------------------------------------*/
+  assignHandlers(){
+    this.gameModeWindow.setHandler(this.gameModeWindow.kTraditional, this.onGameTraditional);
+    this.gameModeWindow.setHandler(this.gameModeWindow.kBattlepuno, this.onGameBattlePuno);
+    this.gameModeWindow.setHandler(this.gameModeWindow.kDeathMatch, this.onGameDeathMatch);
   }
   /*-------------------------------------------------------------------------*/
   update(){
@@ -661,7 +668,7 @@ class Scene_Title extends Scene_Base{
     let p = Graphics.Particle, p2 = Graphics.Particle2;
     for(let i=0;i<this.particleNumber;++i){
       let pn = !(i&1) ? p2: p;
-      let sp = new Sprite(Graphics.loadTexture(pn));
+      let sp = Graphics.addSprite(pn);
       sp.setZ(0.1);
       this.particles.push(sp);
       this.setParticlePosition(i, true);
@@ -730,49 +737,147 @@ class Scene_Title extends Scene_Base{
     this.dimBack.hide().remove();
   }
   /*-------------------------------------------------------------------------*/
+  onGameTraditional(){
+    GameManager.changeGameMode(0);
+  }
+  /*-------------------------------------------------------------------------*/
+  onGameBattlePuno(){
+    GameManager.changeGameMode(1);
+  }
+  /*-------------------------------------------------------------------------*/
+  onGameDeathMatch(){
+    GameManager.changeGameMode(2);
+  }
+  /*-------------------------------------------------------------------------*/
 }
-
-/**
+/**-------------------------------------------------------------------------
  * Test scene
  */
 class Scene_Test extends Scene_Base{
+  /*-------------------------------------------------------------------------*/
   constructor(){
     super();
+    GameManager.changeGameMode(0);
+  }
+  /*-------------------------------------------------------------------------*/
+  start(){
+    super.start();
+    SceneManager.goto(Scene_Game);
   }
 }
-
-/**
+/**-------------------------------------------------------------------------
  * The main scene during gameplay
  * @class Scene_Game
+ * @property {String} bgiName - Path to background image
+ * @property {String} bgmName - Path to background music
+ * @property {String} meName  - Path to music effect (victory theme)
  */
 class Scene_Game extends Scene_Base{
-  /**
+  /**-------------------------------------------------------------------------
    * @constructors
    */
   constructor(){
     super();
-    GameManager.initStage();
-    this.game = GameManager.game;
+    this.game = GameManager.initStage();
+    this.cardSpritePoolSize = 50;
   }
   /*-------------------------------------------------------------------------*/
   create(){
+    this.changeAmbient(GameManager.gameMode);
     super.create();
     this.createDeckSprite();
+    this.createDiscardPile();
     this.createCardSprite();
+    this.createHintWindow();
+  }
+  /*-------------------------------------------------------------------------*/
+  randomBackground(){
+    this.bgiName = Graphics["Background" + randInt(0, 3)];
+  }
+  /*-------------------------------------------------------------------------*/
+  changeAmbient(amb_id){
+    this.randomBackground();
+    this.bgmName = Sound["Stage" + amb_id];
+    this.meName  = Sound["Victory" + amb_id];
+  }
+  /*-------------------------------------------------------------------------*/
+  createBackground(){
+    this.backgroundImage = Graphics.addSprite(this.bgiName);
+    Graphics.renderSprite(this.backgroundImage);
   }
   /*-------------------------------------------------------------------------*/
   createDeckSprite(){
-    this.deckSprite = new Sprite();
+    let st = Graphics.addSprite(Graphics.CardBack);
+    let sb = Graphics.addSprite(Graphics.CardEmpty).hide();
+    this.deckSprite = new SpriteCanvas(0, 0, st.width, st.height).setZ(0x5);
+    this.deckSprite.addChild(st);
+    this.deckSprite.addChild(sb);
+    let sx = Graphics.appCenterWidth(st.width) - 100;
+    let sy = Graphics.appCenterHeight(st.height / 2);
+    this.deckSprite.setPOS(sx, sy).activate().scale.set(0.5, 0.5);
+    this.deckSprite.on('mouseover', ()=>{
+      this.showHintWindow(null,null,Vocab["HelpDeck"] + this.getDeckLeftNumber)
+    });
+    this.deckSprite.on('mouseout', ()=>{this.hideHintWindow()});
+    Graphics.renderSprite(this.deckSprite);
+  }
+  /*-------------------------------------------------------------------------*/
+  createDiscardPile(){
+    let sw = 500, sh = 500;
+    this.discardPile = new SpriteCanvas(0, 0, sw, sh);
+    this.discardPile.setPOS(Graphics.appCenterWidth(sw), Graphics.appCenterHeight(sh+150));
+    Graphics.renderSprite(this.discardPile);
   }
   /*-------------------------------------------------------------------------*/
   createCardSprite(){
-
+    this.spritePool = [];
+    for(let i=0;i<this.cardSpritePoolSize;++i){
+      let sp = Graphics.addSprite(Graphics.CardBack, "card" + i).hide();
+      sp.scale.set(0.5, 0.5);
+      sp.index    = i;    // index in the pool
+      sp.playerId = null; // this card belongs to which player
+      this.spritePool.push(sp);
+    }
+  }
+  /*-------------------------------------------------------------------------*/
+  addDiscardCard(card, player_id = 0){
+    card.show().anchor.set(0.5, 0.5);
+    let deg = -20 + player_id * (360 / GameManager.playerNumber) + randInt(0, 40);
+    card.rotateDegree(deg);
+    let cx = (this.discardPile.width  + card.width) / 2;
+    let cy = (this.discardPile.height + card.height) / 2;
+    card.setPOS(cx, cy);
+    this.discardPile.addChild(card);
+  }
+  /*-------------------------------------------------------------------------*/
+  clearDiscardPile(){
+    while(this.discardPile.children.length > 1){
+      this.discardPile.children.pop().hide();
+    }
+  }
+  /*-------------------------------------------------------------------------*/
+  createHintWindow(){
+    this.hintWindow = new Window_Help(0, 0, 200, 100);
+    this.hintWindow.changeSkin(Graphics.WSkinTrans);
+    this.hintWindow.font.fontSize = 16;
+    this.hintWindow.padding_left  = 16;
+    this.hintWindow.setZ(0x20).hide().render();
   }
   /*-------------------------------------------------------------------------*/
   update(){
     super.update();
   }
   /*-------------------------------------------------------------------------*/
-  
+  showHintWindow(x, y, txt = ''){
+    if(x === null){x = Input.mouseAppPOS[0];}
+    if(y === null){y = Input.mouseAppPOS[1];}
+    this.hintWindow.show().setPOS(x, y).setText(txt);
+  }
+  /*-------------------------------------------------------------------------*/
+  hideHintWindow(){
+    this.hintWindow.hide();
+  }
+  /*-------------------------------------------------------------------------*/
+  get getDeckLeftNumber(){return 0;}
   /*-------------------------------------------------------------------------*/
 }

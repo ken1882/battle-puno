@@ -11,8 +11,8 @@
  */
 const DebugMode   = true;
 
-// Will stay in load-complete scene
-const TestMode    = false;
+// Will go to Test Scene if set to true
+const TestMode    = true;
 
 /**
  * Flag that determines whether skips the intro scene
@@ -54,7 +54,7 @@ function initializeApplication(){
   DataManager.initialize();
   Vocab.initialize();
   // call start
-  setTimeout(start, 1000);
+  setTimeout(start, 2000);
 }
 
 /**

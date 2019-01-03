@@ -42,5 +42,7 @@
   "HelpExtraCard": "Whether add extra special cards to deck(trade/wild hit/wild chaos/discard all)",
   "HelpInitHP": "Hitpoint each player has at beginning, does not affect Traditional Mode",
   "HelpInitHandCard": "How many cards each player has at beginning",
-  "HelpScoreGoal": "Score to achieve to end the game, only affect to 'Battle Puno!' Mode"
+  "HelpScoreGoal": "Score to achieve to end the game, only affect to 'Battle Puno!' Mode",
+  "HelpDeck": "This the card deck, click to draw the card and end your turn.\nCards Left: ",
+  "HelpDiscard": "The last card played is: "
 }

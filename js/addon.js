@@ -67,6 +67,13 @@ PIXI.Sprite.prototype.setPOS = function(x, y){
   this.position.set(x == null ? this.x : x, y == null? this.y : y);
   return this;
 }
+/**--------------------------------------------------------------------------
+ * Rotate the sprite to given degree
+ */
+PIXI.Sprite.prototype.rotateDegree = function(deg){
+  this.rotation = (deg == 0) ? 0 : Math.PI * 2 * ((deg%360) / 360);
+  return this;
+}
 /**-------------------------------------------------------------------------
  * > Activate to make sprite interactable
  */

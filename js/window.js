@@ -626,8 +626,10 @@ class Window_Selectable extends Window_Base{
     args.align |= 0;
 
     let item = new PIXI.Text(args.text, args.font);
-    item.on('click', args.handler);
-    item.on('tap', args.handler);
+    if(args.handler){
+      item.on('click', args.handler);
+      item.on('tap', args.handler);
+    }
     let pos = this.nextItemPOS;
     if(args.align == 1){
       pos.x = Math.max((pos.x + this.itemWidth - item.width) / 2 + this.spacing, pos.x);
@@ -904,20 +906,21 @@ class Window_Help extends Window_Base{
   /*------------------------------------------------------------------------*/
   constructor(x, y, w, h){
     super(x, y, w, h);
-    this.message = ''
+    this.message = '';
+    this.font = clone(Graphics.DefaultFontSetting);
+    this.padding_left = 0;
   }
   /*------------------------------------------------------------------------*/
   setText(...args){
     this.clear();
     let dy = 0;
     for(let i=0;i<args.length;++i){
-      dy += this.drawText(0, dy, args[i], null, true).height;
+      dy += this.drawText(this.padding_left, dy, args[i], this.font, true).height;
     }
   }
   /*------------------------------------------------------------------------*/
 }
-
-/**
+/**------------------------------------------------------------------------
  *  Window as back button
  */
 class Window_Back extends Window_Selectable{
@@ -951,8 +954,7 @@ class Window_Back extends Window_Selectable{
   }
   /*------------------------------------------------------------------------*/
 }
-
-/**
+/**------------------------------------------------------------------------
  * A confirm window works like window.confirm, should be called as overlay
  */
 class Window_Confirm extends Window_Selectable{
@@ -1020,14 +1022,16 @@ class Window_Confirm extends Window_Selectable{
   }
   /*------------------------------------------------------------------------*/
 }
-
-/**
+/**------------------------------------------------------------------------
  *  Window for selecting game mode 
  */
 class Window_GameModeSelect extends Window_Selectable{
     /*------------------------------------------------------------------------*/
     constructor(x, y, w, h){
       super(x, y, w, h);
+      this.kTraditional = "traditional";
+      this.kBattlepuno  = "battlepuno";
+      this.kDeathMatch  = "deathmatch";
       this.drawTitle();
       this.changeSkin(Graphics.WSkinLuna)
       this.createSelections();
@@ -1051,7 +1055,7 @@ class Window_GameModeSelect extends Window_Selectable{
     addTraditionalSelection(){
       let opt = {
         text: Vocab["GameModeTraditional"],
-        handler: function(){},
+        symbol: this.kTraditional,
         align: 1,
         help: Vocab["HelpTraditional"]
       }
@@ -1062,7 +1066,7 @@ class Window_GameModeSelect extends Window_Selectable{
     addBattlePunoSelection(){
       let opt = {
         text: Vocab["GameModeBattlePuno"],
-        handler: function(){},
+        symbol: this.kBattlepuno,
         align: 1,
         help: Vocab["HelpBattlePuno"]
       }
@@ -1073,7 +1077,7 @@ class Window_GameModeSelect extends Window_Selectable{
     addDeathMatchSelection(){
       let opt = {
         text: Vocab["GameModeDeathMatch"],
-        handler: function(){},
+        symbol: this.kDeathMatch,
         align: 1,
         help: Vocab["HelpDeathMatch"]
       }
@@ -1082,8 +1086,7 @@ class Window_GameModeSelect extends Window_Selectable{
     }
     /*------------------------------------------------------------------------*/
 }
-
-/**
+/**------------------------------------------------------------------------
  *  Window for custom in-game options
  */
 class Window_GameOption extends Window_Selectable{

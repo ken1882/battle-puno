@@ -601,10 +601,10 @@ class Graphics{
    * > Add sprite and build a instance name map
    * @param {string} image_name - the path to the image
    * @param {string} instance_name - the name give to the sprite after created
-   * @returns {PIXI.Sprite} - the created sprite
+   * @returns {Sprite} - the created sprite
    */  
   static addSprite(image_name, instance_name = null){
-    var sprite = new PIXI.Sprite(Graphics.loadTexture(image_name));
+    var sprite = new Sprite(Graphics.loadTexture(image_name));
     if(instance_name == null){instance_name = image_name;}
     sprite.name = instance_name;
     this._spriteMap[instance_name] = sprite;
@@ -721,7 +721,7 @@ class Graphics{
    * Clicking feedback effect
    */
   static mouseClickEffect(){
-    if(!this.isReady()){return ;}
+    if(!this.isReady() || !Input.mouseAppPOS){return ;}
     let dx = Input.mouseAppPOS[0];
     let dy = Input.mouseAppPOS[1];
     /**

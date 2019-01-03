@@ -459,8 +459,14 @@ class GameManager{
    * Initialize game stage
    */
   static initStage(){
-    this.game = new PunoGame(this.initCardNumber, this.initHP, this.scoreGoal, 
-                             this.extraCardDisabled, this.gameMode);
+    try{
+      this.game = new PunoGame(this.initCardNumber, this.initHP, this.scoreGoal, 
+        this.extraCardDisabled, this.gameMode);
+    }
+    catch(e){
+      this.game = {};
+    }
+    return this.game;
   }
   /**-------------------------------------------------------------------------
    * Get the effect ID after card played
