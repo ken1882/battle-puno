@@ -10,29 +10,6 @@ Number.prototype.between = function(a, b, closeure = true) {
   return closeure ? (this > minn && this < maxn) : (this >= minn && this <= maxn);
 };
 /**--------------------------------------------------------------------------
- * Check whether two array contains same object
- */
-Array.prototype.alike = function(ar){
-  if(!ar || this.length != ar.length){return false;}
-  for(let i=0;i<ar.length;++i){
-    if(ar[i] !== this[i]){return false;}
-  }
-  return true;
-}
-/**--------------------------------------------------------------------------
- * Shuffle index
- */
-Array.prototype.shuffle = function(){
-  var j, x, i;
-  for (i = this.length - 1; i > 0; i--) {
-    j = Math.floor(Math.random() * (i + 1));
-    x = this[i];
-    this[i] = this[j];
-    this[j] = x;
-  }
-  return this;
-}
-/**--------------------------------------------------------------------------
  * Make sprite visible
  */
 PIXI.Sprite.prototype.show = function(){

@@ -71,4 +71,6 @@ class Deck {
   putback(cards) {
     this.deck = cards.concat(this.deck);
   }
+
+  get length(){return this.deck.length;}
 }

@@ -789,6 +789,12 @@ class Scene_Game extends Scene_Base{
     this.createDiscardPile();
     this.createCardSprite();
     this.createHintWindow();
+    
+  }
+  /*-------------------------------------------------------------------------*/
+  start(){
+    super.start();
+    this.game.start();
   }
   /*-------------------------------------------------------------------------*/
   randomBackground(){
@@ -809,7 +815,7 @@ class Scene_Game extends Scene_Base{
   createDeckSprite(){
     let st = Graphics.addSprite(Graphics.CardBack);
     let sb = Graphics.addSprite(Graphics.CardEmpty).hide();
-    this.deckSprite = new SpriteCanvas(0, 0, st.width, st.height).setZ(0x5);
+    this.deckSprite = new SpriteCanvas(0, 0, st.width, st.height).setZ(0x10);
     this.deckSprite.addChild(st);
     this.deckSprite.addChild(sb);
     let sx = Graphics.appCenterWidth(st.width) - 100;
@@ -823,9 +829,16 @@ class Scene_Game extends Scene_Base{
   }
   /*-------------------------------------------------------------------------*/
   createDiscardPile(){
-    let sw = 500, sh = 500;
-    this.discardPile = new SpriteCanvas(0, 0, sw, sh);
-    this.discardPile.setPOS(Graphics.appCenterWidth(sw), Graphics.appCenterHeight(sh+150));
+    let sw = 200, sh = 200;
+    let sx = Graphics.appCenterWidth(sw) + Graphics.padding;
+    let sy = Graphics.appCenterHeight(sh);
+    this.discardPile = new SpriteCanvas(sx, sy, sw, sh);
+    this.discardPile.activate().setZ(0x10);
+    this.discardPile.fillRect(0, 0, sw, sh).setZ(0).setOpacity(0.5);
+    this.discardPile.on("mouseover", ()=>{
+      this.showHintWindow(null,null, Vocab["HelpDiscardPile"] + this.getLastCardInfo)
+    });
+    this.discardPile.on("mouseout",()=>{this.hideHintWindow()});
     Graphics.renderSprite(this.discardPile);
   }
   /*-------------------------------------------------------------------------*/
@@ -840,12 +853,57 @@ class Scene_Game extends Scene_Base{
     }
   }
   /*-------------------------------------------------------------------------*/
+  createHandCanvas(){
+    this.handCanvas = [];
+    let maxNumbers  = [4, 3, 3, 4];
+    let counter     = [0, 0, 0, 0];
+    let sh = 300, sw;
+
+    for(let i=0;i<GameManager.playerNumber;++i){
+      counter[i % 4] += 1;
+      this.handCanvas.push(new SpriteCanvas(0, 0, sh, sh));
+    }
+
+    for(let i=0;i<4;++i){
+      let portion = Math.min(counter[i], maxNumbers[i]);
+      for(let j=0;j<counter[i];++j){
+        let index = i + (4 * j);
+        // up/down
+        if(!(i&2)){
+          sw = Graphics.width / portion;
+          this.handCanvas[index].resize(sw, null);
+        }
+        // left/right
+        else{
+          sh = Graphics.height / portion;
+          this.handCanvas[index].resize(null, sh);
+        }
+        resizeHandCanvas(index);
+      }
+    }
+
+  }
+  /*-------------------------------------------------------------------------*/
+  resizeHandCanvas(index){
+    let spc = this.handCanvas[index];
+    let side = index % 4;
+    let portion = index / 4;
+    // up/down
+    if(!(side&1)){
+      
+    }
+    // left/right
+    else{
+      
+    }
+  }
+  /*-------------------------------------------------------------------------*/
   addDiscardCard(card, player_id = 0){
     card.show().anchor.set(0.5, 0.5);
     let deg = -20 + player_id * (360 / GameManager.playerNumber) + randInt(0, 40);
     card.rotateDegree(deg);
-    let cx = (this.discardPile.width  + card.width) / 2;
-    let cy = (this.discardPile.height + card.height) / 2;
+    let cx = (this.discardPile.width) / 2;
+    let cy = (this.discardPile.height) / 2;
     card.setPOS(cx, cy);
     this.discardPile.addChild(card);
   }
@@ -860,7 +918,7 @@ class Scene_Game extends Scene_Base{
     this.hintWindow = new Window_Help(0, 0, 200, 100);
     this.hintWindow.changeSkin(Graphics.WSkinTrans);
     this.hintWindow.font.fontSize = 16;
-    this.hintWindow.padding_left  = 16;
+    this.hintWindow.padding_left  = 20;
     this.hintWindow.setZ(0x20).hide().render();
   }
   /*-------------------------------------------------------------------------*/
@@ -878,6 +936,18 @@ class Scene_Game extends Scene_Base{
     this.hintWindow.hide();
   }
   /*-------------------------------------------------------------------------*/
-  get getDeckLeftNumber(){return 0;}
+  get isBusy(){
+    return isAnimationPlaying;
+  }
+  /*-------------------------------------------------------------------------*/
+  get isAnimationPlaying(){
+    return false;
+  }
+  /*-------------------------------------------------------------------------*/
+  get getLastCardInfo(){
+    return '';
+  }
+  /*-------------------------------------------------------------------------*/
+  get getDeckLeftNumber(){return this.game.deck.length;}
   /*-------------------------------------------------------------------------*/
 }

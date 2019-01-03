@@ -459,13 +459,8 @@ class GameManager{
    * Initialize game stage
    */
   static initStage(){
-    try{
-      this.game = new PunoGame(this.initCardNumber, this.initHP, this.scoreGoal, 
-        this.extraCardDisabled, this.gameMode);
-    }
-    catch(e){
-      this.game = {};
-    }
+    this.game = new PunoGame(this.initCardNumber, this.initHP, this.scoreGoal, 
+      this.extraCardDisabled, this.gameMode);
     return this.game;
   }
   /**-------------------------------------------------------------------------
@@ -477,13 +472,13 @@ class GameManager{
         return [Effect.DRAW_TWO];
       // ext=0: normal;  ext=1: reactive;
       case Value.SKIP:
-        return ext ? [Effect.SKIP] : [Effect.SKIP_PENALTY];
+        return !ext ? [Effect.SKIP] : [Effect.SKIP_PENALTY];
       // ext=0: normal;  ext=1: reactive;
       case Value.REVERSE:
-        return ext ? [Effect.REVERSE] : [Effect.REVERSE_PENALTY];
+        return !ext ? [Effect.REVERSE] : [Effect.REVERSE_PENALTY];
       // ext=0: reset;  ext=1: +10;
       case Value.ZERO:
-        return ext ? [Effect.CLEAR_DAMAGE] : [Effect.ADD_DAMAGE];
+        return !ext ? [Effect.CLEAR_DAMAGE] : [Effect.ADD_DAMAGE];
       case Value.WILD:
         return [Effect.CHOOSE_COLOR];
       case Value.WILD_DRAW_FOUR:
@@ -491,11 +486,11 @@ class GameManager{
       case Value.WILD_HIT_ALL:
         return [Effect.CHOOSE_COLOR, Effect.HIT_ALL];
       case Value.WILD_CHAOS:
-        return [Effect.WILD_CHAOS]
+        return [Effect.CHOOSE_COLOR, Effect.WILD_CHAOS]
       case Value.TRADE:
-        return [Effect.TRADE];
+        return [Effect.CHOOSE_COLOR, Effect.TRADE];
       case Value.DISCARD_ALL:
-        return [Effect.DISCARD_ALL];
+        return [Effect.CHOOSE_COLOR, Effect.DISCARD_ALL];
       default:
         return [Effect.ADD_DAMAGE];
     }
@@ -504,17 +499,42 @@ class GameManager{
    * Fired when a card is played onto table
    * @param {Number} player_id - the player id, 0 is the user
    * @param {Number} hand_index - the index of card gonna be played in the hand
-   * @param {Number} ext - The extra information value
+   * @param {Number} ext - The extra information value, as following list:
+   * Value.SKIP:
+   *  0: Normal use, 1: Reactive use;
+   * Value.REVERSE:
+   *  0: Normal use, 1: Reactive use;
+   * Value.ZERO: (Does not effect in traditional mode)
+   *  0: Clear damage, 1: +10 damage;
+   * Value.WILD:
+   * Value.WILD_DRAW_FOUR:
+   * Value.WILD_HIT_ALL:
+   *  ext = <Color Value>;
+   * Value.TRADE:
+   *  ext = Array.<Color Value, Player id that traded with>;
+   * Value.WILD_CHAOS:
+   *  ext = Array.<Color Value, Number Value>;
    */
   static onCardPlay(player_id, hand_index, ext = null){
     let card_instance = this.game.players[player_id].hand[hand_index];
     effects = this.interpretCardAbility(card_instance, ext);
     effects.forEach(effect_id => {
-      if(effect_id === Effect.CHOOSE_COLOR){this.changeColor(ext)}
+      if(effect_id === Effect.CHOOSE_COLOR){
+        let color_id = isClassOf(ext, Array) ? ext[0] : ext;
+        this.changeColor(color_id);
+      }
       else{
         // Reserved
       }
     });
+  }
+  /**-------------------------------------------------------------------------
+   * Fired when a player draws card(s)
+   * @param {Number} player_id - the player id
+   * @param {Number} amount    - the card(s) amount drew
+   */
+  static onCardDraw(player_id, amount = 1){
+    SceneManager.scene.onCardDraw(player_id, amount);
   }
   /*-------------------------------------------------------------------------*/
   static changeColor(color_id){
@@ -533,6 +553,13 @@ class GameManager{
     else if(color_id == Color.BLUE){
       // Reserved
     }
+  }
+  /*-------------------------------------------------------------------------*/
+  static isSceneBusy(){
+    if(isClassOf(SceneManager.scene, Scene_Game)){
+      return SceneManager.scene.isBusy;
+    }
+    return false;
   }
   /*-------------------------------------------------------------------------*/
 }

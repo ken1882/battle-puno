@@ -145,6 +145,32 @@ function validNumericCount(){
   }
   return sum;
 }
+/**--------------------------------------------------------------------------
+ * Check whether two array contains same object
+ */
+function isArrayalike(a, b){
+  if(!a || !b){return false;}
+  try{
+    if(a.length != b.length){return false;}
+  }catch(e){
+    return false;
+  }
+  for(let i=0;i<a.length;++i){
+    if(a[i] !== b[i]){return false;}
+  }
+  return true;
+}
+/**--------------------------------------------------------------------------
+ * Shuffle array index
+ */
+function shuffleArray(ar){
+  var j, i;
+  for (i = ar.length - 1; i > 0; i--) {
+    j = Math.floor(Math.random() * (i + 1));
+    [ar[i], ar[j]] = [ar[j], ar[i]];
+  }
+  return ar;
+}
 /**----------------------------------------------------------------------------
  * > Check whether the object is interable 
  * @param {Object} obj - the object to checl
@@ -209,6 +235,16 @@ function randInt(minn = 0, maxn){
     return re % (maxn - minn + 1) + minn
   }
   return minn + re;
+}
+/**----------------------------------------------------------------------------
+ * > Get GCD of two numbers
+ */
+function gcd(a, b){
+  if(b > a){[a, b] = [b, a];}
+  if(a % b == 0){
+    return b;
+  }
+  return (b, a % b);
 }
 /**----------------------------------------------------------------------------
  * >> The static class that carries out graphics processing.
@@ -929,7 +965,7 @@ class Input{
    */
   static processMouseMove(event){
     let px = event.pageX || 0, py = event.pageY || 0;
-    this._mouseMoved    = ![px, py].alike(this.mousePagePOS);
+    this._mouseMoved    = !(isArrayalike([px, py], this.mousePagePOS));
     this.mousePagePOS   = [px, py];
     this.mouseClientPOS = [event.clientX || 0, event.clientY || 0];
     this.mouseAppPOS    = [this.mousePagePOS[0] - Graphics.app.x, this.mousePagePOS[1] - Graphics.app.y];
@@ -1523,6 +1559,8 @@ class Sprite extends PIXI.Sprite{
   }
   /*-------------------------------------------------------------------------*/
   resize(w, h){
+    if(w === null){w = this.width;}
+    if(h === null){w = this.height;}
     var scale = [w / this.width, h / this.height]
     this.setTransform(this.x, this.y, scale[0], scale[1]);
     this.children.forEach(function(sp){
@@ -1765,6 +1803,8 @@ class SpriteCanvas extends Sprite{
   }
   /*-------------------------------------------------------------------------*/
   resize(w, h){
+    if(w === null){w = this._width;}
+    if(h === null){w = this._height;}
     this._width  = w;
     this._height = h;
     this.drawMask();
@@ -1876,6 +1916,8 @@ class Bitmap{
   }
   /*-------------------------------------------------------------------------*/
   resize(w, h){
+    if(w === null){w = this._width;}
+    if(h === null){w = this._height;}
     this._width = w; this._height = h;
     this._canvas.width  = w;
     this._canvas.height = h;
