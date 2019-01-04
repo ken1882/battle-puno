@@ -39,7 +39,7 @@ class PunoGame {
       }
     }
     for (let i in this.players) {
-      GameManager.onCardDraw(i, 1, true);
+      GameManager.onCardDraw(i, [firstDraw[i]], true);
       debug_log(this.players[i].name, firstDraw[i]);
     }
     return highest;
@@ -82,9 +82,10 @@ class PunoGame {
     GameManager.onCardPlay(-1, firstCard);
     this.discardPile.push(firstCard);
     for (let i in this.players) {
+      let cards = this.drawCard(this.initCardNumber);
       this.players[i].reset();
-      this.players[i].deal(this.drawCard(this.initCardNumber));
-      GameManager.onCardDraw(i, this.initCardNumber);
+      this.players[i].deal(cards);
+      GameManager.onCardDraw(i, cards);
     }
     if (firstCard.penalty) {
       this.penaltyStack.push(firstCard);
@@ -135,7 +136,7 @@ class PunoGame {
       if (i != currentPlayerIndex) {
         let cards = this.drawCard(2);
         this.players[i].deal(cards);
-        GameManager.onCardDraw(i, cards.length);
+        GameManager.onCardDraw(i, cards);
       }
     }
   }
@@ -225,16 +226,19 @@ class PunoGame {
     debug_log("last card:", this.lastCard());
     debug_log("CURRENT COLOR:", this.currentColor);
     debug_log("CURRENT VALUE:", this.currentValue);
+    /**************************************************************************/
     // death match
     if (this.gameMode === Mode.DEATH_MATCH) {
       let numCardsDiff = this.initCardNumber - this.currentPlayer().hand.length;
       if (numCardsDiff > 0) {
         debug_log("DEATH MATCH DRAW");
-        GameManager.onCardDraw(this.currentPlayerIndex, diff);
-        this.currentPlayer().deal(this.drawCard(diff));
+        let cards = this.drawCard(diff);
+        this.currentPlayer().deal(cards);
         debug_log("hand", this.currentPlayer().hand.slice());
+        GameManager.onCardDraw(this.currentPlayerIndex, cards);
       }
     }
+    /**************************************************************************/
     // penalty
     if (this.penaltyStack.length > 0) {
       debug_log("PENALTY");
@@ -256,11 +260,12 @@ class PunoGame {
             cards = this.drawCard(4);
           }
           this.currentPlayer().deal(cards);
-          GameManager.onCardDraw(this.currentPlayerIndex, cards.length);
+          GameManager.onCardDraw(this.currentPlayerIndex, cards);
         }
       }
       return;
     }
+    /**************************************************************************/
     let matchedCard = this.currentPlayer().matching(this.currentColor,
                                                     this.currentValue);
     if (matchedCard == null) {
@@ -274,14 +279,14 @@ class PunoGame {
         this.damagePool = 0;
         debug_log("reset damage pool");
       }
-      const card = this.drawCard(1)[0];
-      if (card === undefined) {
+      const card = this.drawCard(1);
+      if (card[0] === undefined) {
         debug_log("deck empty => player knocked out");
         this.currentPlayer().knockOut = true;
       } else {
         debug_log("no matched card => draw");
-        this.currentPlayer().deal([card]);
-        GameManager.onCardDraw(this.currentPlayerIndex, 1);
+        this.currentPlayer().deal(card);
+        GameManager.onCardDraw(this.currentPlayerIndex, card);
       }
     } else {
       this.discard(matchedCard);
@@ -299,34 +304,43 @@ class PunoGame {
             this.players[2].score, this.players[3].score];
   }
 
-  start() {
+  gameStart() {
+    let round = 0;
     console.log("SCORE GOAL", this.scoreGoal);
-    this.initialize();
+    while (Math.max(...this.scoreBoard()) < this.scoreGoal) {
+      debug_log("Round " + String(++round));
+      this.initialize();
+      roundStart();
+    }
   }
 
-  update(){
-    if(GameManager.isSceneBusy()){return ;}
-    if(this.isRoundOver()){return this.processResult();}
-    if(GameManager.isInTurn()){
+  roundStart() {
+    // ...
+  }
+
+  update() {
+    if (GameManager.isSceneBusy())  return;
+    if (this.isRoundOver())  return this.processResult();
+    if (GameManager.isInTurn()) {
       this.endTurn();
-    }
-    else{
-      if (!this.currentPlayer().knockOut){
-        if (this.currentPlayer().ai){
+    } else {
+      if (!this.currentPlayer().knockOut) {
+        if (this.currentPlayer().ai) {
           GameManager.onNPCTurnBegin(this.currentPlayerIndex);
           this.beginTurn();
+        } else {
+          GameManager.onUserTurnBegin(this.currentPlayerIndex);
         }
-        else {GameManager.onUserTurnBegin(this.currentPlayerIndex);}
-      }else {
-        console.log(this.currentPlayer().name, "knocked out - SKIP");
+      } else {
+        debug_log(this.currentPlayer().name, "knocked out - SKIP");
       }
     }
   }
 
   processResult(){
     this.gameResult();
-    console.log(this.scoreBoard());
-    GameManager.processRoundOver();
+    debug_log(this.scoreBoard());
+    GameManager.processGameOver();
   }
 }
 

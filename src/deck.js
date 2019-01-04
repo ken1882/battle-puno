@@ -6,7 +6,10 @@ class Deck {
       for (let value = Value.ZERO; value <= Value.DRAW_TWO; ++value) {
         let coloredCard = new Card(color, value);
         for (let i = 0; i < coloredCard.numCards; ++i) {
-          this.deck.push(coloredCard);
+          let _card = new Card(color, value);
+          // Load different image with same value and color
+          _card.numID = i;
+          this.deck.push(_card);
         }
       }
     }
@@ -17,7 +20,7 @@ class Deck {
         continue;
       }
       for (let i = 0; i < wildCard.numCards; ++i) {
-        this.deck.push(wildCard);
+        this.deck.push(new Card(Color.WILD, value));
       }
     }
     this.shuffle();
