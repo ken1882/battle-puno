@@ -54,13 +54,21 @@ class PunoGame {
     return this.discardPile.slice(-1)[0];
   }
 
+  drawCard(numCards) {
+    if (this.gameMode === Mode.DEATH_MATCH) {
+      return this.deck.draw(numCards, this.discardPile);
+    } else {
+      return this.deck.draw(numCards);
+    }
+  }
+
   initialize() {
-    console.log("initialize");
+    console.log("--------------INITIALIZE--------------");
     this.deck = new Deck(this.extraCardDisabled);
     this.currentPlayerIndex = this.chooseDealer();
     for (let i in this.players) {
       this.players[i].reset();
-      this.players[i].deal(this.deck.draw(this.initCardNumber));
+      this.players[i].deal(this.drawCard(this.initCardNumber));
     }
     const firstCard = this.deck.drawColored(1)[0];
     this.discardPile.push(firstCard);
@@ -69,22 +77,22 @@ class PunoGame {
     }
     console.log("first card", firstCard);
     this.setNextColorAndValue(firstCard);
-    console.log("init end");
+    console.log("--------------------------------------");
   }
 
   isGameOver() {
-    let allKnockOut = true;
+    let knockOutCount = 0;
     for (let i in this.players) {
       if (this.players[i].isGoingOut()) {
         return true;
-      } else if (!this.players[i].knockOut) {
-        allKnockOut = false;
       }
+      if (this.players[i].knockOut)  ++knockOutCount;
     }
-    return allKnockOut;
+    return knockOutCount === 3;
   }
 
   reverse() {
+    console.log("REVERSE");
     this.clockwise = !this.clockwise;
   }
 
@@ -102,16 +110,21 @@ class PunoGame {
   }
 
   trade(player1, player2) {
-    console.log("swap", this.players[player1].name, this.players[player2].name);
+    console.log("TRADE");
+    console.log(this.players[player1].name, this.players[player1].hand.slice());
+    console.log(this.players[player2].name, this.players[player2].hand.slice());
     const temp = this.players[player1].hand.slice();
     this.players[player1].hand = this.players[player2].hand.slice();
     this.players[player2].hand = temp;
+    console.log(this.players[player1].name, this.players[player1].hand.slice());
+    console.log(this.players[player2].name, this.players[player2].hand.slice());
   }
 
-  wildHitAll() {
+  wildHitAll(currentPlayerIndex) {
+    console.log("WILD HIT ALL");
     for (let i in this.players) {
-      if (i != this.currentPlayerIndex) {
-        this.players[i].deal(this.deck.draw(2));
+      if (i != currentPlayerIndex) {
+        this.players[i].deal(this.drawCard(2));
       }
     }
   }
@@ -130,8 +143,10 @@ class PunoGame {
   setNextColorAndValue(card) {
     if (card.color === Color.WILD) {
       this.currentColor = getRandom(Color.RED, Color.BLUE, this.currentColor);
+      console.log("WILD CHOOSE NEXT COLOR", this.currentColor);
       if (card.value === Value.WILD_CHAOS) {
         this.currentValue = getRandom(Value.ZERO, Value.NINE);
+        console.log("WILD CHAOS, NEXT VALUE", this.currentValue);
       } else {
         this.currentValue = undefined;
       }
@@ -139,28 +154,36 @@ class PunoGame {
       this.currentColor = card.color;
       this.currentValue = card.value;
     }
-    console.log("next color", this.currentColor);
-    console.log("next value", this.currentValue);
   }
 
-  discard(card) {
+  discard(card, ext=null) {
     console.log("discard: ", card);
     this.discardPile.push(card);
-    if (card.value === Value.ZERO) {
-      if (this.damagePool < 20) {
-        this.damagePool += 10;
-      } else {
-        this.damagePool = 0;
+    if (this.gameMode === Mode.BATTLE_PUNO ||
+        this.gameMode === Mode.DEATH_MATCH) {
+      if (card.value === Value.ZERO) {
+        if (this.damagePool < 30 || !!getRandom(0, 1)) {
+          console.log("+10");
+          this.damagePool += 10;
+        } else {
+          console.log("reset: 0");
+          this.damagePool = 0;
+        }
+        console.log("damage pool", this.damagePool);
+      } else if (Value.ONE <= card.value && card.value <= Value.NINE) {
+        this.damagePool += card.value;
+        console.log("damage pool", this.damagePool);
       }
-    } else if (Value.ONE <= card.value && card.value <= Value.NINE) {
-      this.damagePool += card.value;
-    } else if (card.value === Value.WILD_HIT_ALL) {
-      this.wildHitAll();
+    }
+    if (card.value === Value.REVERSE) {
+      this.reverse();
     } else if (card.value === Value.TRADE) {
       const target = this.findTarget();
       this.trade(this.currentPlayerIndex, target);
     } else if (card.value === Value.DISCARD_ALL) {
       this.currentPlayer().discardAllByColor(this.currentColor);
+    } else if (card.value === WILD_HIT_ALL) {
+      this.wildHitAll(this.currentPlayerIndex);
     }
     this.setNextColorAndValue(card);
     if (card.penalty) {
@@ -169,33 +192,45 @@ class PunoGame {
     if (this.currentPlayer().hand.length === 1) {
       this.currentPlayer().uno();
     }
+    GameManager.onCardPlay(this.currentPlayerIndex, card, ext);
   }
 
   beginTurn() {
     console.log(this.currentPlayer().name, "round");
+    if (this.gameMode != Mode.TRADITIONAL) {
+      console.log("hp:", this.currentPlayer().hp);
+    }
     console.log("hand", this.currentPlayer().hand.slice());
     console.log("last card:", this.lastCard());
-    console.log("color:", this.currentColor);
-    console.log("value:", this.currentValue);
-    console.log("penalty stack", this.penaltyStack);
+    console.log("CURRENT COLOR:", this.currentColor);
+    console.log("CURRENT VALUE:", this.currentValue);
+
+    if (this.gameMode === Mode.DEATH_MATCH) {
+      while (this.currentPlayer().hand.length < this.initCardNumber) {
+        console.log("death match - draw");
+        this.currentPlayer().deal(this.drawCard(1));
+      }
+      console.log("hand", this.currentPlayer().hand.slice());
+    }
 
     // penalty
     if (this.penaltyStack.length > 0) {
+      console.log("PENALTY");
       const penaltyCard = this.penaltyStack.pop();
       if (penaltyCard.value == Value.SKIP) {
-        console.log("skip");
+        console.log("SKIP");
       } else {
         const avoidCard = this.currentPlayer().receivePenalty(penaltyCard);
         if (avoidCard != null) {
           discard(avoidCard);
-          penaltyStack.push(penaltyCard);
+          this.penaltyStack.push(penaltyCard);
         } else {
           if (penaltyCard.value === Value.DRAW_TWO) {
-            console.log("draw two");
-            this.currentPlayer().deal(this.deck.draw(2));
+            console.log("DRAW TWO");
+            this.currentPlayer().deal(this.drawCard(2));
           } else if (penaltyCard.value === Value.WILD_DRAW_FOUR) {
-            console.log("draw four");
-            this.currentPlayer().deal(this.deck.draw(4));
+            console.log("DRAW FOUR");
+            this.currentPlayer().deal(this.drawCard(4));
           }
         }
       }
@@ -207,11 +242,14 @@ class PunoGame {
     if (matchedCard == null) {
       if (this.gameMode === Mode.BATTLE_PUNO ||
           this.gameMode === Mode.DEATH_MATCH) {
-        this.currentPlayer().hp -= damagePool;
+        this.currentPlayer().hp -= this.damagePool;
         this.currentPlayer().knockOut = this.currentPlayer().hp <= 0;
         this.damagePool = 0;
+        console.log("RECIEVE DAMAGE");
+        console.log("hp", this.currentPlayer().hp);
+        console.log("reset damage pool");
       }
-      const card = this.deck.draw(1)[0];
+      const card = this.drawCard(1)[0];
       if (card === undefined) {
         console.log("deck empty => player knocked out");
         this.currentPlayer().knockOut = true;
@@ -236,15 +274,23 @@ class PunoGame {
   }
 
   start() {
-    console.log("score goal", this.scoreGoal);
+    console.log("SCORE GOAL", this.scoreGoal);
     while (Math.max(...this.scoreBoard()) < this.scoreGoal) {
       this.initialize();
-      let round = 20;
       while (!this.isGameOver()) {
         if (!this.currentPlayer().knockOut) {
-          this.beginTurn();
+          if (this.currentPlayer.ai) {
+            // GameManager.onNPCTurnBegin();
+            this.beginTurn();
+          } else {
+            // GameManager.onUserTurnBegin(this.currentPlayerIndex);
+            this.beginTurn();
+          }
+        } else {
+          console.log(this.currentPlayer().name, "knocked out - SKIP");
         }
         this.endTurn();
+        while (GameManager.isSceneBusy())  continue;
       }
       this.gameResult();
       console.log(this.scoreBoard());
@@ -252,7 +298,6 @@ class PunoGame {
     }
   }
 }
-
 
 /************************** helper function **************************/
 function getRandom(a, b, filter=undefined) {
