@@ -498,7 +498,7 @@ class GameManager{
   /**-------------------------------------------------------------------------
    * Fired when a card is played onto table
    * @param {Number} player_id - the player id, 0 is the user
-   * @param {Number} hand_index - the index of card gonna be played in the hand
+   * @param {Number} card_instance - the card object
    * @param {Number} ext - The extra information value, as following list:
    * Value.SKIP:
    *  0: Normal use, 1: Reactive use;
@@ -515,8 +515,7 @@ class GameManager{
    * Value.WILD_CHAOS:
    *  ext = Array.<Color Value, Number Value>;
    */
-  static onCardPlay(player_id, hand_index, ext = null){
-    let card_instance = this.game.players[player_id].hand[hand_index];
+  static onCardPlay(player_id, card_instance, ext = null){
     effects = this.interpretCardAbility(card_instance, ext);
     effects.forEach(effect_id => {
       if(effect_id === Effect.CHOOSE_COLOR){
@@ -554,25 +553,22 @@ class GameManager{
     if(color_id == Color.WILD){
       throw new Error("Color Id should not be zero!")
     }
-    else if(color_id == Color.RED){
-      // Reserved
-    }
-    else if(color_id == Color.YELLOW){
-      // Reserved
-    }
-    else if(color_id == Color.GREEN){
-      // Reserved
-    }
-    else if(color_id == Color.BLUE){
-      // Reserved
-    }
+    SceneManager.scene.applyColorChangeEffect(color_id);
+  }
+  /*-------------------------------------------------------------------------*/
+  isCardPlayable(card){
+    return card && true;
   }
   /*-------------------------------------------------------------------------*/
   static isSceneBusy(){
     if(isClassOf(SceneManager.scene, Scene_Game)){
-      return SceneManager.scene.isBusy;
+      return SceneManager.scene.isBusy();
     }
     return false;
+  }
+  /*-------------------------------------------------------------------------*/
+  static processGameOver(){
+    SceneManager.scene.processGameOver();
   }
   /*-------------------------------------------------------------------------*/
 }

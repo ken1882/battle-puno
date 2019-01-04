@@ -1549,6 +1549,7 @@ class Sprite extends PIXI.Sprite{
     this.setZ(0);
     this.static = false;
     this.interactive = false;
+    this.speed = 4;
     return this;
   }
   /*-------------------------------------------------------------------------*/
@@ -1576,6 +1577,11 @@ class Sprite extends PIXI.Sprite{
     }
     this.children = []
     return this;
+  }
+  /*-------------------------------------------------------------------------*/
+  setPOS(x, y){
+    super.setPOS(x, y);
+    this.realX, this.realY = this.x, this.y;
   }
   /*-------------------------------------------------------------------------*/
   fillRect(x, y, w, h, c){

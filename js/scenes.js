@@ -937,7 +937,7 @@ class Scene_Game extends Scene_Base{
   }
   /*-------------------------------------------------------------------------*/
   onCardDraw(pid, amount=1){
-
+    
   }
   /*-------------------------------------------------------------------------*/
   processUserTurn(){
@@ -948,8 +948,16 @@ class Scene_Game extends Scene_Base{
     
   }
   /*-------------------------------------------------------------------------*/
-  get isBusy(){
-    return isAnimationPlaying;
+  applyColorChangeEffect(cid){
+    debug_log("Color Changed: " + cid);
+  }
+  /*-------------------------------------------------------------------------*/
+  processGameOver(){
+
+  }
+  /*-------------------------------------------------------------------------*/
+  isBusy(){
+    return super.isBusy() || isAnimationPlaying;
   }
   /*-------------------------------------------------------------------------*/
   get isAnimationPlaying(){
