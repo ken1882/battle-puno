@@ -1,7 +1,3 @@
-/** Class Card
-  * A card consists of 5 properties
-  * color, value, point, optional, number of cards
-  */
 class Card {
   constructor(color, value) {
     this.color = color;
@@ -48,5 +44,15 @@ class Card {
     this.penalty = !!(value === Value.SKIP ||
                       value === Value.DRAW_TWO ||
                       value === Value.WILD_DRAW_FOUR);
+  }
+
+  isEqual(card) {
+    return this.color === card.color && this.value === card.value;
+  }
+
+  isMatched(color, value) {
+    return (this.color === color ||
+            this.value === value ||
+            this.color === Color.WILD);
   }
 }
