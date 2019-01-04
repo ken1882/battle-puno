@@ -521,13 +521,13 @@ class GameManager{
   }
   /**-------------------------------------------------------------------------
    * Fired when a player draws card(s)
-   * @param {Number} player_id - the player id
-   * @param {Number} amount    - the card(s) amount drew
-   * @param {Boolean} show     - show the card to everyone or not
+   * @param {Number} player_id - The player id
+   * @param {Array.<Card>} cards - The cards newly drew
+   * @param {Boolean} show     - Show the card to everyone or not
    */
-  static onCardDraw(player_id, amount = 1, show = false){
-    if(amount < 1){return false;}
-    SceneManager.scene.onCardDraw(player_id, amount, show);
+  static onCardDraw(player_id, cards, show = false){
+    if(cards.length < 1){return false;}
+    SceneManager.scene.onCardDraw(player_id, cards, show);
     return true;
   }
   /**-------------------------------------------------------------------------
@@ -576,6 +576,10 @@ class GameManager{
   /*-------------------------------------------------------------------------*/
   static processGameOver(){
     SceneManager.scene.processGameOver();
+  }
+  /*-------------------------------------------------------------------------*/
+  static processRoundOver(){
+    SceneManager.scene.processRoundOver();
   }
   /*-------------------------------------------------------------------------*/
 }

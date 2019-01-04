@@ -306,7 +306,7 @@ class PunoGame {
 
   update(){
     if(GameManager.isSceneBusy()){return ;}
-    if(this.isGameOver()){return this.processResult();}
+    if(this.isRoundOver()){return this.processResult();}
     if(GameManager.isInTurn()){
       this.endTurn();
     }
@@ -326,7 +326,7 @@ class PunoGame {
   processResult(){
     this.gameResult();
     console.log(this.scoreBoard());
-    GameManager.processGameOver();
+    GameManager.processRoundOver();
   }
 }
 

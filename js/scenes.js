@@ -794,7 +794,8 @@ class Scene_Game extends Scene_Base{
     super.create();
     this.createDeckSprite();
     this.createDiscardPile();
-    this.createCardSprite();
+    this.createCardSpritePool();
+    this.createHandCanvas();
     this.createHintWindow();
   }
   /*-------------------------------------------------------------------------*/
@@ -852,28 +853,47 @@ class Scene_Game extends Scene_Base{
     Graphics.renderSprite(this.discardPile);
   }
   /*-------------------------------------------------------------------------*/
-  createCardSprite(){
-    this.spritePool = [];
-    for(let i=0;i<this.cardSpritePoolSize;++i){
-      let sp = Graphics.addSprite(Graphics.CardBack, "card" + i).hide();
-      sp.setZ(0x11).scale.set(0.5, 0.5);
-      sp.anchor.set(0.5, 0.5);
-      sp.index    = i;    // index in the pool
-      sp.playerId = null; // this card belongs to which player
-      this.spritePool.push(sp);
+  getIdleCardSprite(){
+    for(let i in this.spritePool){
+      if(this.spritePool[i].playerIndex == -1){
+        return this.spritePool[i];
+      }
     }
+    this.cardSpritePoolSize += 1;
+    let sp = this.createCardSprite();
+    this.spritePool.push(sp);
+    return sp;
+  }
+  /*-------------------------------------------------------------------------*/
+  createCardSpritePool(){
+    this.spritePool = [];
+    this.cardValueCount = [];
+    for(let i=0;i<this.cardSpritePoolSize;++i){
+      this.spritePool.push(this.createCardSprite());
+    } 
+  }
+  /*-------------------------------------------------------------------------*/
+  createCardSprite(){
+    let sp = Graphics.addSprite(Graphics.CardBack, "card" + i).hide();
+    sp.setZ(0x11).scale.set(0.5, 0.5);
+    sp.anchor.set(0.5, 0.5);
+    sp.index    = i;      // index in the pool
+    sp.handIndex = -1;    // index in player's hand
+    sp.playerIndex = -1;  // this card belongs to which player
+    return sp;
   }
   /*-------------------------------------------------------------------------*/
   createHandCanvas(){
     this.handCanvas = [];
     let maxNumbers  = [3, 2, 2, 3];
     let counter     = [0, 0, 0, 0];
-    let sh = 300, sw = 350, sx, sy;
+    let sh = 225, sw = 350, sx, sy;
 
     for(let i=0;i<GameManager.playerNumber;++i){
       counter[i % 4] += 1;
       this.handCanvas.push(new SpriteCanvas(0, 0, sw, sh));
       this.handCanvas[i].playerIndex = i;
+      this.handCanvas[i].render();
     }
 
     for(let i=0;i<4;++i){
@@ -884,7 +904,7 @@ class Scene_Game extends Scene_Base{
         let index = i + (4 * j);
         let hcs   = this.handCanvas[index];
         // up/down
-        if(!(i&2)){
+        if(!(i&1)){
           // Divide canvas space
           sx = partWidth * j;
           if(partWidth > hcs.width){sx = (partWidth - hcs.width) / 2;}
@@ -901,7 +921,8 @@ class Scene_Game extends Scene_Base{
           sx = (i == 1) ? Graphics.spacing : Graphics.width - hcs.width;
           hcs.setPOS(sx, sy);
         }
-        arrangeHandCards(index);
+
+        if(DebugMode){hcs.fillRect(0, 0, hcs.width, hcs.height).setOpacity(0.5);}
       }
     }
   }
@@ -912,36 +933,38 @@ class Scene_Game extends Scene_Base{
     let cardSize  = this.players[index].hand.length;
     let cardWidth = Graphics.CardRectReg.width;
     let cardHeight = Graphics.CardRectReg.height;
-    let stackPortion = parseFloat(((hcs.width - cardWidth) / (cardSize * cardWidth)).toFixed(3));
+    let canvasWidth  = !(index&1) ? hcs.width  : hcs.height;
+    let canvasHeight = !(index&1) ? hcs.height : hcs.width;
+    let stackPortion = parseFloat(((canvasWidth - cardWidth) / (cardSize * cardWidth)).toFixed(3));
     let totalWidth   = cardWidth + (cardWidth * stackPortion * (cardSize - 1));
     let cur_player   = this.players[index];
-    if(side == 0){
-      let base_x = (hcs - totalWidth) / 2;
+    let base_pos     = (canvasWidth - totalWidth) / 2;
+    if(!(side&1)){
       for(let i in cur_player.lastHand){
         let card = cur_player.lastHand[i];
         let next_index = cur_player.hand.indexOf(card);
         if(next_index < 0){continue;}
-        let dx = base_x + cardWidth * stackPortion * next_index + cardWidth / 2;
-        let dy = hcs.height - cardHeight + cardHeight / 2;
-        card.sprite.moveto(dx, dy);
+        let dx = base_pos + cardWidth * stackPortion * next_index + cardWidth / 2;
+        let dy = (side == 0) ? canvasHeight - cardHeight + cardHeight / 2 : 0;
+        this.animationCount += 1;
+        card.sprite.moveto(dx, dy, function(){
+          this.animationCount -= 1;
+        }.bind(this));
       }
     }
-    else if(side == 1){
-
-    }
-    else if(side == 2){
-      let base_x = (hcs - totalWidth) / 2;
+    else{
       for(let i in cur_player.lastHand){
         let card = cur_player.lastHand[i];
         let next_index = cur_player.hand.indexOf(card);
         if(next_index < 0){continue;}
-        let dx = base_x + cardWidth * stackPortion * next_index;
-        let dy = 0;
-        card.sprite.moveto(dx, dy);
+        let dy = base_pos + cardWidth * stackPortion * next_index + cardWidth / 2;
+        let dx = (side == 1) ? Graphics.spacing : canvasHeight - cardHeight + cardHeight / 2;
+        this.animationCount += 1;
+        card.sprite.setZ(0x11 + i);
+        card.sprite.moveto(dx, dy, function(){
+          this.animationCount -= 1;
+        }.bind(this));
       }
-    }
-    else if(side == 3){
-      
     }
     this.players[index].lastHand = this.players[index].hand.slice();
   }
@@ -980,12 +1003,7 @@ class Scene_Game extends Scene_Base{
   /*-------------------------------------------------------------------------*/
   update(){
     super.update();
-    this.updateAnimations();
     this.game.update();
-  }
-  /*-------------------------------------------------------------------------*/
-  updateAnimations(){
-
   }
   /*-------------------------------------------------------------------------*/
   showHintWindow(x, y, txt = ''){
@@ -998,13 +1016,153 @@ class Scene_Game extends Scene_Base{
     this.hintWindow.hide();
   }
   /*-------------------------------------------------------------------------*/
-  onCardPlay(pid, card, effects){
-    card.setZ(0x11).handIndex = -1;
-    card.playerIndex = -1;
+  attachCardInfo(card){
+    if(!card.sprite){return ;}
+    card.sprite.on('mouseover', ()=>{this.showCardInfo(card)})
+    card.sprite.on('mouseout',  ()=>{this.hideHintWindow()})
   }
   /*-------------------------------------------------------------------------*/
-  onCardDraw(pid, amount=1, show=false){
-
+  detachCardInfo(card){
+    if(!card.sprite){return ;}
+    this.hideCardInfo(card);
+    card.sprite.removeAllListeners();
+  }
+  /*-------------------------------------------------------------------------*/
+  showCardInfo(card){
+    info = this.getCardHelp(card);
+    this.showHintWindow(cars.sprite.x, card.sprite.y, info);
+  }
+  /*-------------------------------------------------------------------------*/
+  getCardHelp(card){
+    re = ''
+    switch(card.color){
+      case Value.RED:
+        re += Vocab.HelpColorRed + '; '; break;
+      case Value.BLUE:
+        re += Vocab.HelpColorBlue + '; '; break;
+      case Value.YELLOW:
+        re += Vocab.HelpColorYellow + '; '; break;
+      case Value.GREEN:
+        re += Vocab.HelpColorGreen + '; '; break;
+      case Value.WILD:
+        re += Vocab.HelpColorWild + '; '; break;      
+      default:
+        re += "???";
+    }
+    re += 'Effects: \n';
+    switch(card.value){
+      case Value.ZERO:
+        re += Vocab.HelpZero + '; '; break;
+      case Value.REVERSE:
+        re += Vocab.HelpReverse + '; '; break;
+      case Value.SKIP:
+        re += Vocab.HelpSkip + '; '; break;
+      default:
+        re += this.getEffectsHelp(GameManager.interpretCardAbility(card, 0));
+    }
+    re += getCharacterHelp(card);
+    return re;
+  }
+  /*-------------------------------------------------------------------------*/
+  getEffectsHelp(effects){
+    re = '';
+    for(let i in effects){
+      let eff = effects[i];
+      switch(eff){
+        case Effect.DRAW_TWO:
+          re += Vocab.HelpPlusTwo + '; '; break;
+        case Effect.DRAW_FOUR:
+          re += Vocab.HelpPlusFour + '; '; break;
+        case Effect.CHOOSE_COLOR:
+          re += Vocab.HelpChooseColor + '; '; break;
+        case Effect.HIT_ALL:
+          re += Vocab.HelpHitAll + '; '; break;
+        case Effect.TRADE:
+          re += Vocab.HelpTrade + '; '; break;
+        case Effect.WILD_CHAOS:
+          re += Vocab.HelpChaos + '; '; break;
+        case Effect.DISCARD_ALL:
+          re += Vocab.HelpDiscardAll + '; '; break;
+        case Effect.ADD_DAMAGE:
+          re += Vocab.HelpNumber + '; '; break;
+      }
+    }
+    re += '\n';
+    return re;
+  }
+  /*-------------------------------------------------------------------------*/
+  getCardHelp(card){
+    return '';
+  }
+  /*-------------------------------------------------------------------------*/
+  onCardPlay(pid, card, effects){
+    if(card.sprite){
+      card.sprite.setZ(0x11).handIndex = -1;
+      card.sprite.playerIndex = -1;
+    }
+  }
+  /*-------------------------------------------------------------------------*/
+  onCardDraw(pid, cards, show=false){
+    for(let i in cards){
+      setTimeout(this.processCardDrawAnimation(pid, cards[i], show), 500 * i);
+    }
+    setTimeout(this.arrangeHandCards(pid), 500 * (cards.length + 1));
+  }
+  /*-------------------------------------------------------------------------*/
+  processCardDrawAnimation(pid, card, show=false){
+    this.animationCount += 1;
+    let sprite = this.getIdleCardSprite();
+    sprite.playerIndex = pid;
+    card.sprite = sprite;
+    let dx = 0, dy = 0;
+    if(pid >= 0){
+      dx = (this.handCanvas[i].x + this.handCanvas[i].width) / 2;
+      dy = (this.handCanvas[i].y + this.handCanvas[i].height) / 2;
+    }
+    let fallback = function(){
+      sprite.setTexture(Graphics.loadTexture(this.getCardImage(card)));
+    }
+    sprite.moveto(dx, dy, fallback);
+  }
+  /*-------------------------------------------------------------------------*/
+  getCardImage(card){
+    symbol = '';
+    switch(card.color){
+      case Value.RED:
+        symbol += 'Red'; break;
+      case Value.BLUE:
+        symbol += 'Blue'; break;
+      case Value.YELLOW:
+        symbol += 'Yellow'; break;
+      case Value.GREEN:
+        symbol += 'Green'; break;
+      case Value.WILD:
+        symbol += 'Wild'; break;
+      default:
+        throw new Error("Inalid card color: " + card.color);
+    }
+    switch(card.value){
+      case Value.REVERSE:
+        symbol += 'Reverse'; break;
+      case Value.SKIP:
+        symbol += 'Ban'; break;
+      case Value.DRAW_TWO:
+        symbol += 'Plus2'; break;
+      case Value.WILD_DRAW_FOUR:
+        symbol += 'Plus4'; break;
+      case Value.WILD:
+        symbol += 'Wild'; break;
+      case Value.TRADE:
+        symbol += 'Exchange'; break;
+      case Value.WILD_HIT_ALL:
+        symbol += 'Hit'; break;
+      case Value.DISCARD_ALL:
+        symbol += 'Discard'; break;
+      case Value.WILD_CHAOS:
+        symbol += 'Chaos'; break;
+    }
+    if(card.numID > 0){symbol += '_' + card.numID + 1;}
+    return Graphics[symbol];
   }
   /*-------------------------------------------------------------------------*/
   processUserTurn(pid){
@@ -1024,6 +1182,10 @@ class Scene_Game extends Scene_Base{
   }
   /*-------------------------------------------------------------------------*/
   processGameOver(){
+
+  }
+  /*-------------------------------------------------------------------------*/
+  processRoundOver(){
 
   }
   /*-------------------------------------------------------------------------*/

@@ -1590,8 +1590,10 @@ class Sprite extends PIXI.Sprite{
   }
   /*-------------------------------------------------------------------------*/
   updateMovement(){
+    if(this.deltaX == 0 && this.deltaY == 0){return ;}
     if(this.realX == this.x && this.realY == this.y){
       this.deltaX = 0; this.deltaY = 0;
+      this.callMoveCompleteFunction();
       return ;
     }
     if(this.x < this.realX){
@@ -1610,16 +1612,25 @@ class Sprite extends PIXI.Sprite{
   /**-------------------------------------------------------------------------
    * Move to given position step by step (called from update)
    */
-  moveto(x, y){
+  moveto(x, y, fallback=null){
     if(x == null){x = this.x;}
     if(y == null){y = this.y;}
+    this.moveCompleteFallback = fallback;
     this.realX = x;
     this.realY = y;
     let dx = (this.realX - this.x), dy = (this.realY - this.y);
     let h = Math.sqrt(dx*dx + dy*dy);
     this.deltaX = this.speed * dx / h;
     this.deltaY = this.speed * dy / h;
-    console.log(this.deltaX, this.deltaY);
+    if(this.deltaX == 0 && this.deltaY == 0){
+      this.callMoveCompleteFunction();
+    }
+  }
+  /*-------------------------------------------------------------------------*/
+  callMoveCompleteFunction(){
+    if(!this.moveCompleteFallback){return ;}
+    this.moveCompleteFallback();
+    this.moveCompleteFallback = null;
   }
   /*-------------------------------------------------------------------------*/
   resize(w, h){
