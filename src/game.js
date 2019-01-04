@@ -42,7 +42,7 @@ class PunoGame {
       GameManager.onCardDraw(i, [firstDraw[i]], true);
       debug_log(this.players[i].name, firstDraw[i]);
     }
-    return highest;
+    return highest & 0;
   }
 
   currentPlayer() {
@@ -76,7 +76,6 @@ class PunoGame {
   initialize() {
     debug_log("--------------INITIALIZE--------------");
     this.deck = new Deck(this.extraCardDisabled);
-    this.currentPlayerIndex = this.chooseDealer();
     const firstCard = this.deck.drawColored(1)[0];
     debug_log("first card", firstCard);
     GameManager.onCardPlay(-1, firstCard);
@@ -87,6 +86,7 @@ class PunoGame {
       this.players[i].deal(cards);
       GameManager.onCardDraw(i, cards);
     }
+    this.currentPlayerIndex = this.chooseDealer();
     if (firstCard.penalty) {
       this.penaltyStack.push(firstCard);
     }
@@ -307,11 +307,9 @@ class PunoGame {
   gameStart() {
     let round = 0;
     console.log("SCORE GOAL", this.scoreGoal);
-    while (Math.max(...this.scoreBoard()) < this.scoreGoal) {
-      debug_log("Round " + String(++round));
-      this.initialize();
-      roundStart();
-    }
+    debug_log("Round " + String(++round));
+    this.initialize();
+    this.roundStart();
   }
 
   roundStart() {

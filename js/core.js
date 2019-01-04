@@ -1923,6 +1923,10 @@ class SpriteCanvas extends Sprite{
     }
     this.children = [];
   }
+  /*------------------------------------------------------------------------*/
+  sortChildren(){
+    this.children.sort((a,b) => (a.zIndex || 0) - (b.zIndex || 0));
+  }
   /**-------------------------------------------------------------------------
    * > Scroll window horz/vert
    */
