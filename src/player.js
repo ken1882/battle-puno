@@ -64,11 +64,14 @@ class Player {
   }
 
   matching(color, value) {
-    let matchedCardIndex = this.findMatchedCard(color, value);
-    if (matchedCardIndex === -1) {
-      return null;
+    let matched = [];
+    for (let i in this.hand) {
+      if (this.hand[i].isMatched(color, value)) {
+        matched.push(i);
+      }
     }
-    return this.discard(matchedCardIndex);
+    if (matched.length === 0)  return null;
+    return this.discard(Math.floor(Math.random() * matched.length));
   }
 
   discardAllByColor(color) {
