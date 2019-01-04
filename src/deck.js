@@ -30,12 +30,17 @@ class Deck {
     }
   }
 
-  draw(numCards) {
+  draw(numCards, supplement=undefined) {
     if (numCards <= 0) {
       return [];
     }
     if (numCards > this.deck.length) {
-      return this.deck.splice(0);
+      if (supplement === undefined || supplement.length === 0) {
+        return this.deck.splice(0);
+      } else {
+        this.putback(supplement.splice(0));
+        this.shuffle();
+      }
     }
     return this.deck.splice(-numCards);
   }
@@ -72,5 +77,5 @@ class Deck {
     this.deck = cards.concat(this.deck);
   }
 
-  get length(){return this.deck.length;}
+  get length() { return this.deck.length; }
 }

@@ -9,6 +9,12 @@ class Player {
     this.hand = [];
   }
 
+  reset() {
+    this.hp = this.initHP;
+    this.hand.length = 0;
+    this.knockOut = false;
+  }
+
   deal(cards) {
     this.hand = this.hand.concat(cards);
     this.sortHand();
@@ -20,7 +26,7 @@ class Player {
       if (a.color === b.color) {
         return a.value - b.value;
       }
-      return b.color - a.color;
+      return a.color - b.color;
     });
   }
 
@@ -75,6 +81,8 @@ class Player {
     while (matched.length != 0) {
       this.discard(matched.pop());
     }
+    console.log("DISCARD ALL COLOR", color);
+    console.log(this.hand.slice());
   }
 
   receivePenalty(penaltyCard, currentColor) {
@@ -96,7 +104,7 @@ class Player {
   }
 
   uno() {
-    console.log(this.name, "call uno");
+    console.log(this.name, "CALL UNO!!!");
   }
 
   cardsPointSum() {
@@ -105,11 +113,5 @@ class Player {
       sum += this.hand[i].point;
     }
     return sum;
-  }
-
-  reset() {
-    this.hp = this.initHP;
-    this.hand.length = 0;
-    this.knockOut = false;
   }
 }
