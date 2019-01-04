@@ -602,7 +602,7 @@ class Window_Selectable extends Window_Base{
     this._handlers[symbol] = method;
     for(let i=0;i<this._selections.length;++i){
       let item = this._selections[i];
-      if(item.symbol == symbol){
+      if(item && item.symbol == symbol){
         item.on('click', method);
         item.on('tap', method);
       }

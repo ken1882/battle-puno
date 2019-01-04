@@ -40,8 +40,12 @@ Graphics.Resolution         = [1280, 720]; // Better not change this
 Graphics.AppBackColor       = 0x000000;
 
 Graphics.Iconset            = "assets/IconSet.png";
-Graphics.IconRect           = new Rect(0,0,24,24)
+Graphics.IconRect           = new Rect(0,0,24,24);
 Graphics.IconRowCount       = 16
+
+Graphics.CardRectOri        = new Rect(0, 0, 210, 300);
+Graphics.CardRectReg        = new Rect(0, 0, 105, 150);
+
 Graphics.IconID = {
   BGM: 758,
   SE: 6437,

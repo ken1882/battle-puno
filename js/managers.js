@@ -497,7 +497,7 @@ class GameManager{
   }
   /**-------------------------------------------------------------------------
    * Fired when a card is played onto table
-   * @param {Number} player_id - the player id, 0 is the user
+   * @param {Number} player_id - the player id, 0 is the user, -1 is the beginning card
    * @param {Number} card_instance - the card object
    * @param {Number} ext - The extra information value, as following list:
    * Value.SKIP:
@@ -516,36 +516,33 @@ class GameManager{
    *  ext = Array.<Color Value, Number Value>;
    */
   static onCardPlay(player_id, card_instance, ext = null){
-    effects = this.interpretCardAbility(card_instance, ext);
-    effects.forEach(effect_id => {
-      if(effect_id === Effect.CHOOSE_COLOR){
-        let color_id = isClassOf(ext, Array) ? ext[0] : ext;
-        this.changeColor(color_id);
-      }
-      else{
-        // Reserved
-      }
-    });
+    let effects = this.interpretCardAbility(card_instance, ext);
+    SceneManager.scene.onCardPlay(player_id, card_instance, effects);
   }
   /**-------------------------------------------------------------------------
    * Fired when a player draws card(s)
    * @param {Number} player_id - the player id
    * @param {Number} amount    - the card(s) amount drew
+   * @param {Boolean} show     - show the card to everyone or not
    */
-  static onCardDraw(player_id, amount = 1){
-    SceneManager.scene.onCardDraw(player_id, amount);
+  static onCardDraw(player_id, amount = 1, show = false){
+    if(amount < 1){return false;}
+    SceneManager.scene.onCardDraw(player_id, amount, show);
+    return true;
   }
   /**-------------------------------------------------------------------------
    * Fired when a user's turn begins
    */
-  static onUserTurnBegin(){
-    SceneManager.scene.processUserTurn();
+  static onUserTurnBegin(player_id){
+    debug_log(`User ${player_id} turn start`)
+    SceneManager.scene.processUserTurn(player_id);
   }
   /**-------------------------------------------------------------------------
    * Fired when other player/NPC's turn begins
    * @param {Number} player_id - the player's id
    */
   static onNPCTurnBegin(player_id){
+    debug_log(`CPU ${player_id} turn start`)
     SceneManager.scene.processNPCTurn(player_id);
   }
   /*-------------------------------------------------------------------------*/
@@ -556,8 +553,8 @@ class GameManager{
     SceneManager.scene.applyColorChangeEffect(color_id);
   }
   /*-------------------------------------------------------------------------*/
-  isCardPlayable(card){
-    return card && true;
+  static isCardPlayable(card){
+    return card && this.game.isCardPlayable(card);
   }
   /*-------------------------------------------------------------------------*/
   static isSceneBusy(){

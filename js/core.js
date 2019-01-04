@@ -171,6 +171,12 @@ function shuffleArray(ar){
   }
   return ar;
 }
+/**--------------------------------------------------------------------------
+ * Convert degree to radian
+ */
+function toRad(deg){
+  return deg * Math.PI / 180;
+}
 /**----------------------------------------------------------------------------
  * > Check whether the object is interable 
  * @param {Object} obj - the object to checl
@@ -779,8 +785,13 @@ class Graphics{
     let sp = this.playAnimation(dx, dy, this.Trailing, 2)
     sp.setOpacity(this.mouseTrailOpacity).setZ(0x1000).unpause = true;
   }
-  /*------------------------------------------------------------------------*/
-  static generateAnimation(image){
+  /**------------------------------------------------------------------------
+   * Create animated sprite
+   * @param {String} image - the image name
+   * @param {boolean} crt_holder - create holder to avoid the direct render 
+   * crash on scene. The animatedSprite can be accessed with <Holder.anim>
+   */
+  static generateAnimation(image, crt_holder = false){
     let oriImage = this.loadTexture(image);
     let sqlen    = oriImage.width / this.AnimRowCount
     let src_rect = new Rect(0, 0, sqlen, sqlen)
@@ -796,6 +807,15 @@ class Graphics{
       src_rect.y += src_rect.height;
     }
     let re = new PIXI.extras.AnimatedSprite(textureArray);
+    re.loop = false;
+    if(crt_holder){
+      let holder = new SpriteCanvas(0, 0, re.width, re.height);
+      holder.addChild(animSprite);
+      holder.anim = re;
+      re.onComplete = function(){Graphics.removeSprite(holder)};
+      return holder;
+    }
+    else{re.onComplete = function(){Graphics.removeSprite(re)};}
     return re;
   }
   /**------------------------------------------------------------------------
@@ -1535,21 +1555,27 @@ class Sound{
  * @class Sprite
  * @constructor
  * @extends PIXI.Sprite
+ * @property {boolean} static - When is child, the position won't effected by
+ *                              parent's display origin (ox/oy)
+ * 
+ * @property {Number} speed   - Pixel delta per average frame
+ * @property {Number} realX   - The final x position the sprite should be
+ * @property {Number} realY   - The final y position the sprite should be
  */
 class Sprite extends PIXI.Sprite{
   /**-------------------------------------------------------------------------
    * @constructor
    * @memberof Sprite
    * @param {Texture} texture - A PIXI.Texture to convert to sprite
-   * @property {boolean} static - When is child, the position won't effected by
-   *                              parent's display origin (ox/oy)
    */
   constructor(...args){
     super(...args);
+    this.realX = this.x;
+    this.realY = this.y;
     this.setZ(0);
     this.static = false;
     this.interactive = false;
-    this.speed = 4;
+    this.speed = 20;
     return this;
   }
   /*-------------------------------------------------------------------------*/
@@ -1557,6 +1583,43 @@ class Sprite extends PIXI.Sprite{
   /*-------------------------------------------------------------------------*/
   get rect(){
     return new Rect(this.x, this.y, this.width, this.height);
+  }
+  /*-------------------------------------------------------------------------*/
+  update(){
+    this.updateMovement();
+  }
+  /*-------------------------------------------------------------------------*/
+  updateMovement(){
+    if(this.realX == this.x && this.realY == this.y){
+      this.deltaX = 0; this.deltaY = 0;
+      return ;
+    }
+    if(this.x < this.realX){
+      this.x = Math.min(this.realX, this.x + this.deltaX * Graphics.speedFactor);
+    }
+    else{
+      this.x = Math.max(this.realX, this.x + this.deltaX * Graphics.speedFactor);
+    }
+    if(this.y < this.realY){
+      this.y = Math.min(this.realY, this.y + this.deltaY * Graphics.speedFactor);
+    }
+    else{
+      this.y = Math.max(this.realY, this.y + this.deltaY * Graphics.speedFactor);
+    }
+  }
+  /**-------------------------------------------------------------------------
+   * Move to given position step by step (called from update)
+   */
+  moveto(x, y){
+    if(x == null){x = this.x;}
+    if(y == null){y = this.y;}
+    this.realX = x;
+    this.realY = y;
+    let dx = (this.realX - this.x), dy = (this.realY - this.y);
+    let h = Math.sqrt(dx*dx + dy*dy);
+    this.deltaX = this.speed * dx / h;
+    this.deltaY = this.speed * dy / h;
+    console.log(this.deltaX, this.deltaY);
   }
   /*-------------------------------------------------------------------------*/
   resize(w, h){
@@ -1581,7 +1644,9 @@ class Sprite extends PIXI.Sprite{
   /*-------------------------------------------------------------------------*/
   setPOS(x, y){
     super.setPOS(x, y);
-    this.realX, this.realY = this.x, this.y;
+    this.realX = this.x;
+    this.realY = this.y;
+    return this;
   }
   /*-------------------------------------------------------------------------*/
   fillRect(x, y, w, h, c){
@@ -1714,6 +1779,8 @@ class Sprite extends PIXI.Sprite{
   }
   /*-------------------------------------------------------------------------*/
   get translucentAlpha(){return 0.4;}
+  /*-------------------------------------------------------------------------*/
+  get isMoving(){return this.x != this.realX || this.y != this.realY;}
   /**-------------------------------------------------------------------------
    * > Getter function
    */

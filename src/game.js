@@ -182,7 +182,7 @@ class PunoGame {
       this.trade(this.currentPlayerIndex, target);
     } else if (card.value === Value.DISCARD_ALL) {
       this.currentPlayer().discardAllByColor(this.currentColor);
-    } else if (card.value === WILD_HIT_ALL) {
+    } else if (card.value === Value.WILD_HIT_ALL) {
       this.wildHitAll(this.currentPlayerIndex);
     }
     this.setNextColorAndValue(card);
@@ -275,29 +275,27 @@ class PunoGame {
 
   start() {
     console.log("SCORE GOAL", this.scoreGoal);
-    while (Math.max(...this.scoreBoard()) < this.scoreGoal) {
-      this.initialize();
-      while (!this.isGameOver()) {
-        if (!this.currentPlayer().knockOut) {
-          if (this.currentPlayer.ai) {
-            // GameManager.onNPCTurnBegin();
-            this.beginTurn();
-          } else {
-            // GameManager.onUserTurnBegin(this.currentPlayerIndex);
-            this.beginTurn();
-          }
-        } else {
-          console.log(this.currentPlayer().name, "knocked out - SKIP");
-        }
-        this.endTurn();
-        while (GameManager.isSceneBusy())  continue;
-      }
-      this.gameResult();
-      console.log(this.scoreBoard());
-      break;
-    }
+    this.initialize();
   }
 
+  update(){
+    if(GameManager.isSceneBusy()){return ;}
+    if(this.isGameOver()){return this.processResult();}
+    if (!this.currentPlayer().knockOut){
+      if (this.currentPlayer().ai) {GameManager.onNPCTurnBegin(this.currentPlayerIndex);}
+      else {GameManager.onUserTurnBegin(this.currentPlayerIndex);}
+      this.beginTurn();
+    }else {
+      console.log(this.currentPlayer().name, "knocked out - SKIP");
+    }
+    this.endTurn();
+  }
+
+  processResult(){
+    this.gameResult();
+    console.log(this.scoreBoard());
+    GameManager.processGameOver();
+  }
 }
 
 /************************** helper function **************************/

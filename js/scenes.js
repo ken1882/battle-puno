@@ -360,8 +360,9 @@ class Scene_Load extends Scene_Base{
   /*-------------------------------------------------------------------------*/
   createLoadingImage(){
     this.loading_sprite = Graphics.addSprite(Graphics.LoadImage);
-    this.loading_sprite.x = Graphics.appCenterWidth(this.loading_sprite.width);
-    this.loading_sprite.y = Graphics.appCenterHeight(this.loading_sprite.height);
+    let sx = Graphics.appCenterWidth(this.loading_sprite.width);;
+    let sy = Graphics.appCenterHeight(this.loading_sprite.height);
+    this.loading_sprite.setPOS(sx, sy);
     this.loading_sprite.anchor.set(0.5);
   }
   /*-------------------------------------------------------------------------*/
@@ -542,25 +543,26 @@ class Scene_Intro extends Scene_Base{
   /*-------------------------------------------------------------------------*/
   createPIXISplash(){
     this.pixiSplash = Graphics.addSprite(Graphics.pixiSplash);
-    this.pixiSplash.x = Graphics.appCenterWidth(this.pixiSplash.width);
+    this.pixiSplash.setPOS(Graphics.appCenterWidth(this.pixiSplash.width));
   }
   /*-------------------------------------------------------------------------*/
   createHowlerSplash(){
     this.howlerSplash = Graphics.addSprite(Graphics.howlerSplash);
-    this.howlerSplash.x = Graphics.appCenterWidth(this.howlerSplash.width);
+    this.howlerSplash.setPOS(Graphics.appCenterWidth(this.howlerSplash.width));
   }
   /*-------------------------------------------------------------------------*/
   createNTOUSplash(){
     this.ntouSplash = Graphics.addSprite(Graphics.ntouSplash);
-    this.ntouSplash.x = Graphics.appCenterWidth(this.ntouSplash.width);
-    this.ntouSplash.y = Graphics.appCenterHeight(this.ntouSplash.height);
+    let dx = Graphics.appCenterWidth(this.ntouSplash.width);
+    let dy = Graphics.appCenterHeight(this.ntouSplash.height);
+    this.ntouSplash.setPOS(dx, dy);
   }
   /*-------------------------------------------------------------------------*/
   drawLibrarySplash(){
     let totalW  = this.pixiSplash.height + this.howlerSplash.height;
     let padding = Graphics.height - totalW;
-    this.pixiSplash.y   = padding / 3;
-    this.howlerSplash.y = padding;
+    this.pixiSplash.setPOS(null, padding / 3);
+    this.howlerSplash.setPOS(null, padding);
     Graphics.renderSprite(this.pixiSplash);
     Graphics.renderSprite(this.howlerSplash);
   }
@@ -771,6 +773,9 @@ class Scene_Test extends Scene_Base{
  * @property {String} bgiName - Path to background image
  * @property {String} bgmName - Path to background music
  * @property {String} meName  - Path to music effect (victory theme)
+ * @property {Number} cardSpritePoolSize - Object pool size of card sprite
+ * @property {Number} animationCount - Counter of animations playing
+ * @property {boolean} playerPhase - Whether is user/player's turn
  */
 class Scene_Game extends Scene_Base{
   /**-------------------------------------------------------------------------
@@ -780,6 +785,8 @@ class Scene_Game extends Scene_Base{
     super();
     this.game = GameManager.initStage();
     this.cardSpritePoolSize = 50;
+    this.animationCount     = 0;
+    this.playerPhase        = false;
   }
   /*-------------------------------------------------------------------------*/
   create(){
@@ -789,12 +796,15 @@ class Scene_Game extends Scene_Base{
     this.createDiscardPile();
     this.createCardSprite();
     this.createHintWindow();
-    
   }
   /*-------------------------------------------------------------------------*/
   start(){
     super.start();
     this.game.start();
+    this.players = this.game.players;
+    for(let i in this.players){
+      this.players[i].lastHand = this.players[i].hand.slice();
+    }
   }
   /*-------------------------------------------------------------------------*/
   randomBackground(){
@@ -834,7 +844,7 @@ class Scene_Game extends Scene_Base{
     let sy = Graphics.appCenterHeight(sh);
     this.discardPile = new SpriteCanvas(sx, sy, sw, sh);
     this.discardPile.activate().setZ(0x10);
-    this.discardPile.fillRect(0, 0, sw, sh).setZ(0).setOpacity(0.5);
+    if(DebugMode){this.discardPile.fillRect(0, 0, sw, sh).setZ(0).setOpacity(0.5);}
     this.discardPile.on("mouseover", ()=>{
       this.showHintWindow(null,null, Vocab["HelpDiscardPile"] + this.getLastCardInfo)
     });
@@ -846,7 +856,8 @@ class Scene_Game extends Scene_Base{
     this.spritePool = [];
     for(let i=0;i<this.cardSpritePoolSize;++i){
       let sp = Graphics.addSprite(Graphics.CardBack, "card" + i).hide();
-      sp.scale.set(0.5, 0.5);
+      sp.setZ(0x11).scale.set(0.5, 0.5);
+      sp.anchor.set(0.5, 0.5);
       sp.index    = i;    // index in the pool
       sp.playerId = null; // this card belongs to which player
       this.spritePool.push(sp);
@@ -855,47 +866,92 @@ class Scene_Game extends Scene_Base{
   /*-------------------------------------------------------------------------*/
   createHandCanvas(){
     this.handCanvas = [];
-    let maxNumbers  = [4, 3, 3, 4];
+    let maxNumbers  = [3, 2, 2, 3];
     let counter     = [0, 0, 0, 0];
-    let sh = 300, sw;
+    let sh = 300, sw = 350, sx, sy;
 
     for(let i=0;i<GameManager.playerNumber;++i){
       counter[i % 4] += 1;
-      this.handCanvas.push(new SpriteCanvas(0, 0, sh, sh));
+      this.handCanvas.push(new SpriteCanvas(0, 0, sw, sh));
+      this.handCanvas[i].playerIndex = i;
     }
 
     for(let i=0;i<4;++i){
       let portion = Math.min(counter[i], maxNumbers[i]);
+      let partWidth  = Graphics.width  / portion;
+      let partHeight = Graphics.height / portion;
       for(let j=0;j<counter[i];++j){
         let index = i + (4 * j);
+        let hcs   = this.handCanvas[index];
         // up/down
         if(!(i&2)){
-          sw = Graphics.width / portion;
-          this.handCanvas[index].resize(sw, null);
+          // Divide canvas space
+          sx = partWidth * j;
+          if(partWidth > hcs.width){sx = (partWidth - hcs.width) / 2;}
+          // Align bottom if i == 0 (down)
+          sy = (i == 0) ? Graphics.height - hcs.height : Graphics.spacing;
+          hcs.setPOS(sx, sy);
         }
         // left/right
         else{
-          sh = Graphics.height / portion;
-          this.handCanvas[index].resize(null, sh);
+          hcs.resize(sh, sw);
+          sy = partHeight * j;
+          if(partHeight > hcs.height){sy = (partHeight - hcs.height) / 2;}
+          // Align left if i == 1 (left)
+          sx = (i == 1) ? Graphics.spacing : Graphics.width - hcs.width;
+          hcs.setPOS(sx, sy);
         }
-        resizeHandCanvas(index);
+        arrangeHandCards(index);
       }
     }
+  }
+  /*-------------------------------------------------------------------------*/
+  arrangeHandCards(index){
+    let hcs  = this.handCanvas[index];
+    let side = index % 4;
+    let cardSize  = this.players[index].hand.length;
+    let cardWidth = Graphics.CardRectReg.width;
+    let cardHeight = Graphics.CardRectReg.height;
+    let stackPortion = parseFloat(((hcs.width - cardWidth) / (cardSize * cardWidth)).toFixed(3));
+    let totalWidth   = cardWidth + (cardWidth * stackPortion * (cardSize - 1));
+    let cur_player   = this.players[index];
+    if(side == 0){
+      let base_x = (hcs - totalWidth) / 2;
+      for(let i in cur_player.lastHand){
+        let card = cur_player.lastHand[i];
+        let next_index = cur_player.hand.indexOf(card);
+        if(next_index < 0){continue;}
+        let dx = base_x + cardWidth * stackPortion * next_index + cardWidth / 2;
+        let dy = hcs.height - cardHeight + cardHeight / 2;
+        card.sprite.moveto(dx, dy);
+      }
+    }
+    else if(side == 1){
+
+    }
+    else if(side == 2){
+      let base_x = (hcs - totalWidth) / 2;
+      for(let i in cur_player.lastHand){
+        let card = cur_player.lastHand[i];
+        let next_index = cur_player.hand.indexOf(card);
+        if(next_index < 0){continue;}
+        let dx = base_x + cardWidth * stackPortion * next_index;
+        let dy = 0;
+        card.sprite.moveto(dx, dy);
+      }
+    }
+    else if(side == 3){
+      
+    }
+    this.players[index].lastHand = this.players[index].hand.slice();
+  }
+  /*-------------------------------------------------------------------------*/
+  onCardZoomIn(card){
 
   }
   /*-------------------------------------------------------------------------*/
-  resizeHandCanvas(index){
-    let spc = this.handCanvas[index];
-    let side = index % 4;
-    let portion = index / 4;
-    // up/down
-    if(!(side&1)){
-      
-    }
-    // left/right
-    else{
-      
-    }
+  onCardZoomOut(card){
+
   }
   /*-------------------------------------------------------------------------*/
   addDiscardCard(card, player_id = 0){
@@ -924,6 +980,12 @@ class Scene_Game extends Scene_Base{
   /*-------------------------------------------------------------------------*/
   update(){
     super.update();
+    this.updateAnimations();
+    this.game.update();
+  }
+  /*-------------------------------------------------------------------------*/
+  updateAnimations(){
+
   }
   /*-------------------------------------------------------------------------*/
   showHintWindow(x, y, txt = ''){
@@ -936,15 +998,24 @@ class Scene_Game extends Scene_Base{
     this.hintWindow.hide();
   }
   /*-------------------------------------------------------------------------*/
-  onCardDraw(pid, amount=1){
-    
+  onCardPlay(pid, card, effects){
+    card.setZ(0x11).handIndex = -1;
+    card.playerIndex = -1;
   }
   /*-------------------------------------------------------------------------*/
-  processUserTurn(){
+  onCardDraw(pid, amount=1, show=false){
 
   }
   /*-------------------------------------------------------------------------*/
-  processNPCTurn(){
+  processUserTurn(pid){
+    this.playerPhase = true;
+  }
+  /*-------------------------------------------------------------------------*/
+  processUserTurnEnd(){
+    this.playerPhase = false;
+  }
+  /*-------------------------------------------------------------------------*/
+  processNPCTurn(pid){
     
   }
   /*-------------------------------------------------------------------------*/
@@ -957,11 +1028,15 @@ class Scene_Game extends Scene_Base{
   }
   /*-------------------------------------------------------------------------*/
   isBusy(){
-    return super.isBusy() || isAnimationPlaying;
+    return super.isBusy() || this.isAnimationPlaying() || this.isPlayerThinking();
   }
   /*-------------------------------------------------------------------------*/
-  get isAnimationPlaying(){
-    return false;
+  isAnimationPlaying(){
+    return this.animationCount != 0;
+  }
+  /*-------------------------------------------------------------------------*/
+  isPlayerThinking(){
+    return this.playerPhase;
   }
   /*-------------------------------------------------------------------------*/
   get getLastCardInfo(){
