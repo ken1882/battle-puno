@@ -536,6 +536,7 @@ class GameManager{
   static onUserTurnBegin(player_id){
     debug_log(`User ${player_id} turn start`)
     SceneManager.scene.processUserTurn(player_id);
+    this._inTurn = true;
   }
   /**-------------------------------------------------------------------------
    * Fired when other player/NPC's turn begins
@@ -544,6 +545,11 @@ class GameManager{
   static onNPCTurnBegin(player_id){
     debug_log(`CPU ${player_id} turn start`)
     SceneManager.scene.processNPCTurn(player_id);
+    this._inTurn = true;
+  }
+  /*-------------------------------------------------------------------------*/
+  static onTuenEnd(player_id){
+    this._inTurn = false;
   }
   /*-------------------------------------------------------------------------*/
   static changeColor(color_id){
@@ -555,6 +561,10 @@ class GameManager{
   /*-------------------------------------------------------------------------*/
   static isCardPlayable(card){
     return card && this.game.isCardPlayable(card);
+  }
+  /*-------------------------------------------------------------------------*/
+  static isInTurn(){
+    return this._inTurn || false;
   }
   /*-------------------------------------------------------------------------*/
   static isSceneBusy(){
