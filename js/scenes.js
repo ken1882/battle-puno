@@ -873,11 +873,11 @@ class Scene_Game extends Scene_Base{
   }
   /*-------------------------------------------------------------------------*/
   createDeckSprite(){
-    let st = Graphics.addSprite(Graphics.CardBack);
+    let st = Graphics.addSprite(Graphics.CardBack).show();
     let sb = Graphics.addSprite(Graphics.CardEmpty).hide();
     this.deckSprite = new SpriteCanvas(0, 0, st.width, st.height).setZ(0x10);
-    this.deckSprite.addChild(st);
-    this.deckSprite.addChild(sb);
+    this.deckSprite.addChild(st); this.deckSprite.top = st;
+    this.deckSprite.addChild(sb); this.deckSprite.bot = sb;
     let sx = Graphics.appCenterWidth(st.width) - 100;
     let sy = Graphics.appCenterHeight(st.height / 2);
     this.deckSprite.setPOS(sx, sy).activate().scale.set(0.5, 0.5);
@@ -885,6 +885,8 @@ class Scene_Game extends Scene_Base{
       this.showHintWindow(null,null,Vocab["HelpDeck"] + this.getDeckLeftNumber)
     });
     this.deckSprite.on('mouseout', ()=>{this.hideHintWindow()});
+    this.deckSprite.on('click', ()=>{this.onDeckTrigger()})
+    this.deckSprite.on('tap', ()=>{this.onDeckTrigger()})
     Graphics.renderSprite(this.deckSprite);
   }
   /*-------------------------------------------------------------------------*/
@@ -1064,6 +1066,7 @@ class Scene_Game extends Scene_Base{
     let totalWidth   = cardWidth + (cardWidth * stackPortion * (cardSize - 1));
     let cur_player   = this.players[index];
     let base_pos     = (canvasWidth - totalWidth) / 2;
+    this.animationCount += 1;
     if(!(side&1)){
       for(let i in cur_player.hand){
         let card = cur_player.hand[i];
@@ -1071,11 +1074,9 @@ class Scene_Game extends Scene_Base{
         card.sprite.setPOS(canvasWidth/2,canvasHeight/2).setZ(0x11 + parseInt(i));
         let dx = base_pos + cardWidth * stackPortion * next_index + cardWidth / 2;
         let dy = (side == 0) ? canvasHeight - cardHeight + cardHeight / 2 : cardHeight / 2;
-        this.animationCount += 1;
         hcs.addChild(card.sprite);
-        card.sprite.moveto(dx, dy, function(){
-          this.animationCount -= 1;
-        }.bind(this));
+        card.sprite.moveto(dx, dy);
+        card.lastZ = card.sprite.z; card.lastY = dy;
       }
     }
     else{
@@ -1085,13 +1086,12 @@ class Scene_Game extends Scene_Base{
         card.sprite.setPOS(canvasWidth/2,canvasHeight/2).setZ(0x11 + parseInt(i));
         let dy = base_pos + cardWidth * stackPortion * next_index + cardWidth / 2;
         let dx = (side == 1) ? Graphics.spacing + cardHeight/2: canvasHeight - cardHeight + cardHeight / 2;
-        this.animationCount += 1;
         hcs.addChild(card.sprite);
-        card.sprite.moveto(dx, dy, function(){
-          this.animationCount -= 1;
-        }.bind(this));
+        card.sprite.moveto(dx, dy);
+        card.lastZ = card.sprite.z; card.lastY = dy;
       }
     }
+    setTimeout(()=>{this.animationCount -= 1}, 1000);
     hcs.sortChildren();
     this.players[index].lastHand = this.players[index].hand.slice();
   }
@@ -1173,12 +1173,23 @@ class Scene_Game extends Scene_Base{
     }
   }
   /*-------------------------------------------------------------------------*/
-  updateHintWindow(){
+  updateHintWindow(txt=null){
     if(!this.hintWindow){return ;}
+    if(!this.hintWindow.visible){return ;}
     let x = Input.mouseAppPOS[0];
     let y = Input.mouseAppPOS[1];
-    if(x && y){
-      this.hintWindow.setPOS(x, y);
+    if(txt){this.hintWindow.setText(txt);}
+    if(x && y){this.hintWindow.setPOS(x, y);}
+  }
+  /*-------------------------------------------------------------------------*/
+  updateDeckInfo(){
+    this.updateHintWindow(Vocab["HelpDeck"] + this.getDeckLeftNumber);
+    if(this.game.deck.length == 0){
+      this.deckSprite.top.hide();
+      this.deckSprite.bot.show();
+    }else{
+      this.deckSprite.bot.hide();
+      this.deckSprite.top.show();
     }
   }
   /*-------------------------------------------------------------------------*/
@@ -1212,10 +1223,8 @@ class Scene_Game extends Scene_Base{
   /*-------------------------------------------------------------------------*/
   showCardInfo(card){
     let info = this.getCardHelp(card);
-    card.lastZ = card.sprite.z;
-    card.lastY = card.sprite.y;
     card.sprite.setZ(0x30).scale.set(0.6, 0.6);
-    card.sprite.setPOS(null, card.sprite.y - 32);
+    card.sprite.setPOS(null, card.lastY - 32);
     this.handCanvas[0].sortChildren();
     this.showHintWindow(null, null, info);
   }
@@ -1298,6 +1307,7 @@ class Scene_Game extends Scene_Base{
       sprite.setPOS(sx, sy).render();
       card.sprite = sprite;
       sprite.instance = card;
+      this.updateDeckInfo();
     }
     else{
       let pos = card.sprite.worldTransform;
@@ -1319,10 +1329,10 @@ class Scene_Game extends Scene_Base{
       let ar = (parseInt(i)+1 == cards.length)
       setTimeout(this.processCardDrawAnimation.bind(this, pid, cards[i], show, ar,i), wt * i);
     }
+    this.updateDeckInfo();
   }
   /*-------------------------------------------------------------------------*/
   processCardDrawAnimation(pid, card, show=false, ar=false,ord=0){
-    this.animationCount += 1;
     let sprite = this.getIdleCardSprite().show();
     sprite.render();
     sprite.playerIndex = pid;
@@ -1337,23 +1347,37 @@ class Scene_Game extends Scene_Base{
       sprite.setPOS(sx, sy).rotateDegree(deg);
     }
     Sound.playCardDraw();
-    let fallback = function(){
-      sprite.texture = Graphics.loadTexture(this.getCardImage(card));
+    sprite.instance = card;  
+    this.animationCount += 1;
+    sprite.moveto(dx, dy, function(){
       this.animationCount -= 1;
+      sprite.texture = Graphics.loadTexture(this.getCardImage(card));
       if(show){setTimeout(this.sendCardToDeck.bind(this, pid, card), 2000);}
       else if(ar){this.arrangeHandCards(pid)}
       if(pid == 0){this.attachCardInfo(card);}
-    }.bind(this);
-    sprite.instance = card;  
-    sprite.moveto(dx, dy, fallback);
+    }.bind(this));
   }
   /*-------------------------------------------------------------------------*/
   onCardTrigger(card){
-    if(this.game.isCardPlayable(card)){
+    if(this.playerPhase && this.game.isCardPlayable(card)){
       Sound.playOK();
+      this.game.discard(card);
+      this.processUserTurnEnd();
     }
     else{
       Sound.playBuzzer();
+    }
+  }
+  /*-------------------------------------------------------------------------*/
+  onDeckTrigger(){
+    if(!this.playerPhase){
+      return Sound.playBuzzer();
+    }
+    else{
+      let cards = GameManager.game.deck.draw(1);
+      this.players[0].deal(cards);
+      GameManager.onCardDraw(0, cards);
+      this.processUserTurnEnd();
     }
   }
   /*-------------------------------------------------------------------------*/

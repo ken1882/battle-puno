@@ -920,6 +920,9 @@ class Input{
     this.state_changed    = false;
     this.reset_needed     = false;
     this.wheelstate       = 0;
+    this.mouseAppPOS      = [0, 0];
+    this.mouseClientPOS   = [0, 0];
+    this.mousePagePOS     = [0, 0];
     this.setupEventHandlers();
   }
   /**-------------------------------------------------------------------------
@@ -1191,7 +1194,7 @@ class Sound{
       src: [filename],
       volume: Sound._masterVolume,
       onload: function(){Sound.reportLoadProgress(filename)},
-      onfade: this.onAudioFadeComplete,
+      onfade: function(SoundID){Sound.onAudioFadeComplete(SoundID)},
       onstop: function(soundID){Sound.unregisterAudio(soundID);}, 
       onend: function(soundID){Sound.unregisterAudio(soundID);},
       onloaderror: function(sid, msg){
@@ -1631,6 +1634,7 @@ class Sprite extends PIXI.Sprite{
   moveto(x, y, fallback=null){
     if(x == null){x = this.x;}
     if(y == null){y = this.y;}
+    if(this.isMoving){this.callMoveCompleteFunction();}
     this.moveCompleteFallback = fallback;
     this.realX = x;
     this.realY = y;
@@ -1670,6 +1674,7 @@ class Sprite extends PIXI.Sprite{
   }
   /*-------------------------------------------------------------------------*/
   setPOS(x, y){
+    if(this.isMoving){this.callMoveCompleteFunction();}
     super.setPOS(x, y);
     this.realX = this.x;
     this.realY = this.y;
