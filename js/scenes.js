@@ -1056,8 +1056,11 @@ class Scene_Game extends Scene_Base{
   }
   /*-------------------------------------------------------------------------*/
   createSelectionWindow(){
-    this.selectionWindow = new Widdow_CardSelection(0, 0, 300, 150);
+    this.selectionWindow = new Window_CardSelection(0, 0, 300, 150);
     this.selectionWindow.hide().setZ(0x30).render();
+    this.selectionWindow.setHandler('cancel', ()=>{
+      this.onUserAbilityCancel();
+    });
   }
   /*-------------------------------------------------------------------------*/
   arrangeHandCards(index){
@@ -1370,14 +1373,81 @@ class Scene_Game extends Scene_Base{
   /*-------------------------------------------------------------------------*/
   onCardTrigger(card){
     if(this.playerPhase && this.game.isCardPlayable(card)){
-      Sound.playOK();
-      this.hideCardInfo(card);
-      this.game.discard(this.game.currentPlayer().findCard(card));
-      this.processUserTurnEnd();
+      if(this.game.isCardAbilitySelectionNeeded(card)){
+        this.processCardAbilitySelection(card);
+        this.raiseOverlay(this.selectionWindow);
+      }
+      else{this.onUserCardPlay(card, null);}
     }
     else{
       Sound.playBuzzer();
     }
+  }
+  /*-------------------------------------------------------------------------*/
+  processCardAbilitySelection(card){
+    let effid = this.selectionWindow.setupCard(card);
+    switch(effid){
+      case Effect.CLEAR_DAMAGE:
+        return this.setupZeroHandlers(card);
+      case Effect.TRADE:
+        return this.setupTradeHandlers(card);
+      case Effect.CHOOSE_COLOR:
+        return this.setupColorSelectionHandlers(card);
+      default:
+        throw new Error(`Unknown Card Selection: ${effid}, ${card}`)
+    }
+  }
+  /*-------------------------------------------------------------------------*/
+  setupZeroHandlers(card){
+    this.selectionWindow.setHandler(0, ()=>{
+      this.onUserAbilityDecided(card, 0)
+    });
+    this.selectionWindow.setHandler(1, ()=>{
+      this.onUserAbilityDecided(card, 1)
+    });
+  }
+  /*-------------------------------------------------------------------------*/
+  setupTradeHandlers(card){
+    let alives = this.game.getAlivePlayers();
+    for(let i in alives){
+      this.selectionWindow.setHandler(parseInt(i), ()=>{
+        this.onUserCardPlay(card, this.players.indexOf(alives[i]))
+      })
+    }
+  }
+  /*-------------------------------------------------------------------------*/
+  setupColorSelectionHandlers(card){
+    this.selectionWindow.setHandler(0, ()=>{
+      this.onUserAbilityDecided(card, Color.RED)
+    });
+    this.selectionWindow.setHandler(1, ()=>{
+      this.onUserAbilityDecided(card, Color.YELLOW)
+    });
+    this.selectionWindow.setHandler(2, ()=>{
+      this.onUserAbilityDecided(card, Color.GREEN)
+    });
+    this.selectionWindow.setHandler(3, ()=>{
+      this.onUserAbilityDecided(card, Color.BLUE)
+    });
+  }
+  /*-------------------------------------------------------------------------*/
+  onUserCardPlay(card, ext){
+    Sound.playOK();
+    this.detachCardInfo(card);
+    this.hideCardInfo(card);
+    this.game.discard(this.game.currentPlayer().findCard(card), ext);
+    this.processUserTurnEnd();
+  }
+  /*-------------------------------------------------------------------------*/
+  onUserAbilityCancel(){
+    Sound.playCancel();
+    this.closeOverlay();
+  }
+  /*-------------------------------------------------------------------------*/
+  onUserAbilityDecided(card, ext){
+    Sound.playOK();
+    this.closeOverlay();
+    this.onUserCardPlay(card, ext);
   }
   /*-------------------------------------------------------------------------*/
   onDeckTrigger(){

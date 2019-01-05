@@ -1274,7 +1274,7 @@ class Window_GameOption extends Window_Selectable{
 /**------------------------------------------------------------------------
  * Window for select card ability
  */
-class Widdow_CardSelection extends Window_Selectable{
+class Window_CardSelection extends Window_Selectable{
   /**------------------------------------------------------------------------
    * @constructor 
    */
@@ -1332,6 +1332,7 @@ class Widdow_CardSelection extends Window_Selectable{
       sel.off('click');
       sel.off('tap');
     }
+    return Effect.NULL;
   }
   /*------------------------------------------------------------------------*/
   setupZeroSelection(){
@@ -1342,6 +1343,7 @@ class Widdow_CardSelection extends Window_Selectable{
       sel.text = txts[i];
     }
     this.clearSelection();
+    return Effect.CLEAR_DAMAGE;
   }
   /*------------------------------------------------------------------------*/
   setupColorSelection(){
@@ -1352,16 +1354,18 @@ class Widdow_CardSelection extends Window_Selectable{
       sel.text = txts[i];
     }
     this.clearSelection();
+    return Effect.CHOOSE_COLOR;
   }
   /*------------------------------------------------------------------------*/
   setupPlayerSelection(){
     this.clearSelection();
-    let alives = GameManager.game.players;
+    let alives = GameManager.game.getAlivePlayers();
     for(let i in alives){
-      let sel = this.getItemBySymbol(i);
+      let sel = this.getItemBySymbol(parseInt(i));
       sel.text = alives[i].name;
     }
     this.clearSelection();
+    return Effect.TRADE;
   }
   /*------------------------------------------------------------------------*/
   sortSelections(){
