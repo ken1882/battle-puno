@@ -1594,7 +1594,7 @@ class Sprite extends PIXI.Sprite{
     this.setZ(0);
     this.static = false;
     this.interactive = false;
-    this.speed = 4;
+    this.speed = 8;
     return this;
   }
   /*-------------------------------------------------------------------------*/

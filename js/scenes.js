@@ -817,6 +817,7 @@ class Scene_Game extends Scene_Base{
     this.createCardSpritePool();
     this.createHandCanvas();
     this.createHintWindow();
+    this.createSelectionWindow();
   }
   /*-------------------------------------------------------------------------*/
   start(){
@@ -1054,6 +1055,10 @@ class Scene_Game extends Scene_Base{
     this.cursor.setZ(0x20).render();
   }
   /*-------------------------------------------------------------------------*/
+  createSelectionWindow(){
+    this.selectionWindow = new Window_Selectable(0, 0, 300, 150);
+  }
+  /*-------------------------------------------------------------------------*/
   arrangeHandCards(index){
     let hcs  = this.handCanvas[index];
     let side = index % 4;
@@ -1069,36 +1074,27 @@ class Scene_Game extends Scene_Base{
     let deg = index * (360 / GameManager.playerNumber);
     this.animationCount += 1;
     console.log("Arrange " + index);
-    if(!(side&1)){
-      for(let i in cur_player.hand){
-        let card = cur_player.hand[i];
-        let next_index = (side == 0) ? i : cardSize - i - 1;
-        card.sprite.setPOS(canvasWidth/2,canvasHeight/2).setZ(0x11 + parseInt(i));
-        let dx = base_pos + cardWidth * stackPortion * next_index + cardWidth / 2;
-        let dy = (side == 0) ? canvasHeight - cardHeight + cardHeight / 2 : cardHeight / 2;
-        hcs.addChild(card.sprite);
-        card.sprite.rotateDegree(deg);
-        card.sprite.moveto(dx, dy);
-        card.lastZ = card.sprite.z; card.lastY = dy;
-        if(index == 0 && !card.attached){this.attachCardInfo(card);}
+    for(let i in cur_player.hand){
+      let dx = 0, dy = 0;
+      let card = cur_player.hand[i];
+      let next_index = (side <= 1) ? i : cardSize - i - 1;
+      if(!(side&1)){
+        dx = base_pos + cardWidth * stackPortion * next_index + cardWidth / 2;
+        dy = (side == 0) ? canvasHeight - cardHeight + cardHeight / 2 : cardHeight / 2;
       }
-    }
-    else{
-      for(let i in cur_player.hand){
-        let card = cur_player.hand[i];
-        let next_index = (side == 1) ? i : cardSize - i - 1;
-        card.sprite.setPOS(canvasWidth/2,canvasHeight/2).setZ(0x11 + parseInt(i));
-        let dy = base_pos + cardWidth * stackPortion * next_index + cardWidth / 2;
-        let dx = (side == 1) ? Graphics.spacing + cardHeight/2: canvasHeight - cardHeight + cardHeight / 2;
-        hcs.addChild(card.sprite);
-        card.sprite.rotateDegree(deg);
-        card.sprite.moveto(dx, dy);
-        card.lastZ = card.sprite.z; card.lastY = dy;
+      else{
+        dy = base_pos + cardWidth * stackPortion * next_index + cardWidth / 2;
+        dx = (side == 1) ? Graphics.spacing + cardHeight/2: canvasHeight - cardHeight + cardHeight / 2;
       }
+      card.sprite.setPOS(canvasWidth/2,canvasHeight/2).setZ(0x11 + parseInt(i));
+      hcs.addChild(card.sprite);
+      card.sprite.rotateDegree(deg);
+      card.sprite.moveto(dx, dy);
+      card.lastZ = card.sprite.z; card.lastY = dy;
+      if(index == 0 && !card.attached){this.attachCardInfo(card);}
     }
     setTimeout(()=>{this.animationCount -= 1}, 1000);
     hcs.sortChildren();
-    this.players[index].lastHand = this.players[index].hand.slice();
   }
   /*-------------------------------------------------------------------------*/
   onCardZoomIn(card){

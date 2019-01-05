@@ -501,6 +501,20 @@ class Window_Selectable extends Window_Base{
     return true;
   }
   /*------------------------------------------------------------------------*/
+  getItemByIndex(i){
+    return this._selections[i];
+  }
+  /*------------------------------------------------------------------------*/
+  getItemBySymbol(symbol){
+    for(let i in this._selections){
+      let sym = this._selections[i].symbol
+      if(symbol == sym){
+        return this._selections[i];
+      }
+    }
+    return null;
+  }
+  /*------------------------------------------------------------------------*/
   onSelfTrigger(){
     if(this.index < 0){return ;}
     debug_log(getClassName(this) + " triggered index: " + this.index);
@@ -1254,6 +1268,78 @@ class Window_GameOption extends Window_Selectable{
     ts.on('click', handler);
     ts.on('tap', handler);
     this.addSelection(sp);
+  }
+  /*------------------------------------------------------------------------*/
+}
+/**------------------------------------------------------------------------
+ * Window for select card ability
+ */
+class Widdow_CardSelection extends Window_Selectable{
+  /**------------------------------------------------------------------------
+   * @constructor 
+   */
+  constructor(x, y, w, h){
+    super(x, y, w, h);
+    this.addSelections();
+  }
+  /*------------------------------------------------------------------------*/
+  addSelections(){
+    for(let i=0;i<4;++i){
+      this.addSelection(i);
+    }
+    addCancelSelection();
+  }
+  /*------------------------------------------------------------------------*/
+  addSelection(index){
+    let args = {
+      text: '',
+      symbol: index,
+      align: 1,
+    }
+    this.addTextSelection(args);
+  }
+  /*------------------------------------------------------------------------*/
+  addCancelSelection(){
+    let args = {
+      text: 'Cancel',
+      symbol: 'cancel',
+      align: 1,
+    }
+    this.addTextSelection(args);
+  }
+  /*------------------------------------------------------------------------*/
+  setupCard(card){
+    switch(card.value){
+      case Value.WILD:
+      case Value.WILD_DRAW_FOUR:
+      case Value.WILD_HIT_ALL:
+      case Value.WILD_CHAOS:
+        return setupColorSelection();
+      case Value.TRADE:
+        return setupPlayerSelection();
+      default:
+        return clearSelection();
+    }
+  }
+  /*------------------------------------------------------------------------*/
+  clearSelection(){
+
+  }
+  /*------------------------------------------------------------------------*/
+  setupColorSelection(){
+    let txts = [Vocab.Red, Vocab.Yellow, Vocab.Green, Vocab.Blue];
+    for(let i=0;i<4;++i){
+      let sel = this.getItemBySymbol(i);
+      sel.text = txts[i];
+    }
+  }
+  /*------------------------------------------------------------------------*/
+  setupPlayerSelection(){
+
+  }
+  /*------------------------------------------------------------------------*/
+  get isCurrentItemEnabled(){
+    return (currentItem.text || '').length != 0; 
   }
   /*------------------------------------------------------------------------*/
 }

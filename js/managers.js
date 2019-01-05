@@ -465,6 +465,7 @@ class GameManager{
   }
   /**-------------------------------------------------------------------------
    * Get the effect ID after card played
+   * @param {Number} ext - extra information, -1 = get all
    */
   static interpretCardAbility(card, ext){
     switch(card.value){
