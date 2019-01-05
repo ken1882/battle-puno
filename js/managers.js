@@ -548,7 +548,7 @@ class GameManager{
     this._inTurn = true;
   }
   /*-------------------------------------------------------------------------*/
-  static onTuenEnd(player_id){
+  static onTurnEnd(player_id){
     this._inTurn = false;
   }
   /*-------------------------------------------------------------------------*/
