@@ -1489,10 +1489,11 @@ class Scene_Game extends Scene_Base{
   /*-------------------------------------------------------------------------*/
   setupTradeHandlers(card){
     let alives = this.game.getAlivePlayers();
+    let cnt = 1;
     for(let i in alives){
       if(alives[i] == GameManager.game.players[0]){continue;}
-      this.selectionWindow.setHandler(parseInt(i)+1, ()=>{
-        this.onUserCardPlay(card, this.players.indexOf(alives[i]))
+      this.selectionWindow.setHandler(cnt++, ()=>{
+        this.onUserAbilityDecided(card, this.players.indexOf(alives[i]))
       })
     }
   }
@@ -1665,7 +1666,10 @@ class Scene_Game extends Scene_Base{
         re += 'Any';
     }
     re += " / ";
-    if(this.game.currentValue < 10){
+    if(!this.game.currentValue){
+      re += Vocab.Any;
+    }
+    else if(this.game.currentValue < 10){
       re += this.game.currentValue;
     }
     else{
