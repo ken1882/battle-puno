@@ -1363,9 +1363,10 @@ class Window_CardSelection extends Window_Selectable{
     this.clearSelection();
     let alives = GameManager.game.getAlivePlayers();
     let txts   = [];
+    let cnt    = 1;
     for(let i in alives){
       if(alives[i] == GameManager.game.players[0]){continue;}
-      let sel = this.getItemBySymbol(parseInt(i)+1);
+      let sel = this.getItemBySymbol(cnt++);
       sel.text = alives[i].name;
       txts.push(alives[i].name);
     }
