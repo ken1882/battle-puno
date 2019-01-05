@@ -51,7 +51,7 @@
   "HelpSkip": "Next player forced to skip/Bypass the penalty to next player",
   "HelpReverse": "Reverse the playing order/Counter the penalty to last player",
   "HelpPlusFour": "Next player draws four cards as penalty",
-  "HelpChooseColor": "Choose any color(Red/Yello/Green/Blue) as next color",
+  "HelpChooseColor": "Choose any color as next color",
   "HelpHitAll": "All other player draws two cards as penalty and cannot be avoided",
   "HelpTrade": "Trade your hand cards with another player",
   "HelpChaos": "Next color and number will randomly chosen",

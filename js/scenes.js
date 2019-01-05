@@ -41,6 +41,10 @@ class Scene_Base extends Stage{
       }
     }.bind(this))
   }
+  /*------------------------------------------------------------------------*/
+  sortChildren(){
+    this.children.sort((a,b) => (a.zIndex || 0) - (b.zIndex || 0));
+  }
   /**-------------------------------------------------------------------------
    * @returns {boolean} - whether scene is fading
    */
@@ -96,7 +100,9 @@ class Scene_Base extends Stage{
       return ;
     }
     debug_log("Dispose window: " + getClassName(this._windows[index]));
-    this._windows[index].clear(true);
+    if(Graphics.globalWindows.indexOf(this._windows[index]) == -1){
+      this._windows[index].clear(true)
+    }else{this._windows[index].hide()}
     this._windows.splice(index, 1);
   }
   /**-------------------------------------------------------------------------
@@ -741,14 +747,17 @@ class Scene_Title extends Scene_Base{
   /*-------------------------------------------------------------------------*/
   onGameTraditional(){
     GameManager.changeGameMode(0);
+    SceneManager.goto(Scene_Game);
   }
   /*-------------------------------------------------------------------------*/
   onGameBattlePuno(){
     GameManager.changeGameMode(1);
+    SceneManager.goto(Scene_Game);
   }
   /*-------------------------------------------------------------------------*/
   onGameDeathMatch(){
     GameManager.changeGameMode(2);
+    SceneManager.goto(Scene_Game);
   }
   /*-------------------------------------------------------------------------*/
 }
@@ -801,7 +810,15 @@ class Scene_Game extends Scene_Base{
   /*-------------------------------------------------------------------------*/
   start(){
     super.start();
+    this.playStageBGM();
     setTimeout(this.gameStart.bind(this), 1500);
+  }
+  /*-------------------------------------------------------------------------*/
+  playStageBGM(){
+    if(!this.bgmName){
+      setTimeout(this.playStageBGM.bind(this), 500);
+    }
+    else{Sound.playBGM(this.bgmName);}
   }
   /*-------------------------------------------------------------------------*/
   gameStart(){
@@ -810,7 +827,9 @@ class Scene_Game extends Scene_Base{
       this.players[i].lastHand = this.players[i].hand.slice();
     }
     this.players = this.game.players;
-    console.log("Game players: " + this.game.players);
+    this.createNameSprites();
+    this.createPenaltySprites();
+    this.createDummyWindow();
   }
   /*-------------------------------------------------------------------------*/
   roundStart(){
@@ -823,8 +842,18 @@ class Scene_Game extends Scene_Base{
   /*-------------------------------------------------------------------------*/
   changeAmbient(amb_id){
     this.randomBackground();
-    this.bgmName = Sound["Stage" + amb_id];
-    this.meName  = Sound["Victory" + amb_id];
+    this.changeAmbientMusic(amb_id);
+  }
+  /*-------------------------------------------------------------------------*/
+  changeAmbientMusic(amb_id){
+    if(!Sound.isStageReady()){
+      Sound.loadStageAudio();
+      setTimeout(this.changeAmbientMusic.bind(this, amb_id), 500);
+    }
+    else{
+      this.bgmName = Sound["Stage" + amb_id];
+      this.meName  = Sound["Victory" + amb_id];
+    }
   }
   /*-------------------------------------------------------------------------*/
   createBackground(){
@@ -844,6 +873,7 @@ class Scene_Game extends Scene_Base{
     this.deckSprite.on('mouseover', ()=>{
       this.showHintWindow(null,null,Vocab["HelpDeck"] + this.getDeckLeftNumber)
     });
+    this.deckSprite.on('mousemove', ()=>{this.updateHintWindow()})
     this.deckSprite.on('mouseout', ()=>{this.hideHintWindow()});
     Graphics.renderSprite(this.deckSprite);
   }
@@ -856,8 +886,9 @@ class Scene_Game extends Scene_Base{
     this.discardPile.activate().setZ(0x10);
     if(DebugMode){this.discardPile.fillRect(0, 0, sw, sh).setZ(0).setOpacity(0.5);}
     this.discardPile.on("mouseover", ()=>{
-      this.showHintWindow(null,null, Vocab["HelpDiscardPile"] + this.getLastCardInfo)
+      this.showHintWindow(null,null, this.getLastCardInfo())
     });
+    this.discardPile.on('mousemove', ()=>{this.updateHintWindow()})
     this.discardPile.on("mouseout",()=>{this.hideHintWindow()});
     Graphics.renderSprite(this.discardPile);
   }
@@ -923,7 +954,6 @@ class Scene_Game extends Scene_Base{
           if(partWidth > hcs.width){sx = (partWidth - hcs.width) / 2;}
           // Align bottom if i == 0 (down)
           sy = (i == 0) ? Graphics.height - hcs.height : Graphics.spacing;
-          hcs.setPOS(sx, sy);
         }
         // left/right
         else{
@@ -932,12 +962,85 @@ class Scene_Game extends Scene_Base{
           if(partHeight > hcs.height){sy = (partHeight - hcs.height) / 2;}
           // Align left if i == 1 (left)
           sx = (i == 1) ? Graphics.spacing : Graphics.width - hcs.width;
-          hcs.setPOS(sx, sy);
         }
-
+        hcs.setPOS(sx, sy).setZ(0x10);
         if(DebugMode){hcs.fillRect(0, 0, hcs.width, hcs.height).setOpacity(0.5);}
       }
     }
+  }
+  /*-------------------------------------------------------------------------*/
+  createNameSprites(){
+    this.nameCanvas = []
+    for(let i in this.handCanvas){
+      i = parseInt(i);
+      let side = i % 4;
+      let sp = new SpriteCanvas(0, 0, 150, 24);
+      let font = clone(Graphics.DefaultFontSetting);
+      font.fill = 0x000000;
+      let txt = sp.drawText(0, 0, this.players[i].name, font);
+      let sx = 0, sy = 0;
+      if(side == 0){
+        sx = this.handCanvas[i].x - txt.width;
+        sy = this.handCanvas[i].y + this.handCanvas[i].height - txt.height - Graphics.spacing;
+      }
+      else if(side == 1){
+        sx = this.handCanvas[i].x;
+        sy = this.handCanvas[i].y - txt.height;
+      }
+      else if(side == 2){
+        sx = this.handCanvas[i].x + this.handCanvas[i].width;
+        sy = this.handCanvas[i].y;
+      }
+      else if(side == 3){
+        sx = this.handCanvas[i].x + this.handCanvas[i].width - txt.width;
+        sy = this.handCanvas[i].y + this.handCanvas[i].height;
+      }
+      sp.textSprite = txt;
+      this.nameCanvas.push(sp.setPOS(sx, sy).setZ(0x10));
+      sp.render();
+    }
+  }
+  /*-------------------------------------------------------------------------*/
+  createPenaltySprites(){
+    this.penaltyCanvas = []
+    for(let i in this.handCanvas){
+      i = parseInt(i);
+      let side = i % 4;
+      let sp = new SpriteCanvas(0, 0, 150, 24);
+      let font = clone(Graphics.DefaultFontSetting);
+      font.fill = 0x000000;
+      let txt = sp.drawText(0, 0, this.players[i].name, font);
+      let sx = 0, sy = 0;
+      if(side == 0){
+        sx = this.handCanvas[i].x + this.handCanvas[i].x;
+        sy = this.nameCanvas[i].y
+      }
+      else if(side == 1){
+        sx = this.nameCanvas[i].x;
+        sy = this.handCanvas[i].y + this.handCanvas[i].height;
+      }
+      else if(side == 2){
+        sx = this.handCanvas[i].x - this.nameCanvas[i].width;
+        sy = this.nameCanvas[i].y;
+      }
+      else if(side == 3){
+        sx = this.nameCanvas[i].x;
+        sy = this.handCanvas[i].y - this.nameCanvas[i].height;
+      }
+      sp.textSprite = txt;
+      this.penaltyCanvas.push(sp.setPOS(sx, sy).setZ(0x10));
+      sp.render();
+    }
+  }
+  /*-------------------------------------------------------------------------*/
+  createDummyWindow(){
+    this.dummy = new Window_Selectable(0, 0, 300, 150);
+    this.dummy.changeSkin(Graphics.WSkinTrans);
+    Graphics.renderWindow(this.dummy);
+    this.dummy.hide();
+    this.cursor = this.dummy.cursorSprite;
+    this.dummy.removeChild(this.cursor);
+    this.cursor.setZ(0x20).render();
   }
   /*-------------------------------------------------------------------------*/
   arrangeHandCards(index){
@@ -955,8 +1058,9 @@ class Scene_Game extends Scene_Base{
     if(!(side&1)){
       for(let i in cur_player.hand){
         let card = cur_player.hand[i];
+        let next_index = (side == 0) ? i : cardSize - i - 1;
         card.sprite.setPOS(canvasWidth/2,canvasHeight/2).setZ(0x11 + parseInt(i));
-        let dx = base_pos + cardWidth * stackPortion * i + cardWidth / 2;
+        let dx = base_pos + cardWidth * stackPortion * next_index + cardWidth / 2;
         let dy = (side == 0) ? canvasHeight - cardHeight + cardHeight / 2 : cardHeight / 2;
         this.animationCount += 1;
         hcs.addChild(card.sprite);
@@ -968,8 +1072,9 @@ class Scene_Game extends Scene_Base{
     else{
       for(let i in cur_player.hand){
         let card = cur_player.hand[i];
+        let next_index = (side == 1) ? i : cardSize - i - 1;
         card.sprite.setPOS(canvasWidth/2,canvasHeight/2).setZ(0x11 + parseInt(i));
-        let dy = base_pos + cardWidth * stackPortion * i + cardWidth / 2;
+        let dy = base_pos + cardWidth * stackPortion * next_index + cardWidth / 2;
         let dx = (side == 1) ? Graphics.spacing + cardHeight/2: canvasHeight - cardHeight + cardHeight / 2;
         this.animationCount += 1;
         hcs.addChild(card.sprite);
@@ -1020,10 +1125,11 @@ class Scene_Game extends Scene_Base{
   }
   /*-------------------------------------------------------------------------*/
   createHintWindow(){
-    this.hintWindow = new Window_Help(0, 0, 200, 100);
+    this.hintWindow = new Window_Help(0, 0, 250, 120);
     this.hintWindow.changeSkin(Graphics.WSkinTrans);
     this.hintWindow.font.fontSize = 16;
     this.hintWindow.padding_left  = 20;
+    this.hintWindow.hoverNumber   = 0;
     this.hintWindow.setZ(0x20).hide().render();
   }
   /*-------------------------------------------------------------------------*/
@@ -1043,35 +1149,60 @@ class Scene_Game extends Scene_Base{
     }
   }
   /*-------------------------------------------------------------------------*/
+  updateHintWindow(){
+    if(!this.hintWindow){return ;}
+    let x = Input.mouseAppPOS[0];
+    let y = Input.mouseAppPOS[1];
+    if(x && y){
+      this.hintWindow.setPOS(x, y);
+    }
+  }
+  /*-------------------------------------------------------------------------*/
   showHintWindow(x, y, txt = ''){
+    this.hintWindow.hoverNumber += 1;
     if(x === null){x = Input.mouseAppPOS[0];}
     if(y === null){y = Input.mouseAppPOS[1];}
     this.hintWindow.show().setPOS(x, y).setText(txt);
   }
   /*-------------------------------------------------------------------------*/
   hideHintWindow(){
-    this.hintWindow.hide();
+    this.hintWindow.hoverNumber -= 1;
+    if(this.hintWindow.hoverNumber == 0){this.hintWindow.hide();}
   }
   /*-------------------------------------------------------------------------*/
   attachCardInfo(card){
     if(!card.sprite){return ;}
+    card.sprite.activate();
     card.sprite.on('mouseover', ()=>{this.showCardInfo(card)})
-    card.sprite.on('mouseout',  ()=>{this.hideHintWindow()})
+    card.sprite.on('mousemove', ()=>{this.updateHintWindow()})
+    card.sprite.on('mouseout',  ()=>{this.hideCardInfo(card)})
   }
   /*-------------------------------------------------------------------------*/
   detachCardInfo(card){
     if(!card.sprite){return ;}
-    this.hideCardInfo(card);
+    card.sprite.deactivate();
     card.sprite.removeAllListeners();
   }
   /*-------------------------------------------------------------------------*/
   showCardInfo(card){
-    info = this.getCardHelp(card);
-    this.showHintWindow(cars.sprite.x, card.sprite.y, info);
+    let info = this.getCardHelp(card);
+    card.lastZ = card.sprite.z;
+    card.lastY = card.sprite.y;
+    card.sprite.setZ(0x30).scale.set(0.6, 0.6);
+    card.sprite.setPOS(null, card.sprite.y - 32);
+    this.handCanvas[0].sortChildren();
+    this.showHintWindow(null, null, info);
+  }
+  /*-------------------------------------------------------------------------*/
+  hideCardInfo(card){
+    card.sprite.setZ(card.lastZ).scale.set(0.5, 0.5);
+    card.sprite.setPOS(null, card.lastY);
+    this.handCanvas[0].sortChildren();
+    this.hideHintWindow();
   }
   /*-------------------------------------------------------------------------*/
   getCardHelp(card){
-    re = ''
+    let re = ''
     switch(card.color){
       case Color.RED:
         re += Vocab.HelpColorRed + '; '; break;
@@ -1097,12 +1228,12 @@ class Scene_Game extends Scene_Base{
       default:
         re += this.getEffectsHelp(GameManager.interpretCardAbility(card, 0));
     }
-    re += getCharacterHelp(card);
+    re += this.getCharacterHelp(card);
     return re;
   }
   /*-------------------------------------------------------------------------*/
   getEffectsHelp(effects){
-    re = '';
+    let re = '';
     for(let i in effects){
       let eff = effects[i];
       switch(eff){
@@ -1128,8 +1259,8 @@ class Scene_Game extends Scene_Base{
     return re;
   }
   /*-------------------------------------------------------------------------*/
-  getCardHelp(card){
-    return '';
+  getCharacterHelp(card){
+    return ''
   }
   /*-------------------------------------------------------------------------*/
   onCardPlay(pid, card, effects){
@@ -1139,16 +1270,17 @@ class Scene_Game extends Scene_Base{
       let sy = this.deckSprite.y + this.deckSprite.height / 2;
       sprite.setPOS(sx, sy);
       let img = this.getCardImage(card);
-      console.log(img)
       sprite.texture = Graphics.loadTexture(img); 
       card.sprite = sprite;
       sprite.instance = card;
     }
     else{
-      let pos = card.sprite.getGlobalPosition();
+      let pos = card.sprite.worldTransform;
       this.handCanvas[pid].removeChild(card.sprite);
-      card.sprite.setPOS(pos[0], pos[1]);
+      card.sprite.setPOS(pos.tx, pos.ty);
     }
+    this.detachCardInfo(card);
+    Sound.playCardPlace();
     card.sprite.setZ(0x20).handIndex = -1;
     card.sprite.playerIndex = -1;
     console.log("Card play: " + pid, card);
@@ -1178,11 +1310,13 @@ class Scene_Game extends Scene_Base{
       dy = this.handCanvas[pid].y + this.handCanvas[pid].height / 2;
       sprite.setPOS(sx, sy).rotateDegree(deg);
     }
+    Sound.playCardDraw();
     let fallback = function(){
       sprite.texture = Graphics.loadTexture(this.getCardImage(card));
       this.animationCount -= 1;
       if(show){setTimeout(this.sendCardToDeck.bind(this, pid, card), 2000);}
       else if(ar){this.arrangeHandCards(pid)}
+      if(pid == 0){this.attachCardInfo(card);}
     }.bind(this);
     sprite.instance = card;  
     sprite.moveto(dx, dy, fallback);
@@ -1234,11 +1368,16 @@ class Scene_Game extends Scene_Base{
       default:
         symbol += card.value;
     }
-    if(card.value > 9 && card.numID > 0){symbol += '_' + (card.numID + 1);}
+    if(card.value > 9 && card.numID > 0){
+      let tmp = symbol + '_' + (card.numID + 1);
+      if(Graphics[tmp]){symbol = tmp;}
+    }
+    // debug_log("Card Image Symbol: " + symbol);
     return Graphics[symbol];
   }
   /*-------------------------------------------------------------------------*/
   processUserTurn(pid){
+    this.setCursor(pid);
     this.playerPhase = true;
   }
   /*-------------------------------------------------------------------------*/
@@ -1247,7 +1386,16 @@ class Scene_Game extends Scene_Base{
   }
   /*-------------------------------------------------------------------------*/
   processNPCTurn(pid){
-    
+    this.setCursor(pid);
+  }
+  /*-------------------------------------------------------------------------*/
+  setCursor(pid){
+    let sx = this.nameCanvas[pid].x - Graphics.spacing;
+    let sy = this.nameCanvas[pid].y - Graphics.spacing;
+    let sw = this.nameCanvas[pid].textSprite.width + Graphics.padding + Graphics.spacing;
+    let sh = Graphics.lineHeight;
+    this.dummy.resize(sw, sh);
+    this.cursor.setPOS(sx, sy).show();
   }
   /*-------------------------------------------------------------------------*/
   applyColorChangeEffect(cid){
@@ -1274,8 +1422,34 @@ class Scene_Game extends Scene_Base{
     return this.playerPhase;
   }
   /*-------------------------------------------------------------------------*/
-  get getLastCardInfo(){
-    return '';
+  getLastCardInfo(){
+    if(!this.game || !this.game.currentColor){return 'No cards played yet';}
+    let re = 'Current Color/Value: ';
+    switch(this.game.currentColor){
+      case Color.RED:
+        re += 'Red'; break;
+      case Color.BLUE:
+        re += 'Blue'; break;
+      case Color.GREEN:
+        re += 'Green'; break;
+      case Color.YELLOW:
+        re += 'Yellow'; break;
+      default:
+        re += 'Any';
+    }
+    re += " / ";
+    if(this.game.currentValue < 10){
+      re += this.game.currentValue;
+    }
+    else{
+      for(let p in Value){
+        if(!Value.hasOwnProperty(p)){continue;}
+        if(Value[p] == this.game.currentValue){
+          re += capitalize(p);
+        }
+      }
+    }
+    return re;
   }
   /*-------------------------------------------------------------------------*/
   get getDeckLeftNumber(){

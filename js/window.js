@@ -296,6 +296,7 @@ class Window_Base extends SpriteCanvas{
   drawText(x = 0, y = 0, text = '', font = Graphics.DefaultFontSetting, autowrap = false){
     if(!font){font = Graphics.DefaultFontSetting;}
     if(autowrap){text = this.textWrap(text);}
+    console.log("Wrapped: " + text);
     let ts = new PIXI.Text(text, font);
     x += this.padding / 2; y += this.padding / 2;
     ts.setPOS(x, y).setZ(2);

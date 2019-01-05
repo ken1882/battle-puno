@@ -177,6 +177,14 @@ function shuffleArray(ar){
 function toRad(deg){
   return deg * Math.PI / 180;
 }
+/**--------------------------------------------------------------------------
+ * Capitalize string
+ */
+function capitalize(str){
+  let tmp = str.toLowerCase();
+  if(tmp.length){tmp[0] = tmp[0].toUpperCase()}
+  return tmp;
+}
 /**----------------------------------------------------------------------------
  * > Check whether the object is interable 
  * @param {Object} obj - the object to checl
@@ -426,6 +434,7 @@ class Graphics{
     let font = clone(this.DefaultFontSetting)
     font.fontSize = 18;
     this.FPSSprite = new PIXI.Text("FPS: ", font);
+    this.FPSSprite.setZ(0x100);
   }
   /*---------------------------------------------------------------------------*/
   static createOptionWindow(){
@@ -1152,7 +1161,8 @@ class Sound{
     this.track         = {};
     this._loadProgress = 0;
     this._stackedBGM   = null;
-     
+    this._stageProgres = [];
+    
     this.loadVolumeSetting();
     this.loadAudioEnable();
     this.preloadAllAudio();
@@ -1192,6 +1202,7 @@ class Sound{
   }
   /*-------------------------------------------------------------------------*/
   static loadStageAudio(){
+    if(this._loadingStage){return ;}
     debug_log("Load stage audios...")
     $.getJSON('js/json/stage_audio.json', function(data){
       for(prop in data){
@@ -1200,7 +1211,8 @@ class Sound{
         Sound.resources.push(data[prop]);
         Sound.loadAudio(data[prop])
       }
-    })
+    }.bind(this))
+    this._loadingStage = true;
   }
   /*-------------------------------------------------------------------------*/
   static registerAudio(soundInstance){
@@ -1248,6 +1260,10 @@ class Sound{
   /*-------------------------------------------------------------------------*/
   static isReady(){
     return this._loadProgress == this.resources.length;
+  }
+  /*-------------------------------------------------------------------------*/
+  static isStageReady(){
+    return this._loadingStage && this.isReady();
   }
   /*-------------------------------------------------------------------------*/
   static get loadProgress(){
@@ -1778,7 +1794,7 @@ class Sprite extends PIXI.Sprite{
       else{
         endl = true;
       }
-
+      
       if(endl){
         formated += line;
         if(strings.length > 0){formated += '\n';}
@@ -1786,6 +1802,7 @@ class Sprite extends PIXI.Sprite{
         curW = paddingW;
       }
     }
+    if(line.length > 0){formated += line;}
     return formated;
   }
   /*-------------------------------------------------------------------------*/

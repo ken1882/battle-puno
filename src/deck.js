@@ -20,7 +20,10 @@ class Deck {
         continue;
       }
       for (let i = 0; i < wildCard.numCards; ++i) {
-        this.deck.push(new Card(Color.WILD, value));
+        let _card = new Card(Color.WILD, value);
+        // Load different image with same value and color
+        _card.numID = i;
+        this.deck.push(_card);
       }
     }
     this.shuffle();
