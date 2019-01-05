@@ -65,8 +65,8 @@ class PunoGame {
   }
 
   isCardPlayable(card) {
-    if (penaltyStack.length != 0) {
-      if (penaltyStack[0].value === Value.SKIP)  return false;
+    if (this.penaltyStack.length != 0) {
+      if (this.penaltyStack[0].value === Value.SKIP)  return false;
       return (card.isEqual(new Card(this.currentColor, Value.SKIP)) ||
               card.isEqual(new Card(this.currentColor, Value.REVERSE)));
     }

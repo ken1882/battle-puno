@@ -20,8 +20,10 @@ class Scene_Base extends Stage{
     this._windows = [];
     this._fadingFlag = 0;
     this._fadingTimer = 0;
+    this.fadeDuration = 30;
     this._buttonCooldown = new Array(0xff);
     this._fadingSprite = Graphics.fadingSprite;
+    this._terminating  = false;
   }
   /**-------------------------------------------------------------------------
    * > Frame update
@@ -35,6 +37,7 @@ class Scene_Base extends Stage{
   updateChildren(){
     this.children.forEach(function(child){
       if(child.update){
+        if(this._terminating && child.isWindow){return ;}
         if(!this.overlay || !child.isWindow || child === this.overlay){
           child.update();
         }
@@ -54,6 +57,8 @@ class Scene_Base extends Stage{
   /*-------------------------------------------------------------------------*/
   preTerminate(){
     debug_log("Scene pre-terminate: " + getClassName(this));
+    this._terminating = true;
+    Sound.fadeOutAll();
     this.startFadeOut();
     this.deactivateChildren();
   }
@@ -144,19 +149,19 @@ class Scene_Base extends Stage{
     });
   }
   /*-------------------------------------------------------------------------*/
-  startFadeIn(duration){
+  startFadeIn(duration = this.fadeDuration){
     Graphics.renderSprite(Graphics.fadingSprite);
     this._fadingSprite.show();
     this._fadeSign = 1;
-    this._fadingTimer = duration || 30;
+    this._fadingTimer = duration;
     this._fadingSprite.setOpacity(1);
   }
   /*-------------------------------------------------------------------------*/
-  startFadeOut(duration){
+  startFadeOut(duration = this.fadeDuration){
     Graphics.renderSprite(Graphics.fadingSprite);
     this._fadingSprite.show();
     this._fadeSign = -1;
-    this._fadingTimer = duration || 30;
+    this._fadingTimer = duration;
     this._fadingSprite.setOpacity(0);
   }
   /*-------------------------------------------------------------------------*/
@@ -619,6 +624,7 @@ class Scene_Title extends Scene_Base{
     Graphics.addWindow(this.menu);
     this.menu.activate();
     this.particles.forEach(function(sp){sp.render();})
+    this.fadeDuration = 60;
   }
   /*-------------------------------------------------------------------------*/
   create(){
@@ -746,16 +752,19 @@ class Scene_Title extends Scene_Base{
   }
   /*-------------------------------------------------------------------------*/
   onGameTraditional(){
+    Sound.playOK();
     GameManager.changeGameMode(0);
     SceneManager.goto(Scene_Game);
   }
   /*-------------------------------------------------------------------------*/
   onGameBattlePuno(){
+    Sound.playOK();
     GameManager.changeGameMode(1);
     SceneManager.goto(Scene_Game);
   }
   /*-------------------------------------------------------------------------*/
   onGameDeathMatch(){
+    Sound.playOK2();
     GameManager.changeGameMode(2);
     SceneManager.goto(Scene_Game);
   }
@@ -793,7 +802,9 @@ class Scene_Game extends Scene_Base{
   constructor(){
     super();
     this.game = GameManager.initStage();
-    this.cardSpritePoolSize = 116;
+    this.fadeDuration       = 60;
+    this.cardSpritePoolSize = 50;
+    this.discardPileSize    = 15;
     this.animationCount     = 0;
     this.playerPhase        = false;
   }
@@ -873,7 +884,6 @@ class Scene_Game extends Scene_Base{
     this.deckSprite.on('mouseover', ()=>{
       this.showHintWindow(null,null,Vocab["HelpDeck"] + this.getDeckLeftNumber)
     });
-    this.deckSprite.on('mousemove', ()=>{this.updateHintWindow()})
     this.deckSprite.on('mouseout', ()=>{this.hideHintWindow()});
     Graphics.renderSprite(this.deckSprite);
   }
@@ -888,7 +898,6 @@ class Scene_Game extends Scene_Base{
     this.discardPile.on("mouseover", ()=>{
       this.showHintWindow(null,null, this.getLastCardInfo())
     });
-    this.discardPile.on('mousemove', ()=>{this.updateHintWindow()})
     this.discardPile.on("mouseout",()=>{this.hideHintWindow()});
     Graphics.renderSprite(this.discardPile);
   }
@@ -923,7 +932,7 @@ class Scene_Game extends Scene_Base{
     sp.index    = i;      // index in the pool
     sp.handIndex = -1;    // index in player's hand
     sp.playerIndex = -2;  // this card belongs to which player
-    sp.setPOS(sx, sy).render();
+    sp.setPOS(sx, sy);
     return sp;
   }
   /*-------------------------------------------------------------------------*/
@@ -1009,10 +1018,10 @@ class Scene_Game extends Scene_Base{
       let sp = new SpriteCanvas(0, 0, 150, 24);
       let font = clone(Graphics.DefaultFontSetting);
       font.fill = 0x000000;
-      let txt = sp.drawText(0, 0, this.players[i].name, font);
+      let txt = sp.drawText(0, 0, '', font);
       let sx = 0, sy = 0;
       if(side == 0){
-        sx = this.handCanvas[i].x + this.handCanvas[i].x;
+        sx = this.handCanvas[i].x + this.handCanvas[i].width;
         sy = this.nameCanvas[i].y
       }
       else if(side == 1){
@@ -1020,7 +1029,7 @@ class Scene_Game extends Scene_Base{
         sy = this.handCanvas[i].y + this.handCanvas[i].height;
       }
       else if(side == 2){
-        sx = this.handCanvas[i].x - this.nameCanvas[i].width;
+        sx = this.handCanvas[i].x - this.nameCanvas[i].textSprite.width;
         sy = this.nameCanvas[i].y;
       }
       else if(side == 3){
@@ -1116,6 +1125,21 @@ class Scene_Game extends Scene_Base{
       this.discardPile.addChild(card.sprite);
       card.sprite.setPOS(cx, cy);
     }.bind(this));
+    let repos = 1;
+    while(this.discardPile.children.length > this.discardPileSize){
+      let re = this.recycleCard(this.discardPile.children[repos].instance);
+      if(!re){repos += 1;}
+      if(re >= this.discardPile.length){break;}
+    }
+  }
+  /*-------------------------------------------------------------------------*/
+  recycleCard(card){
+    if(!card){return false;}
+    let sprite = card.sprite;
+    card.playerIndex = -2;
+    sprite.instance = null;
+    this.discardPile.removeChild(sprite);
+    sprite.hide();
   }
   /*-------------------------------------------------------------------------*/
   clearDiscardPile(){
@@ -1176,6 +1200,8 @@ class Scene_Game extends Scene_Base{
     card.sprite.on('mouseover', ()=>{this.showCardInfo(card)})
     card.sprite.on('mousemove', ()=>{this.updateHintWindow()})
     card.sprite.on('mouseout',  ()=>{this.hideCardInfo(card)})
+    card.sprite.on('click', ()=>{this.onCardTrigger(card)});
+    card.sprite.on('tap',   ()=>{this.onCardTrigger(card)});
   }
   /*-------------------------------------------------------------------------*/
   detachCardInfo(card){
@@ -1268,9 +1294,8 @@ class Scene_Game extends Scene_Base{
       let sprite = this.getIdleCardSprite();
       let sx = this.deckSprite.x + this.deckSprite.width / 2;
       let sy = this.deckSprite.y + this.deckSprite.height / 2;
-      sprite.setPOS(sx, sy);
-      let img = this.getCardImage(card);
-      sprite.texture = Graphics.loadTexture(img); 
+      sprite.texture = Graphics.loadTexture(this.getCardImage(card)); 
+      sprite.setPOS(sx, sy).render();
       card.sprite = sprite;
       sprite.instance = card;
     }
@@ -1299,6 +1324,7 @@ class Scene_Game extends Scene_Base{
   processCardDrawAnimation(pid, card, show=false, ar=false,ord=0){
     this.animationCount += 1;
     let sprite = this.getIdleCardSprite().show();
+    sprite.render();
     sprite.playerIndex = pid;
     card.sprite = sprite;
     let dx = 0, dy = 0;
@@ -1320,6 +1346,15 @@ class Scene_Game extends Scene_Base{
     }.bind(this);
     sprite.instance = card;  
     sprite.moveto(dx, dy, fallback);
+  }
+  /*-------------------------------------------------------------------------*/
+  onCardTrigger(card){
+    if(this.game.isCardPlayable(card)){
+      Sound.playOK();
+    }
+    else{
+      Sound.playBuzzer();
+    }
   }
   /*-------------------------------------------------------------------------*/
   sendCardToDeck(pid, card){
@@ -1408,6 +1443,14 @@ class Scene_Game extends Scene_Base{
   /*-------------------------------------------------------------------------*/
   processRoundOver(){
 
+  }
+  /*-------------------------------------------------------------------------*/
+  processRoundStart(){
+
+  }
+  /*-------------------------------------------------------------------------*/
+  processGameStart(){
+    
   }
   /*-------------------------------------------------------------------------*/
   isBusy(){

@@ -12,7 +12,7 @@
 const DebugMode   = true;
 
 // Will go to Test Scene if set to true
-const TestMode    = false;
+const TestMode    = true;
 
 /**
  * Flag that determines whether skips the intro scene

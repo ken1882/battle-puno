@@ -574,6 +574,14 @@ class GameManager{
     return false;
   }
   /*-------------------------------------------------------------------------*/
+  static onGameStart(){
+    SceneManager.scene.processGameStart();
+  }
+  /*-------------------------------------------------------------------------*/
+  static onRoundStart(){
+    SceneManager.scene.processRoundStart();
+  }
+  /*-------------------------------------------------------------------------*/
   static processGameOver(){
     SceneManager.scene.processGameOver();
   }
