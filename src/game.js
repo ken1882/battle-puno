@@ -90,7 +90,7 @@ class PunoGame {
   processFirstDeal() {
     for (let i in this.players) {
       let cards = this.drawCard(this.initCardNumber);
-      this.players.deal(cards);
+      this.players[i].deal(cards);
       GameManager.onCardDraw(i, cards);
     }
   }

@@ -1066,6 +1066,7 @@ class Scene_Game extends Scene_Base{
     let totalWidth   = cardWidth + (cardWidth * stackPortion * (cardSize - 1));
     let cur_player   = this.players[index];
     let base_pos     = (canvasWidth - totalWidth) / 2;
+    let deg = index * (360 / GameManager.playerNumber);
     this.animationCount += 1;
     if(!(side&1)){
       for(let i in cur_player.hand){
@@ -1075,6 +1076,7 @@ class Scene_Game extends Scene_Base{
         let dx = base_pos + cardWidth * stackPortion * next_index + cardWidth / 2;
         let dy = (side == 0) ? canvasHeight - cardHeight + cardHeight / 2 : cardHeight / 2;
         hcs.addChild(card.sprite);
+        card.sprite.rotateDegree(deg);
         card.sprite.moveto(dx, dy);
         card.lastZ = card.sprite.z; card.lastY = dy;
       }
@@ -1087,6 +1089,7 @@ class Scene_Game extends Scene_Base{
         let dy = base_pos + cardWidth * stackPortion * next_index + cardWidth / 2;
         let dx = (side == 1) ? Graphics.spacing + cardHeight/2: canvasHeight - cardHeight + cardHeight / 2;
         hcs.addChild(card.sprite);
+        card.sprite.rotateDegree(deg);
         card.sprite.moveto(dx, dy);
         card.lastZ = card.sprite.z; card.lastY = dy;
       }
@@ -1113,6 +1116,7 @@ class Scene_Game extends Scene_Base{
     if(player_id >= 0){
       let deg = -20 + player_id * (360 / GameManager.playerNumber) + randInt(0, 40);
       card.sprite.rotateDegree(deg);
+      this.arrangeHandCards(player_id);
     }
     let sx = this.discardPile.x + this.discardPile.width / 2;
     let sy = this.discardPile.y + this.discardPile.height / 2;
@@ -1311,8 +1315,8 @@ class Scene_Game extends Scene_Base{
     }
     else{
       let pos = card.sprite.worldTransform;
-      this.handCanvas[pid].removeChild(card.sprite);
       card.sprite.setPOS(pos.tx, pos.ty);
+      this.handCanvas[pid].removeChild(card.sprite);
     }
     this.detachCardInfo(card);
     Sound.playCardPlace();
@@ -1361,6 +1365,7 @@ class Scene_Game extends Scene_Base{
   onCardTrigger(card){
     if(this.playerPhase && this.game.isCardPlayable(card)){
       Sound.playOK();
+      this.hideCardInfo(card);
       this.game.discard(card);
       this.processUserTurnEnd();
     }
