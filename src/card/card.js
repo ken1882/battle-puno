@@ -41,6 +41,7 @@ class Card {
       }
       return 2;
     })();
+    this.numbered = !!(value >= Value.ZERO && value <= Value.NINE);
     this.penalty = !!(value === Value.SKIP ||
                       value === Value.DRAW_TWO ||
                       value === Value.WILD_DRAW_FOUR);

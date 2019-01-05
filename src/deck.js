@@ -53,29 +53,31 @@ class Deck {
 
   drawNumbered(numCards) {
     let numberedCards = [];
-    let top = this.deck.length;
-    while (this.deck.length === 0 || numberedCards.length < numCards) {
-      let card = this.deck.splice(-1);
-      if (card[0].value >= Value.ZERO &&
-          card[0].value <= Value.NINE) {
-        numberedCards.push(card[0]);
+    let notNumberedCards = [];
+    while (this.deck.length != 0 && numberedCards.length < numCards) {
+      let card = this.deck.splice(-1)[0];
+      if (card.numbered) {
+        numberedCards.push(card);
       } else {
-        this.putback(card);
+        notNumberedCards.push(card);
       }
     }
+    this.putback(notNumberedCards);
     return numberedCards;
   }
 
   drawColored(numCards) {
     let coloredCards = [];
-    while (this.deck.length === 0 || coloredCards.length < numCards) {
-      let card = this.deck.splice(-1);
-      if (card[0].color === Color.WILD) {
-        this.putback(card);
+    let wildCards = [];
+    while (this.deck.length != 0 && coloredCards.length < numCards) {
+      let card = this.deck.splice(-1)[0];
+      if (card.color === Color.WILD) {
+        wildCards.push(card);
       } else {
-        coloredCards.push(card[0]);
+        coloredCards.push(card);
       }
     }
+    this.putback(wildCards);
     return coloredCards;
   }
 
