@@ -184,6 +184,18 @@ class PunoGame {
     return target;
   }
 
+  discardAll(color) {
+    debug_log("DISCARD ALL", color);
+    let colorCardsIndex = this.currentPlayer().findAllCardsByColor(color);
+    let colorCards =
+        colorCardsIndex.map(index => this.currentPlayer().hand[index]);
+    this.discardPile = this.discardPile.concat(colorCards);
+    GameManager.onCardPlay(this.currentPlayerIndex, colorCards);
+    while (colorCardsIndex.length > 0) {
+      this.currentPlayer().discard(colorCardsIndex.pop());
+    }
+  }
+
   trade(player1, player2) {
     debug_log("TRADE", player1, player2);
     const temp = this.players[player1].hand.slice();
@@ -278,7 +290,6 @@ class PunoGame {
     const card = this.currentPlayer().hand[cardIndex];
     debug_log("discard: ", card);
     this.currentPlayer().discard(cardIndex);
-    this.discardPile.push(card);
     if (this.currentPlayer().hand.length != 0) {
       if (card.numbered) {
         ext = this.setDamagePool(card, ext);
@@ -298,6 +309,7 @@ class PunoGame {
       this.currentPlayer().uno();
     }
     debug_log("ext", ext);
+    this.discardPile.push(card);
     GameManager.onCardPlay(this.currentPlayerIndex, card, ext);
   }
 

@@ -73,18 +73,14 @@ class Player {
     return matched[Math.floor(Math.random() * matched.length)];
   }
 
-  discardAllByColor(color) {
+  findAllCardsByColor(color) {
     let matched = [];
     for (let i in this.hand) {
       if (this.hand[i].color === color) {
         matched.push(i);
       }
     }
-    while (matched.length != 0) {
-      this.discard(matched.pop());
-    }
-    console.log("DISCARD ALL COLOR", color);
-    console.log(this.hand.slice());
+    return matched;
   }
 
   receivePenalty(penaltyCard, currentColor) {
