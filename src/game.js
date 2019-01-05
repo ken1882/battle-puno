@@ -337,6 +337,7 @@ class PunoGame {
   }
 
   endTurn() {
+    GameManager.onTuenEnd(this.currentPlayerIndex);
     this.currentPlayerIndex =
         this.clockwise ? mod(this.currentPlayerIndex + 1, 4)
                        : mod(this.currentPlayerIndex - 1, 4);
