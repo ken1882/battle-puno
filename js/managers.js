@@ -468,6 +468,7 @@ class GameManager{
    * @param {Number} ext - extra information
    */
   static interpretCardAbility(card, ext){
+    if(ext == -1){return [];}
     switch(card.value){
       case Value.DRAW_TWO:
         return [Effect.DRAW_TWO];
@@ -501,6 +502,8 @@ class GameManager{
    * @param {Number} player_id - the player id, 0 is the user, -1 is the beginning card
    * @param {Number} card_instance - the card object
    * @param {Number} ext - The extra information value, as following list:
+   * -1:
+   *  This card has no any effect (discarded by discard-all)
    * Value.SKIP:
    *  0: Normal use, 1: Reactive use;
    * Value.REVERSE:

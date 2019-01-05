@@ -818,12 +818,14 @@ class Scene_Game extends Scene_Base{
     this.createHandCanvas();
     this.createHintWindow();
     this.createSelectionWindow();
+    this.createInfoSprite();
   }
   /*-------------------------------------------------------------------------*/
   start(){
     super.start();
     this.playStageBGM();
     this.selectionWindow.render();
+    Graphics.renderSprite(this.infoSprite);
     setTimeout(this.gameStart.bind(this), 1500);
   }
   /*-------------------------------------------------------------------------*/
@@ -1080,6 +1082,17 @@ class Scene_Game extends Scene_Base{
     });
   }
   /*-------------------------------------------------------------------------*/
+  createInfoSprite(){
+    this.infoSprite = new SpriteCanvas(0, 0, 300, 24);
+    let font = clone(Graphics.DefaultFontSetting);
+    font.fill = 0x000000;
+    let bk  = this.infoSprite.fillRect(0, 0, 300, 24, Graphics.color.White);
+    bk.setOpacity(0.5);
+    let txt = this.infoSprite.drawText(0, 0, '', font);
+    this.infoSprite.textSprite = txt;
+    this.infoSprite.backSprite = bk;
+  }
+  /*-------------------------------------------------------------------------*/
   arrangeHandCards(index){
     let hcs  = this.handCanvas[index];
     let side = index % 4;
@@ -1108,7 +1121,7 @@ class Scene_Game extends Scene_Base{
         dx = (side == 1) ? Graphics.spacing + cardHeight/2: canvasHeight - cardHeight + cardHeight / 2;
       }
       if(!card.sprite){
-        this.assignCardSprite(card,0,0,true);
+        this.assignCardSprite(card, 0, 0, true);
       }
       card.sprite.setPOS(canvasWidth/2,canvasHeight/2).setZ(0x11 + parseInt(i));
       hcs.addChild(card.sprite);
@@ -1153,6 +1166,7 @@ class Scene_Game extends Scene_Base{
       this.playColorEffect(card.color);
       this.animationCount -= 1;
       this.discardPile.addChild(card.sprite);
+      this.updateLastCardInfo();
       card.sprite.setPOS(cx, cy);
     }.bind(this));
     let repos = 1;
@@ -1224,6 +1238,21 @@ class Scene_Game extends Scene_Base{
       this.deckSprite.bot.hide();
       this.deckSprite.top.show();
     }
+  }
+  /*-------------------------------------------------------------------------*/
+  updateLastCardInfo(){
+    let txt = this.getLastCardInfo();
+    let tsp = this.infoSprite.textSprite;
+    tsp.text = txt;
+    let sx = Graphics.width - Graphics.spacing - tsp.width;
+    let sy = Graphics.spacing;
+    let sw = tsp.width, sh = tsp.height;
+    this.infoSprite.setPOS(sx, sy).resize(sw, sh);
+    let bsp = this.infoSprite.backSprite;
+    bsp.clear();
+    bsp.beginFill(Graphics.color.White);
+    bsp.drawRect(0, 0, sw, sh);
+    bsp.endFill();
   }
   /*-------------------------------------------------------------------------*/
   raiseOverlay(w){
@@ -1386,7 +1415,7 @@ class Scene_Game extends Scene_Base{
       this.handCanvas[pid].removeChild(card.sprite);
       card.sprite.render();
     }
-    this.processCardEffects(effects, ext);
+    if(ext != -1){this.processCardEffects(effects, ext);}
     this.detachCardInfo(card);
     Sound.playCardPlace();
     card.sprite.setZ(0x20).handIndex = -1;
