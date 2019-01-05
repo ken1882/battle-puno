@@ -486,7 +486,7 @@ class GameManager{
       case Value.WILD_HIT_ALL:
         return [Effect.CHOOSE_COLOR, Effect.HIT_ALL];
       case Value.WILD_CHAOS:
-        return [Effect.CHOOSE_COLOR, Effect.WILD_CHAOS]
+        return [Effect.WILD_CHAOS]
       case Value.TRADE:
         return [Effect.CHOOSE_COLOR, Effect.TRADE];
       case Value.DISCARD_ALL:
