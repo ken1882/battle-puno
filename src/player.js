@@ -70,7 +70,7 @@ class Player {
       }
     }
     if (matched.length === 0)  return -1;
-    return Math.floor(Math.random() * matched.length);
+    return matched[Math.floor(Math.random() * matched.length)];
   }
 
   discardAllByColor(color) {
