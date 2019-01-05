@@ -1068,6 +1068,7 @@ class Scene_Game extends Scene_Base{
     let base_pos     = (canvasWidth - totalWidth) / 2;
     let deg = index * (360 / GameManager.playerNumber);
     this.animationCount += 1;
+    console.log("Arrange " + index);
     if(!(side&1)){
       for(let i in cur_player.hand){
         let card = cur_player.hand[i];
@@ -1079,6 +1080,7 @@ class Scene_Game extends Scene_Base{
         card.sprite.rotateDegree(deg);
         card.sprite.moveto(dx, dy);
         card.lastZ = card.sprite.z; card.lastY = dy;
+        if(index == 0 && !card.attached){this.attachCardInfo(card);}
       }
     }
     else{
@@ -1111,18 +1113,21 @@ class Scene_Game extends Scene_Base{
 
   }
   /*-------------------------------------------------------------------------*/
-  addDiscardCard(card, player_id = 0){
-    card.sprite.show().anchor.set(0.5, 0.5);
+  addDiscardCard(card, player_id){
+    player_id = parseInt(player_id);
+    card.sprite.show();
     if(player_id >= 0){
+      this.arrangeHandCards(player_id);
       let deg = -20 + player_id * (360 / GameManager.playerNumber) + randInt(0, 40);
       card.sprite.rotateDegree(deg);
-      this.arrangeHandCards(player_id);
+      console.log(this.players[player_id].hand.indexOf(card));
     }
     let sx = this.discardPile.x + this.discardPile.width / 2;
     let sy = this.discardPile.y + this.discardPile.height / 2;
     let cx = (this.discardPile.width) / 2;
     let cy = (this.discardPile.height) / 2;
     this.animationCount += 1;
+    console.log("Discard ", sx, sy, card.sprite.x, card.sprite.y);
     card.sprite.moveto(sx, sy, function(){
       this.playColorEffect(card.color);
       this.animationCount -= 1;
@@ -1210,7 +1215,8 @@ class Scene_Game extends Scene_Base{
   }
   /*-------------------------------------------------------------------------*/
   attachCardInfo(card){
-    if(!card.sprite){return ;}
+    if(!card.sprite || card.attached){return ;}
+    card.attached = true;
     card.sprite.activate();
     card.sprite.on('mouseover', ()=>{this.showCardInfo(card)})
     card.sprite.on('mousemove', ()=>{this.updateHintWindow()})
@@ -1220,6 +1226,7 @@ class Scene_Game extends Scene_Base{
   }
   /*-------------------------------------------------------------------------*/
   detachCardInfo(card){
+    card.attached = false;
     if(!card.sprite){return ;}
     card.sprite.deactivate();
     card.sprite.removeAllListeners();
@@ -1303,6 +1310,7 @@ class Scene_Game extends Scene_Base{
   }
   /*-------------------------------------------------------------------------*/
   onCardPlay(pid, card, effects){
+    pid = parseInt(pid);
     if(pid == -1){
       let sprite = this.getIdleCardSprite();
       let sx = this.deckSprite.x + this.deckSprite.width / 2;
@@ -1328,7 +1336,7 @@ class Scene_Game extends Scene_Base{
   /*-------------------------------------------------------------------------*/
   onCardDraw(pid, cards, show=false){
     pid = parseInt(pid);
-    let wt = 300;
+    let wt = 300; // wait time
     for(let i in cards){
       let ar = (parseInt(i)+1 == cards.length)
       setTimeout(this.processCardDrawAnimation.bind(this, pid, cards[i], show, ar,i), wt * i);
@@ -1356,9 +1364,9 @@ class Scene_Game extends Scene_Base{
     sprite.moveto(dx, dy, function(){
       this.animationCount -= 1;
       sprite.texture = Graphics.loadTexture(this.getCardImage(card));
+      if(pid == 0){this.attachCardInfo(card);}
       if(show){setTimeout(this.sendCardToDeck.bind(this, pid, card), 2000);}
       else if(ar){this.arrangeHandCards(pid)}
-      if(pid == 0){this.attachCardInfo(card);}
     }.bind(this));
   }
   /*-------------------------------------------------------------------------*/
@@ -1366,6 +1374,7 @@ class Scene_Game extends Scene_Base{
     if(this.playerPhase && this.game.isCardPlayable(card)){
       Sound.playOK();
       this.hideCardInfo(card);
+      this.players[0].discard(this.players[0].hand.indexOf(card));
       this.game.discard(card);
       this.processUserTurnEnd();
     }

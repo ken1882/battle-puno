@@ -19,7 +19,7 @@ class SceneManager{
     this._previousClass     = null;
     this._backgroundSprite  = null;
     this._focused           = true;
-
+    if(DebugMode){this.alwaysFocus();}
     this.initModules();
   }
   /*-------------------------------------------------------------------------*/
