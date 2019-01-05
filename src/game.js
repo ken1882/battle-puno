@@ -18,6 +18,16 @@ class PunoGame {
     this.damagePool = 0;
   }
 
+  getAlivePlayers() {
+    let alivePlayersCount = 0;
+    for (let i in this.players) {
+      if (!this.players[i].knockOut) {
+        ++alivePlayersCount;
+      }
+    }
+    return alivePlayersCount;
+  }
+
   chooseDealer() {
     let highest = 0;
     let deadlock = true;
@@ -127,14 +137,12 @@ class PunoGame {
   }
 
   isRoundOver() {
-    let knockOutCount = 0;
     for (let i in this.players) {
       if (this.players[i].isGoingOut()) {
         return true;
       }
-      if (this.players[i].knockOut)  ++knockOutCount;
     }
-    return knockOutCount === 3;
+    return this.getAlivePlayers() === 1;
   }
 
   reverse() {
@@ -156,7 +164,7 @@ class PunoGame {
   }
 
   trade(player1, player2) {
-    debug_log("TRADE");
+    debug_log("TRADE", player1, player2);
     const temp = this.players[player1].hand.slice();
     this.players[player1].hand = this.players[player2].hand.slice();
     this.players[player2].hand = temp;
@@ -207,6 +215,7 @@ class PunoGame {
       this.currentColor = card.color;
       this.currentValue = card.value;
     }
+    return ext;
   }
 
   takeCardAction(card, ext) {
@@ -222,6 +231,7 @@ class PunoGame {
     } else if (card.value === Value.WILD_HIT_ALL) {
       this.wildHitAll(this.currentPlayerIndex);
     }
+    return ext;
   }
 
   setDamagePool(card, ext) {
@@ -240,6 +250,7 @@ class PunoGame {
       this.damagePool += card.value;
     }
     debug_log("damage pool", this.damagePool);
+    return ext;
   }
 
   discard(cardIndex, ext=null) {
@@ -249,13 +260,15 @@ class PunoGame {
     this.discardPile.push(card);
     if (this.currentPlayer().hand.length != 0) {
       if (card.numbered) {
-        this.setDamagePool(card, ext);
+        ext = this.setDamagePool(card, ext);
       } else {
-        this.takeCardAction(card, ext);
+        ext = this.takeCardAction(card, ext);
       }
-      this.setNextColorAndValue(card, ext);
-      if (this.penaltyCard === undefined && card.penalty) {
-        this.penaltyCard = card;
+      ext = this.setNextColorAndValue(card, ext);
+      if (this.penaltyCard === undefined) {
+        if (card.penalty) {
+          this.penaltyCard = card;
+        }
       } else {
         this.penaltyCard = undefined;
       }
@@ -263,6 +276,7 @@ class PunoGame {
     if (this.currentPlayer().hand.length === 1) {
       this.currentPlayer().uno();
     }
+    debug_log("ext", ext);
     GameManager.onCardPlay(this.currentPlayerIndex, card, ext);
   }
 
