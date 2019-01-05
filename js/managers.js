@@ -19,7 +19,7 @@ class SceneManager{
     this._previousClass     = null;
     this._backgroundSprite  = null;
     this._focused           = true;
-
+    if(DebugMode){this.alwaysFocus();}
     this.initModules();
   }
   /*-------------------------------------------------------------------------*/
@@ -550,6 +550,9 @@ class GameManager{
   /*-------------------------------------------------------------------------*/
   static onTurnEnd(player_id){
     this._inTurn = false;
+    if(player_id == 0){
+      SceneManager.scene.processUserTurnEnd();
+    }
   }
   /*-------------------------------------------------------------------------*/
   static changeColor(color_id){
