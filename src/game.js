@@ -64,6 +64,10 @@ class PunoGame {
     }
   }
 
+  isCurrentPlayerSkipped() {
+    return this.penaltyCard != undefined && this.penaltyCard.value === Value.SKIP;
+  }
+
   isCardPlayable(card) {
     if (this.penaltyCard != undefined) {
       if (this.penaltyCard.value === Value.SKIP)  return false;
@@ -374,9 +378,14 @@ class PunoGame {
       if (!this.currentPlayer().knockOut) {
         if (this.currentPlayer().ai) {
           GameManager.onNPCTurnBegin(this.currentPlayerIndex);
-          this.beginTurn();
         } else {
           GameManager.onUserTurnBegin(this.currentPlayerIndex);
+        }
+        if (this.isCurrentPlayerSkipped()) {
+          this.penaltyCard = undefined;
+          this.endTurn();
+        } else if (this.currentPlayer().ai) {
+          this.beginTurn();
         }
       } else {
         debug_log(this.currentPlayer().name, "knocked out - SKIP");
