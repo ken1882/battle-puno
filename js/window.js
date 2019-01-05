@@ -1287,7 +1287,7 @@ class Widdow_CardSelection extends Window_Selectable{
     for(let i=0;i<4;++i){
       this.addSelection(i);
     }
-    addCancelSelection();
+    this.addCancelSelection();
   }
   /*------------------------------------------------------------------------*/
   addSelection(index){
@@ -1301,11 +1301,11 @@ class Widdow_CardSelection extends Window_Selectable{
   /*------------------------------------------------------------------------*/
   addCancelSelection(){
     let args = {
-      text: 'Cancel',
+      text: Vocab.Cancel,
       symbol: 'cancel',
       align: 1,
     }
-    this.addTextSelection(args);
+    this.cancelSelection = this.addTextSelection(args);
   }
   /*------------------------------------------------------------------------*/
   setupCard(card){
@@ -1314,19 +1314,25 @@ class Widdow_CardSelection extends Window_Selectable{
       case Value.WILD_DRAW_FOUR:
       case Value.WILD_HIT_ALL:
       case Value.WILD_CHAOS:
-        return setupColorSelection();
+        return this.setupColorSelection();
       case Value.TRADE:
-        return setupPlayerSelection();
+        return this.setupPlayerSelection();
       default:
-        return clearSelection();
+        return this.clearSelection();
     }
   }
   /*------------------------------------------------------------------------*/
   clearSelection(){
-
+    for(let i=0;i<GameManager.playerNumber;++i){
+      let sel = this.getItemBySymbol(i);
+      sel.text = '';
+      sel.off('click');
+      sel.off('tap');
+    }
   }
   /*------------------------------------------------------------------------*/
   setupColorSelection(){
+    this.clearSelection();
     let txts = [Vocab.Red, Vocab.Yellow, Vocab.Green, Vocab.Blue];
     for(let i=0;i<4;++i){
       let sel = this.getItemBySymbol(i);
@@ -1335,11 +1341,38 @@ class Widdow_CardSelection extends Window_Selectable{
   }
   /*------------------------------------------------------------------------*/
   setupPlayerSelection(){
-
+    this.clearSelection();
+    let alives = GameManager.game.players;
+    for(let i in alives){
+      let sel = this.getItemBySymbol(i);
+      sel.text = alives[i].name;
+    }
+  }
+  /*------------------------------------------------------------------------*/
+  sortSelections(){
+    let cnt = 0, pos = {};
+    for(let i in this._selections){
+      let sel = this._selections[i];
+      if(sel == this.cancelSelection){continue;}
+      if(this.isItemEnabled(sel)){
+        pos = this.getIndexItemPOS(cnt++);
+        sel.activate();
+        sel.setPOS(pos.x, pos.y);
+      }
+      else{
+        sel.setPOS(-this.itemWidth, -this.itemHeight).deactivate();
+      }
+    }
+    pos = this.getIndexItemPOS(cnt);
+    this.cancelSelection.setPOS(pos.x, pos.y);
+  }
+  /*------------------------------------------------------------------------*/
+  isItemEnabled(item){
+    return (item.text || '').length != 0
   }
   /*------------------------------------------------------------------------*/
   get isCurrentItemEnabled(){
-    return (currentItem.text || '').length != 0; 
+    return this.isItemEnabled(this.currentItem);
   }
   /*------------------------------------------------------------------------*/
 }
