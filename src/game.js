@@ -65,8 +65,8 @@ class PunoGame {
   }
 
   isCardPlayable(card) {
-    if (penaltyCard != undefined) {
-      if (penaltyCard.value === Value.SKIP)  return false;
+    if (this.penaltyCard != undefined) {
+      if (this.penaltyCard.value === Value.SKIP)  return false;
       return (card.isEqual(new Card(this.currentColor, Value.SKIP)) ||
               card.isEqual(new Card(this.currentColor, Value.REVERSE)));
     }
@@ -204,7 +204,7 @@ class PunoGame {
   takeCardAction(card, ext) {
     if (card.value === Value.REVERSE) {
       this.reverse();
-      ext = penaltyCard === undefined ? 0 : 1;
+      ext = this.penaltyCard === undefined ? 0 : 1;
     } else if (card.value === Value.TRADE) {
       const target = this.findTarget();
       this.trade(this.currentPlayerIndex, target);
@@ -258,25 +258,25 @@ class PunoGame {
 
   getPenalty() {
     debug_log("PENALTY");
-    if (penaltyCard.value === Value.SKIP) {
+    if (this.penaltyCard.value === Value.SKIP) {
       debug_log("SKIP");
-      penaltyCard = undefined;
+      this.penaltyCard = undefined;
     } else {
-      const avoidCard = this.currentPlayer().receivePenalty(penaltyCard);
+      const avoidCard = this.currentPlayer().receivePenalty(this.penaltyCard);
       if (avoidCard != null) {
         discard(avoidCard, 1);
       } else {
         let cards = undefined;
-        if (penaltyCard.value === Value.DRAW_TWO) {
+        if (this.penaltyCard.value === Value.DRAW_TWO) {
           debug_log("DRAW TWO");
           cards = this.drawCard(2);
-        } else if (penaltyCard.value === Value.WILD_DRAW_FOUR) {
+        } else if (this.penaltyCard.value === Value.WILD_DRAW_FOUR) {
           debug_log("DRAW FOUR");
           cards = this.drawCard(4);
         }
         this.currentPlayer().deal(cards);
         GameManager.onCardDraw(this.currentPlayerIndex, cards);
-        penaltyCard = undefined;
+        this.penaltyCard = undefined;
       }
     }
   }
