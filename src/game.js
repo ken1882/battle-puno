@@ -88,6 +88,18 @@ class PunoGame {
     return this.penaltyCard != undefined && this.penaltyCard.value === Value.SKIP;
   }
 
+  isCardAbilitySelectionNeeded(card) {
+    if ((this.gameMode === Mode.BATTLE_PUNO ||
+        this.gameMode === Mode.DEATH_MATCH) &&
+        card.value === Value.ZERO) {
+      return true;
+    }
+    if (card.value === Value.WILD_CHAOS) {
+      return false;
+    }
+    return card.color === Color.WILD;
+  }
+
   isCardPlayable(card) {
     if (this.penaltyCard != undefined) {
       if (this.penaltyCard.value === Value.SKIP)  return false;
@@ -393,6 +405,7 @@ class PunoGame {
     if (GameManager.isInTurn()) {
       this.endTurn();
     } else {
+      console.log(this.currentPlayer());
       if (!this.currentPlayer().knockOut) {
         if (this.currentPlayer().ai) {
           GameManager.onNPCTurnBegin(this.currentPlayerIndex);
