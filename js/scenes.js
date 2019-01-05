@@ -1399,7 +1399,7 @@ class Scene_Game extends Scene_Base{
     for(let i in effects){
       switch(effects[i]){
         case Effect.TRADE:
-          return this.processTradeEffect(ext);
+          return this.processTradeEffect(parseInt(ext[1]));
       }
     }
   }

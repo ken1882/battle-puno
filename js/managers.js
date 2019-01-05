@@ -510,6 +510,7 @@ class GameManager{
    * Value.WILD:
    * Value.WILD_DRAW_FOUR:
    * Value.WILD_HIT_ALL:
+   * Value.DISCARD_ALL:
    *  ext = <Color Value>;
    * Value.TRADE:
    *  ext = Array.<Color Value, Player id that traded with>;
