@@ -49,10 +49,9 @@ class Player {
     return -1;
   }
 
-  findCard(color, value) {
+  findCard(card) {
     for (let i in this.hand) {
-      if (this.hand[i].color == color &&
-          this.hand[i].value === value) {
+      if (this.hand[i].isEqual(card)) {
         return i;
       }
     }
@@ -70,8 +69,8 @@ class Player {
         matched.push(i);
       }
     }
-    if (matched.length === 0)  return null;
-    return this.discard(Math.floor(Math.random() * matched.length));
+    if (matched.length === 0)  return -1;
+    return Math.floor(Math.random() * matched.length);
   }
 
   discardAllByColor(color) {
@@ -92,9 +91,9 @@ class Player {
     if (penaltyCard.value === Value.SKIP) {
       return null;
     }
-    let matchedCard = this.findCard(currentColor, Value.SKIP);
+    let matchedCard = this.findCard(new Card(currentColor, Value.SKIP));
     if (matchedCard === -1) {
-      matchedCard = this.findCard(currentColor, Value.REVERSE);
+      matchedCard = this.findCard(new Card(currentColor, Value.REVERSE));
       if (matchedCard === -1) {
         return null;
       }

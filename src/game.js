@@ -183,7 +183,12 @@ class PunoGame {
 
   setNextColorAndValue(card, ext) {
     if (card.color === Color.WILD) {
-      this.currentColor = getRandom(Color.RED, Color.BLUE, this.currentColor);
+      this.currentValue = undefined;
+      if (this.currentPlayer().ai) {
+        this.currentColor = getRandom(Color.RED, Color.BLUE, this.currentColor);
+      } else {
+        this.currentColor = ext;
+      }
       debug_log("WILD CHOOSE NEXT COLOR", this.currentColor);
       if (card.value === Value.WILD_CHAOS) {
         this.currentValue = getRandom(Value.ZERO, Value.NINE);
@@ -191,7 +196,6 @@ class PunoGame {
         ext = [this.currentColor, this.currentValue];
       } else if (card.value === Value.TRADE) {
         ext[0] = this.currentColor;
-        this.currentValue = undefined;
       } else {
         ext = this.currentColor;
       }
@@ -208,7 +212,7 @@ class PunoGame {
     } else if (card.value === Value.TRADE) {
       const target = this.findTarget();
       this.trade(this.currentPlayerIndex, target);
-      ext = [undefined, target];
+      ext = [ext, target];
     } else if (card.value === Value.DISCARD_ALL) {
       this.currentPlayer().discardAllByColor(this.currentColor);
     } else if (card.value === Value.WILD_HIT_ALL) {
@@ -234,8 +238,10 @@ class PunoGame {
     debug_log("damage pool", this.damagePool);
   }
 
-  discard(card, ext=null) {
+  discard(cardIndex, ext=null) {
+    const card = this.currentPlayer().hand[cardIndex];
     debug_log("discard: ", card);
+    this.currentPlayer().discard(cardIndex);
     this.discardPile.push(card);
     if (this.currentPlayer().hand.length != 0) {
       if (card.numbered) {
@@ -309,9 +315,9 @@ class PunoGame {
       return;
     }
     /**************************************************************************/
-    let matchedCard = this.currentPlayer().matching(this.currentColor,
-                                                    this.currentValue);
-    if (matchedCard == null) {
+    let matchedCardIndex = this.currentPlayer().matching(this.currentColor,
+                                                         this.currentValue);
+    if (matchedCardIndex === -1) {
       if (this.gameMode === Mode.BATTLE_PUNO ||
           this.gameMode === Mode.DEATH_MATCH) {
         debug_log("RECIEVE DAMAGE");
@@ -332,7 +338,7 @@ class PunoGame {
         GameManager.onCardDraw(this.currentPlayerIndex, card);
       }
     } else {
-      this.discard(matchedCard);
+      this.discard(matchedCardIndex);
     }
   }
 
