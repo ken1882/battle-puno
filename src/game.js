@@ -187,13 +187,14 @@ class PunoGame {
   discardAll(color) {
     debug_log("DISCARD ALL", color);
     let colorCardsIndex = this.currentPlayer().findAllCardsByColor(color);
-    let colorCards =
-        colorCardsIndex.map(index => this.currentPlayer().hand[index]);
-    this.discardPile = this.discardPile.concat(colorCards);
-    GameManager.onCardPlay(this.currentPlayerIndex, colorCards);
-    while (colorCardsIndex.length > 0) {
-      this.currentPlayer().discard(colorCardsIndex.pop());
-    }
+    _(colorCardsIndex).each(function(cardIndex, offset) {
+      setTimeout(function() {
+        const card = this.currentPlayer().hand[cardIndex];
+        this.discardPile.push(card);
+        this.currentPlayer().discard(cardIndex);
+        GameManager.onCardPlay(this.currentPlayerIndex, card, -1);
+      }, 300 * offset);
+    });
   }
 
   trade(player1, player2) {
@@ -260,7 +261,7 @@ class PunoGame {
       this.trade(this.currentPlayerIndex, target);
       ext = [ext, target];
     } else if (card.value === Value.DISCARD_ALL) {
-      this.currentPlayer().discardAllByColor(this.currentColor);
+      this.discardAll(this.currentColor);
     } else if (card.value === Value.WILD_HIT_ALL) {
       this.wildHitAll(this.currentPlayerIndex);
     }
