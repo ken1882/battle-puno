@@ -633,8 +633,8 @@ class Window_Selectable extends Window_Base{
    * @param {String} args.help   - the help message
    */
   addTextSelection(args){
-    if(!args.text){
-      throw new TypeError(args.text, String);
+    if(args.text !== '' && !args.text){
+      throw new TypeError(String, args.text);
     }
     if(!args.font){args.font = Graphics.DefaultFontSetting;}
     args.align |= 0;
@@ -929,6 +929,7 @@ class Window_Help extends Window_Base{
     this.clear();
     let dy = 0;
     for(let i=0;i<args.length;++i){
+      this.message += args[i];
       dy += this.drawText(this.padding_left, dy, args[i], this.font, true).height;
     }
   }
@@ -1280,21 +1281,21 @@ class Window_CardSelection extends Window_Selectable{
    */
   constructor(x, y, w, h){
     super(x, y, w, h);
-    this.addSelections();
+    this.addDefaultSelections();
     this.changeSkin(Graphics.WSkinLuna);
   }
   /*------------------------------------------------------------------------*/
-  addSelections(){
+  addDefaultSelections(){
     for(let i=0;i<4;++i){
-      this.addSelection(i);
+      this.addDefaultSelection(i);
     }
     this.addCancelSelection();
   }
   /*------------------------------------------------------------------------*/
-  addSelection(index){
+  addDefaultSelection(index){
     let args = {
       text: '',
-      symbol: index,
+      symbol: index+1,
       align: 1,
     }
     this.addTextSelection(args);
@@ -1315,6 +1316,7 @@ class Window_CardSelection extends Window_Selectable{
       case Value.WILD_DRAW_FOUR:
       case Value.WILD_HIT_ALL:
       case Value.WILD_CHAOS:
+      case Value.DISCARD_ALL:
         return this.setupColorSelection();
       case Value.TRADE:
         return this.setupPlayerSelection();
@@ -1327,7 +1329,7 @@ class Window_CardSelection extends Window_Selectable{
   /*------------------------------------------------------------------------*/
   clearSelection(){
     for(let i=0;i<GameManager.playerNumber;++i){
-      let sel = this.getItemBySymbol(i);
+      let sel = this.getItemBySymbol(i+1);
       sel.text = '';
       sel.off('click');
       sel.off('tap');
@@ -1339,32 +1341,36 @@ class Window_CardSelection extends Window_Selectable{
     this.clearSelection();
     let txts = ["+10", Vocab.HelpReset];
     for(let i=0;i<txts.length;++i){
-      let sel = this.getItemBySymbol(i);
-      sel.text = txts[i];
+      this.getItemBySymbol(i+1).text = txts[i];;
     }
-    this.clearSelection();
+    debug_log("Ability setup: ", txts);
+    this.sortSelections();
     return Effect.CLEAR_DAMAGE;
   }
   /*------------------------------------------------------------------------*/
   setupColorSelection(){
     this.clearSelection();
     let txts = [Vocab.Red, Vocab.Yellow, Vocab.Green, Vocab.Blue];
+    debug_log("Ability setup: ", txts);
     for(let i=0;i<txts.length;++i){
-      let sel = this.getItemBySymbol(i);
-      sel.text = txts[i];
+      this.getItemBySymbol(i+1).text = txts[i];
     }
-    this.clearSelection();
+    this.sortSelections();
     return Effect.CHOOSE_COLOR;
   }
   /*------------------------------------------------------------------------*/
   setupPlayerSelection(){
     this.clearSelection();
     let alives = GameManager.game.getAlivePlayers();
+    let txts   = [];
     for(let i in alives){
-      let sel = this.getItemBySymbol(parseInt(i));
+      if(alives[i] == GameManager.game.players[0]){continue;}
+      let sel = this.getItemBySymbol(parseInt(i)+1);
       sel.text = alives[i].name;
+      txts.push(alives[i].name);
     }
-    this.clearSelection();
+    debug_log("Ability setup: ", txts);
+    this.sortSelections();
     return Effect.TRADE;
   }
   /*------------------------------------------------------------------------*/
@@ -1375,14 +1381,15 @@ class Window_CardSelection extends Window_Selectable{
       if(sel == this.cancelSelection){continue;}
       if(this.isItemEnabled(sel)){
         pos = this.getIndexItemPOS(cnt++);
-        sel.setPOS(pos.x, pos.y).activate();
+        let px = (pos.x + this.itemWidth - sel.width) / 2 + this.spacing;
+        sel.setPOS(px, pos.y).activate();
       }
       else{
         sel.setPOS(-this.itemWidth, -this.itemHeight).deactivate();
       }
     }
     pos = this.getIndexItemPOS(cnt);
-    this.cancelSelection.setPOS(pos.x, pos.y);
+    this.cancelSelection.setPOS(null, pos.y);
   }
   /*------------------------------------------------------------------------*/
   isItemEnabled(item){

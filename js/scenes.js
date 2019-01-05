@@ -823,6 +823,7 @@ class Scene_Game extends Scene_Base{
   start(){
     super.start();
     this.playStageBGM();
+    this.selectionWindow.render();
     setTimeout(this.gameStart.bind(this), 1500);
   }
   /*-------------------------------------------------------------------------*/
@@ -979,6 +980,19 @@ class Scene_Game extends Scene_Base{
         if(DebugMode){hcs.fillRect(0, 0, hcs.width, hcs.height).setOpacity(0.5);}
       }
     }
+    this.createArrangeIcon(0);
+  }
+  /*-------------------------------------------------------------------------*/
+  createArrangeIcon(idx){
+    let hcs = this.handCanvas[idx];
+    let sx = 0, sy = hcs.height - Graphics.IconRect.height;
+    hcs.arrangeIcon = hcs.drawIcon(117, sx, sy).setZ(0x30).activate();
+    hcs.arrangeIcon.on('click', ()=>{this.arrangeHandCards(idx)});
+    hcs.arrangeIcon.on('tap', ()=>{this.arrangeHandCards(idx)});
+    hcs.arrangeIcon.on('mouseover', ()=>{
+      this.showHintWindow(null, null,Vocab.HelpArrange)
+    });
+    hcs.arrangeIcon.on('mouseout', ()=>{this.hideHintWindow()});
   }
   /*-------------------------------------------------------------------------*/
   createNameSprites(){
@@ -1056,8 +1070,11 @@ class Scene_Game extends Scene_Base{
   }
   /*-------------------------------------------------------------------------*/
   createSelectionWindow(){
-    this.selectionWindow = new Window_CardSelection(0, 0, 300, 150);
-    this.selectionWindow.hide().setZ(0x30).render();
+    let ww = 300, wh = 250;
+    let wx = Graphics.appCenterWidth(ww);
+    let wy = Graphics.appCenterHeight(wh);
+    this.selectionWindow = new Window_CardSelection(wx, wy, ww, wh);
+    this.selectionWindow.hide().setZ(0x30);
     this.selectionWindow.setHandler('cancel', ()=>{
       this.onUserAbilityCancel();
     });
@@ -1090,6 +1107,9 @@ class Scene_Game extends Scene_Base{
         dy = base_pos + cardWidth * stackPortion * next_index + cardWidth / 2;
         dx = (side == 1) ? Graphics.spacing + cardHeight/2: canvasHeight - cardHeight + cardHeight / 2;
       }
+      if(!card.sprite){
+        this.assignCardSprite(card,0,0,true);
+      }
       card.sprite.setPOS(canvasWidth/2,canvasHeight/2).setZ(0x11 + parseInt(i));
       hcs.addChild(card.sprite);
       card.sprite.rotateDegree(deg);
@@ -1119,8 +1139,9 @@ class Scene_Game extends Scene_Base{
     if(player_id >= 0){
       let deg = -20 + player_id * (360 / GameManager.playerNumber) + randInt(0, 40);
       card.sprite.rotateDegree(deg);
-      console.log(this.players[player_id].hand.indexOf(card));
-      this.arrangeHandCards(player_id);
+      setTimeout(()=>{
+        this.arrangeHandCards(player_id);
+      }, 500);
     }
     let sx = this.discardPile.x + this.discardPile.width / 2;
     let sy = this.discardPile.y + this.discardPile.height / 2;
@@ -1173,6 +1194,7 @@ class Scene_Game extends Scene_Base{
   }
   /*-------------------------------------------------------------------------*/
   updateGame(){
+    if(this.game.isRoundOver()){return ;}
     if(this.game.deck){this.game.update();}
   }
   /*-------------------------------------------------------------------------*/
@@ -1187,6 +1209,8 @@ class Scene_Game extends Scene_Base{
     if(!this.hintWindow.visible){return ;}
     let x = Input.mouseAppPOS[0];
     let y = Input.mouseAppPOS[1];
+    x = Math.max(0, Math.min(x, Graphics.width  - this.hintWindow.width));
+    y = Math.max(0, Math.min(y, Graphics.height - this.hintWindow.height));
     if(txt){this.hintWindow.setText(txt);}
     if(x && y){this.hintWindow.setPOS(x, y);}
   }
@@ -1202,16 +1226,44 @@ class Scene_Game extends Scene_Base{
     }
   }
   /*-------------------------------------------------------------------------*/
+  raiseOverlay(w){
+    super.raiseOverlay(w);
+    this.deckSprite.deactivate();
+    this.discardPile.deactivate();
+    for(let i in this.spritePool){
+      let sp = this.spritePool[i];
+      sp.lastActiveState = sp.isActive();
+      sp.deactivate();
+    }
+  }
+  /*-------------------------------------------------------------------------*/
+  closeOverlay(){
+    super.closeOverlay();
+    this.deckSprite.activate();
+    this.discardPile.activate();
+    for(let i in this.spritePool){
+      let sp = this.spritePool[i];
+      if(sp.lastActiveState){
+        sp.activate();
+      }
+    }
+  }
+  /*-------------------------------------------------------------------------*/
   showHintWindow(x, y, txt = ''){
     this.hintWindow.hoverNumber += 1;
     if(x === null){x = Input.mouseAppPOS[0];}
     if(y === null){y = Input.mouseAppPOS[1];}
+    x = Math.max(0, Math.min(x, Graphics.width  - this.hintWindow.width));
+    y = Math.max(0, Math.min(y, Graphics.height - this.hintWindow.height));
     this.hintWindow.show().setPOS(x, y).setText(txt);
   }
   /*-------------------------------------------------------------------------*/
   hideHintWindow(){
     this.hintWindow.hoverNumber -= 1;
-    if(this.hintWindow.hoverNumber == 0){this.hintWindow.hide();}
+    if(this.hintWindow.hoverNumber <= 0){
+      this.hintWindow.hoverNumber = 0;
+      this.hintWindow.hide();
+    }
   }
   /*-------------------------------------------------------------------------*/
   attachCardInfo(card){
@@ -1244,7 +1296,7 @@ class Scene_Game extends Scene_Base{
     card.sprite.setZ(card.lastZ).scale.set(0.5, 0.5);
     card.sprite.setPOS(null, card.lastY);
     this.handCanvas[0].sortChildren();
-    this.hideHintWindow();
+    this.hideHintWindow(true);
   }
   /*-------------------------------------------------------------------------*/
   getCardHelp(card){
@@ -1309,16 +1361,23 @@ class Scene_Game extends Scene_Base{
     return ''
   }
   /*-------------------------------------------------------------------------*/
-  onCardPlay(pid, card, effects){
+  assignCardSprite(card, ix=0, iy=0, rnd=false){
+    if(card.sprite){return ;}
+    let sprite = this.getIdleCardSprite();
+    sprite.texture = Graphics.loadTexture(this.getCardImage(card)); 
+    sprite.setPOS(ix, iy);
+    card.sprite = sprite;
+    sprite.instance = card;
+    if(rnd){sprite.render();}
+    return card;
+  }
+  /*-------------------------------------------------------------------------*/
+  onCardPlay(pid, card, effects, ext){
     pid = parseInt(pid);
     if(pid == -1){
-      let sprite = this.getIdleCardSprite();
       let sx = this.deckSprite.x + this.deckSprite.width / 2;
       let sy = this.deckSprite.y + this.deckSprite.height / 2;
-      sprite.texture = Graphics.loadTexture(this.getCardImage(card)); 
-      sprite.setPOS(sx, sy).render();
-      card.sprite = sprite;
-      sprite.instance = card;
+      this.assignCardSprite(card, sx, sy, true);
       this.updateDeckInfo();
     }
     else{
@@ -1327,12 +1386,30 @@ class Scene_Game extends Scene_Base{
       this.handCanvas[pid].removeChild(card.sprite);
       card.sprite.render();
     }
+    this.processCardEffects(effects, ext);
     this.detachCardInfo(card);
     Sound.playCardPlace();
     card.sprite.setZ(0x20).handIndex = -1;
     card.sprite.playerIndex = -1;
     console.log("Card play: " + pid, card);
     this.addDiscardCard(card, pid);
+  }
+  /*-------------------------------------------------------------------------*/
+  processCardEffects(effects, ext){
+    for(let i in effects){
+      switch(effects[i]){
+        case Effect.TRADE:
+          return this.processTradeEffect(ext);
+      }
+    }
+  }
+  /*-------------------------------------------------------------------------*/
+  processTradeEffect(ext){
+    let pid = this.game.currentPlayerIndex;
+    setTimeout(()=>{
+      this.arrangeHandCards(pid);
+      this.arrangeHandCards(ext);
+    }, 500);
   }
   /*-------------------------------------------------------------------------*/
   onCardDraw(pid, cards, show=false){
@@ -1347,6 +1424,7 @@ class Scene_Game extends Scene_Base{
   /*-------------------------------------------------------------------------*/
   processCardDrawAnimation(pid, card, show=false, ar=false,ord=0){
     let sprite = this.getIdleCardSprite().show();
+    sprite.texture = Graphics.loadTexture(Graphics.CardBack);
     sprite.render();
     sprite.playerIndex = pid;
     card.sprite = sprite;
@@ -1367,13 +1445,15 @@ class Scene_Game extends Scene_Base{
       sprite.texture = Graphics.loadTexture(this.getCardImage(card));
       if(pid == 0){this.attachCardInfo(card);}
       if(show){setTimeout(this.sendCardToDeck.bind(this, pid, card), 2000);}
-      else if(ar){this.arrangeHandCards(pid)}
+      else if(ar){setTimeout(()=>{this.arrangeHandCards(pid)}, 500)}
     }.bind(this));
   }
   /*-------------------------------------------------------------------------*/
   onCardTrigger(card){
     if(this.playerPhase && this.game.isCardPlayable(card)){
+      this.hideCardInfo(card);
       if(this.game.isCardAbilitySelectionNeeded(card)){
+        Sound.playOK();
         this.processCardAbilitySelection(card);
         this.raiseOverlay(this.selectionWindow);
       }
@@ -1399,10 +1479,10 @@ class Scene_Game extends Scene_Base{
   }
   /*-------------------------------------------------------------------------*/
   setupZeroHandlers(card){
-    this.selectionWindow.setHandler(0, ()=>{
+    this.selectionWindow.setHandler(1, ()=>{
       this.onUserAbilityDecided(card, 0)
     });
-    this.selectionWindow.setHandler(1, ()=>{
+    this.selectionWindow.setHandler(2, ()=>{
       this.onUserAbilityDecided(card, 1)
     });
   }
@@ -1410,23 +1490,24 @@ class Scene_Game extends Scene_Base{
   setupTradeHandlers(card){
     let alives = this.game.getAlivePlayers();
     for(let i in alives){
-      this.selectionWindow.setHandler(parseInt(i), ()=>{
+      if(alives[i] == GameManager.game.players[0]){continue;}
+      this.selectionWindow.setHandler(parseInt(i)+1, ()=>{
         this.onUserCardPlay(card, this.players.indexOf(alives[i]))
       })
     }
   }
   /*-------------------------------------------------------------------------*/
   setupColorSelectionHandlers(card){
-    this.selectionWindow.setHandler(0, ()=>{
+    this.selectionWindow.setHandler(1, ()=>{
       this.onUserAbilityDecided(card, Color.RED)
     });
-    this.selectionWindow.setHandler(1, ()=>{
+    this.selectionWindow.setHandler(2, ()=>{
       this.onUserAbilityDecided(card, Color.YELLOW)
     });
-    this.selectionWindow.setHandler(2, ()=>{
+    this.selectionWindow.setHandler(3, ()=>{
       this.onUserAbilityDecided(card, Color.GREEN)
     });
-    this.selectionWindow.setHandler(3, ()=>{
+    this.selectionWindow.setHandler(4, ()=>{
       this.onUserAbilityDecided(card, Color.BLUE)
     });
   }

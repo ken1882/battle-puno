@@ -518,7 +518,7 @@ class GameManager{
    */
   static onCardPlay(player_id, card_instance, ext = null){
     let effects = this.interpretCardAbility(card_instance, ext);
-    SceneManager.scene.onCardPlay(player_id, card_instance, effects);
+    SceneManager.scene.onCardPlay(player_id, card_instance, effects, ext);
   }
   /**-------------------------------------------------------------------------
    * Fired when a player draws card(s)
