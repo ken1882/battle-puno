@@ -552,6 +552,7 @@ class Graphics{
    */
   static renderSprite(sprite){
     if(SceneManager.scene.children.indexOf(sprite) > -1){return ;}
+    if(sprite.isWindow){return this.renderWindow(sprite);}
     SceneManager.scene.addChild(sprite);
     SceneManager.scene.children.sort((a,b) => (a.zIndex || 0) - (b.zIndex || 0))
   }
@@ -2121,4 +2122,3 @@ class Rect extends PIXI.Rectangle{
     }
   }
 }
-;

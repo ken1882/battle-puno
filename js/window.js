@@ -1281,6 +1281,7 @@ class Widdow_CardSelection extends Window_Selectable{
   constructor(x, y, w, h){
     super(x, y, w, h);
     this.addSelections();
+    this.changeSkin(Graphics.WSkinLuna);
   }
   /*------------------------------------------------------------------------*/
   addSelections(){
@@ -1317,6 +1318,8 @@ class Widdow_CardSelection extends Window_Selectable{
         return this.setupColorSelection();
       case Value.TRADE:
         return this.setupPlayerSelection();
+      case Value.ZERO:
+        return this.setupZeroSelection();
       default:
         return this.clearSelection();
     }
@@ -1331,13 +1334,24 @@ class Widdow_CardSelection extends Window_Selectable{
     }
   }
   /*------------------------------------------------------------------------*/
-  setupColorSelection(){
+  setupZeroSelection(){
     this.clearSelection();
-    let txts = [Vocab.Red, Vocab.Yellow, Vocab.Green, Vocab.Blue];
-    for(let i=0;i<4;++i){
+    let txts = ["+10", Vocab.HelpReset];
+    for(let i=0;i<txts.length;++i){
       let sel = this.getItemBySymbol(i);
       sel.text = txts[i];
     }
+    this.clearSelection();
+  }
+  /*------------------------------------------------------------------------*/
+  setupColorSelection(){
+    this.clearSelection();
+    let txts = [Vocab.Red, Vocab.Yellow, Vocab.Green, Vocab.Blue];
+    for(let i=0;i<txts.length;++i){
+      let sel = this.getItemBySymbol(i);
+      sel.text = txts[i];
+    }
+    this.clearSelection();
   }
   /*------------------------------------------------------------------------*/
   setupPlayerSelection(){
@@ -1347,6 +1361,7 @@ class Widdow_CardSelection extends Window_Selectable{
       let sel = this.getItemBySymbol(i);
       sel.text = alives[i].name;
     }
+    this.clearSelection();
   }
   /*------------------------------------------------------------------------*/
   sortSelections(){
@@ -1356,8 +1371,7 @@ class Widdow_CardSelection extends Window_Selectable{
       if(sel == this.cancelSelection){continue;}
       if(this.isItemEnabled(sel)){
         pos = this.getIndexItemPOS(cnt++);
-        sel.activate();
-        sel.setPOS(pos.x, pos.y);
+        sel.setPOS(pos.x, pos.y).activate();
       }
       else{
         sel.setPOS(-this.itemWidth, -this.itemHeight).deactivate();

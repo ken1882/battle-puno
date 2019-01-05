@@ -1056,7 +1056,8 @@ class Scene_Game extends Scene_Base{
   }
   /*-------------------------------------------------------------------------*/
   createSelectionWindow(){
-    this.selectionWindow = new Window_Selectable(0, 0, 300, 150);
+    this.selectionWindow = new Widdow_CardSelection(0, 0, 300, 150);
+    this.selectionWindow.hide().setZ(0x30).render();
   }
   /*-------------------------------------------------------------------------*/
   arrangeHandCards(index){
@@ -1380,15 +1381,13 @@ class Scene_Game extends Scene_Base{
   }
   /*-------------------------------------------------------------------------*/
   onDeckTrigger(){
-    if(!this.playerPhase){
-      return Sound.playBuzzer();
-    }
-    else{
-      let cards = GameManager.game.deck.draw(1);
-      this.players[0].deal(cards);
-      GameManager.onCardDraw(0, cards);
-      this.processUserTurnEnd();
-    }
+    if(!this.playerPhase){return Sound.playBuzzer();}
+    let numCards = GameManager.getCardDrawNumber();
+    this.game.penaltyCard = undefined;
+    let cards = GameManager.game.deck.draw(numCards);
+    this.players[0].deal(cards);
+    GameManager.onCardDraw(0, cards);
+    this.processUserTurnEnd();
   }
   /*-------------------------------------------------------------------------*/
   sendCardToDeck(pid, card){

@@ -47,6 +47,7 @@
   "HelpDiscardPile": "上一張被打出的牌為: ",
 
   "HelpZero": "(Battle puno) Choose either +10 or reset the damage pool",
+  "HelpReset": "Reset damage pool to 0",
   "HelpNumber": "Add the card's number to damage pool",
   "HelpPlusTwo": "Next player draws two cards as penalty",
   "HelpSkip": "Next player forced to skip/Bypass the penalty to next player",

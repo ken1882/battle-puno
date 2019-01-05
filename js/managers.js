@@ -594,4 +594,17 @@ class GameManager{
     SceneManager.scene.processRoundOver();
   }
   /*-------------------------------------------------------------------------*/
+  static getCardDrawNumber(){
+    let pcard = this.game.penaltyCard;
+    if(!pcard){return 1;}
+    switch(pcard.value){
+      case Value.DRAW_TWO:
+        return 2;
+      case Value.WILD_DRAW_FOUR:
+        return 4;
+      default:
+        throw new Error("Unknown penalty card: " + pcard);
+    }
+  }
+  /*-------------------------------------------------------------------------*/
 }
