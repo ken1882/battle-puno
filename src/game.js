@@ -13,7 +13,7 @@ class PunoGame {
     this.currentValue = undefined;
     this.deck = null;
     this.discardPile = [];
-    this.penaltyStack = [];
+    this.penaltyCard = undefined;
     this.gameMode = gameMode;
     this.damagePool = 0;
   }
@@ -65,33 +65,61 @@ class PunoGame {
   }
 
   isCardPlayable(card) {
-    if (this.penaltyStack.length != 0) {
-      if (this.penaltyStack[0].value === Value.SKIP)  return false;
+    if (penaltyCard != undefined) {
+      if (penaltyCard.value === Value.SKIP)  return false;
       return (card.isEqual(new Card(this.currentColor, Value.SKIP)) ||
               card.isEqual(new Card(this.currentColor, Value.REVERSE)));
     }
     return card.isMatched(this.currentColor, this.currentValue);
   }
 
-  initialize() {
-    debug_log("--------------INITIALIZE--------------");
+  initDeck() {
     this.deck = new Deck(this.extraCardDisabled);
-    const firstCard = this.deck.drawColored(1)[0];
-    debug_log("first card", firstCard);
-    GameManager.onCardPlay(-1, firstCard);
-    this.discardPile.push(firstCard);
+  }
+
+  initPlayer() {
+    for (let i in this.players) {
+      this.players[i].reset();
+    }
+  }
+
+  processFirstDraw() {
+    this.currentPlayerIndex = this.chooseDealer();
+  }
+
+  processFirstDeal() {
     for (let i in this.players) {
       let cards = this.drawCard(this.initCardNumber);
-      this.players[i].reset();
-      this.players[i].deal(cards);
+      this.players.deal(cards);
       GameManager.onCardDraw(i, cards);
     }
-    this.currentPlayerIndex = this.chooseDealer();
-    if (firstCard.penalty) {
-      this.penaltyStack.push(firstCard);
-    }
+  }
+
+  drawFirstCard() {
+    const firstCard = this.deck.drawColored(1)[0];
+    this.discardPile.push(firstCard);
     this.setNextColorAndValue(firstCard);
+    if (firstCard.value === Value.SKIP) {
+      this.penaltyCard = firstCard;
+    } else if (firstCard.value === Value.REVERSE) {
+      this.reverse();
+    }
+    GameManager.onCardPlay(-1, firstCard);
+    debug_log("first card", firstCard);
+  }
+
+  initialize() {
+    debug_log("--------------INITIALIZE--------------");
+    this.initDeck();
+    this.initPlayer();
+    this.processFirstDraw();
+    this.processFirstDeal();
+    this.drawFirstCard();
     debug_log("--------------------------------------");
+  }
+
+  isGameOver() {
+    return Math.max(...this.scoreBoard) < this.scoreGoal;
   }
 
   isRoundOver() {
@@ -173,48 +201,84 @@ class PunoGame {
     }
   }
 
+  takeCardAction(card, ext) {
+    if (card.value === Value.REVERSE) {
+      this.reverse();
+      ext = penaltyCard === undefined ? 0 : 1;
+    } else if (card.value === Value.TRADE) {
+      const target = this.findTarget();
+      this.trade(this.currentPlayerIndex, target);
+      ext = [undefined, target];
+    } else if (card.value === Value.DISCARD_ALL) {
+      this.currentPlayer().discardAllByColor(this.currentColor);
+    } else if (card.value === Value.WILD_HIT_ALL) {
+      this.wildHitAll(this.currentPlayerIndex);
+    }
+  }
+
+  setDamagePool(card, ext) {
+    if (this.gameMode === Mode.TRADITIONAL)  return;
+    if (card.value === Value.ZERO) {
+      if (this.damagePool < 30 || !!getRandom(0, 1)) {
+        debug_log("+10 damage");
+        this.damagePool += 10;
+        ext = 1;
+      } else {
+        debug_log("clear damage");
+        this.damagePool = 0;
+        ext = 0;
+      }
+    } else if (Value.ONE <= card.value && card.value <= Value.NINE) {
+      this.damagePool += card.value;
+    }
+    debug_log("damage pool", this.damagePool);
+  }
+
   discard(card, ext=null) {
     debug_log("discard: ", card);
     this.discardPile.push(card);
-    if (this.gameMode === Mode.BATTLE_PUNO ||
-        this.gameMode === Mode.DEATH_MATCH) {
-      if (card.value === Value.ZERO) {
-        if (this.damagePool < 30 || !!getRandom(0, 1)) {
-          debug_log("+10 damage");
-          this.damagePool += 10;
-          ext = 1;
-        } else {
-          debug_log("clear damage");
-          this.damagePool = 0;
-          ext = 0;
-        }
-        debug_log("damage pool", this.damagePool);
-      } else if (Value.ONE <= card.value && card.value <= Value.NINE) {
-        this.damagePool += card.value;
-        debug_log("damage pool", this.damagePool);
-      }
-    }
     if (this.currentPlayer().hand.length != 0) {
-      if (card.value === Value.REVERSE) {
-        this.reverse();
-      } else if (card.value === Value.TRADE) {
-        const target = this.findTarget();
-        this.trade(this.currentPlayerIndex, target);
-        ext = [undefined, target];
-      } else if (card.value === Value.DISCARD_ALL) {
-        this.currentPlayer().discardAllByColor(this.currentColor);
-      } else if (card.value === Value.WILD_HIT_ALL) {
-        this.wildHitAll(this.currentPlayerIndex);
+      if (card.numbered) {
+        this.setDamagePool(card, ext);
+      } else {
+        this.takeCardAction(card, ext);
       }
-    }
-    this.setNextColorAndValue(card, ext);
-    if (card.penalty) {
-      this.penaltyStack.push(card);
+      this.setNextColorAndValue(card, ext);
+      if (this.penaltyCard === undefined && card.penalty) {
+        this.penaltyCard = card;
+      } else {
+        this.penaltyCard = undefined;
+      }
     }
     if (this.currentPlayer().hand.length === 1) {
       this.currentPlayer().uno();
     }
     GameManager.onCardPlay(this.currentPlayerIndex, card, ext);
+  }
+
+  getPenalty() {
+    debug_log("PENALTY");
+    if (penaltyCard.value === Value.SKIP) {
+      debug_log("SKIP");
+      penaltyCard = undefined;
+    } else {
+      const avoidCard = this.currentPlayer().receivePenalty(penaltyCard);
+      if (avoidCard != null) {
+        discard(avoidCard, 1);
+      } else {
+        let cards = undefined;
+        if (penaltyCard.value === Value.DRAW_TWO) {
+          debug_log("DRAW TWO");
+          cards = this.drawCard(2);
+        } else if (penaltyCard.value === Value.WILD_DRAW_FOUR) {
+          debug_log("DRAW FOUR");
+          cards = this.drawCard(4);
+        }
+        this.currentPlayer().deal(cards);
+        GameManager.onCardDraw(this.currentPlayerIndex, cards);
+        penaltyCard = undefined;
+      }
+    }
   }
 
   beginTurn() {
@@ -240,29 +304,8 @@ class PunoGame {
     }
     /**************************************************************************/
     // penalty
-    if (this.penaltyStack.length > 0) {
-      debug_log("PENALTY");
-      const penaltyCard = this.penaltyStack.pop();
-      if (penaltyCard.value == Value.SKIP) {
-        debug_log("SKIP");
-      } else {
-        const avoidCard = this.currentPlayer().receivePenalty(penaltyCard);
-        if (avoidCard != null) {
-          discard(avoidCard, 1);
-          this.penaltyStack.push(penaltyCard);
-        } else {
-          let cards = undefined;
-          if (penaltyCard.value === Value.DRAW_TWO) {
-            debug_log("DRAW TWO");
-            cards = this.drawCard(2);
-          } else if (penaltyCard.value === Value.WILD_DRAW_FOUR) {
-            debug_log("DRAW FOUR");
-            cards = this.drawCard(4);
-          }
-          this.currentPlayer().deal(cards);
-          GameManager.onCardDraw(this.currentPlayerIndex, cards);
-        }
-      }
+    if (this.penaltyCard != undefined) {
+      this.getPenalty();
       return;
     }
     /**************************************************************************/
@@ -305,15 +348,14 @@ class PunoGame {
   }
 
   gameStart() {
-    let round = 0;
+    GameManager.onGameStart()
     console.log("SCORE GOAL", this.scoreGoal);
-    debug_log("Round " + String(++round));
-    this.initialize();
     this.roundStart();
   }
 
   roundStart() {
-    // ...
+    this.initialize();
+    GameManager.onRoundStart();
   }
 
   update() {
