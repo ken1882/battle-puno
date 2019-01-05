@@ -18,7 +18,7 @@ class PunoGame {
     this.damagePool = 0;
   }
 
-  getAlivePlayers() {
+  numAlivePlayers() {
     let alivePlayersCount = 0;
     for (let i in this.players) {
       if (!this.players[i].knockOut) {
@@ -26,6 +26,16 @@ class PunoGame {
       }
     }
     return alivePlayersCount;
+  }
+
+  getAlivePlayers() {
+    let alivePlayers = [];
+    for (let i in this.players) {
+      if (!this.players[i].knockOut) {
+        alivePlayers.push(this.players[i]);
+      }
+    }
+    return alivePlayers;
   }
 
   chooseDealer() {
@@ -78,6 +88,18 @@ class PunoGame {
     return this.penaltyCard != undefined && this.penaltyCard.value === Value.SKIP;
   }
 
+  isCardAbilitySelectionNeeded(card) {
+    if ((this.gameMode === Mode.BATTLE_PUNO ||
+        this.gameMode === Mode.DEATH_MATCH) &&
+        card.value === Value.ZERO) {
+      return true;
+    }
+    if (card.value === Value.WILD_CHAOS) {
+      return false;
+    }
+    return card.color === Color.WILD;
+  }
+
   isCardPlayable(card) {
     if (this.penaltyCard != undefined) {
       if (this.penaltyCard.value === Value.SKIP)  return false;
@@ -119,7 +141,6 @@ class PunoGame {
       this.reverse();
     }
     GameManager.onCardPlay(-1, firstCard);
-    debug_log("first card", firstCard);
   }
 
   initialize() {
@@ -142,7 +163,7 @@ class PunoGame {
         return true;
       }
     }
-    return this.getAlivePlayers() === 1;
+    return this.numAlivePlayers() === 1;
   }
 
   reverse() {
@@ -306,12 +327,7 @@ class PunoGame {
   }
 
   beginTurn() {
-    debug_log(this.currentPlayer().name, "round");
-    if (this.gameMode != Mode.TRADITIONAL) {
-      debug_log("hp:", this.currentPlayer().hp);
-    }
     debug_log("hand", this.currentPlayer().hand.slice());
-    debug_log("last card:", this.lastCard());
     debug_log("CURRENT COLOR:", this.currentColor);
     debug_log("CURRENT VALUE:", this.currentValue);
     /**************************************************************************/
@@ -374,7 +390,7 @@ class PunoGame {
 
   gameStart() {
     GameManager.onGameStart()
-    console.log("SCORE GOAL", this.scoreGoal);
+    debug_log("SCORE GOAL", this.scoreGoal);
     this.roundStart();
   }
 
@@ -389,6 +405,7 @@ class PunoGame {
     if (GameManager.isInTurn()) {
       this.endTurn();
     } else {
+      console.log(this.currentPlayer());
       if (!this.currentPlayer().knockOut) {
         if (this.currentPlayer().ai) {
           GameManager.onNPCTurnBegin(this.currentPlayerIndex);
