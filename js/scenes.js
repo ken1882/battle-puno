@@ -1117,10 +1117,10 @@ class Scene_Game extends Scene_Base{
     player_id = parseInt(player_id);
     card.sprite.show();
     if(player_id >= 0){
-      this.arrangeHandCards(player_id);
       let deg = -20 + player_id * (360 / GameManager.playerNumber) + randInt(0, 40);
       card.sprite.rotateDegree(deg);
       console.log(this.players[player_id].hand.indexOf(card));
+      this.arrangeHandCards(player_id);
     }
     let sx = this.discardPile.x + this.discardPile.width / 2;
     let sy = this.discardPile.y + this.discardPile.height / 2;
@@ -1325,6 +1325,7 @@ class Scene_Game extends Scene_Base{
       let pos = card.sprite.worldTransform;
       card.sprite.setPOS(pos.tx, pos.ty);
       this.handCanvas[pid].removeChild(card.sprite);
+      card.sprite.render();
     }
     this.detachCardInfo(card);
     Sound.playCardPlace();
@@ -1374,8 +1375,7 @@ class Scene_Game extends Scene_Base{
     if(this.playerPhase && this.game.isCardPlayable(card)){
       Sound.playOK();
       this.hideCardInfo(card);
-      this.players[0].discard(this.players[0].hand.indexOf(card));
-      this.game.discard(card);
+      this.game.discard(this.game.currentPlayer().findCard(card));
       this.processUserTurnEnd();
     }
     else{

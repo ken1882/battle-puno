@@ -550,6 +550,9 @@ class GameManager{
   /*-------------------------------------------------------------------------*/
   static onTurnEnd(player_id){
     this._inTurn = false;
+    if(player_id == 0){
+      SceneManager.scene.processUserTurnEnd();
+    }
   }
   /*-------------------------------------------------------------------------*/
   static changeColor(color_id){
