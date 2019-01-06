@@ -261,6 +261,7 @@ class DataManager{
     this.loadLanguageFont();
     this.loadVolumeSetting();
     this.loadAudioEnable();
+    this.loadDebugOption();
     this.ready    = true;
   }
   /*-------------------------------------------------------------------------*/
@@ -270,6 +271,7 @@ class DataManager{
     this.kLanguage       = "language";
     this.kVolume         = "volume";
     this.kAudioEnable    = "audioEnable";
+    this.kDebug          = "debug"
   }
   /*-------------------------------------------------------------------------*/
   static loadDatabase(){
@@ -314,6 +316,17 @@ class DataManager{
     }
   }
   /*-------------------------------------------------------------------------*/
+  static loadDebugOption(){
+    let dbg = this.debugOption;
+    if(!dbg){
+      dbg = {
+        "log": true,
+        "showHand": false
+      }
+      this.changeSetting(this.kDebug, dbg);
+    }
+  }
+  /*-------------------------------------------------------------------------*/
   static changeSetting(key, value){
     this.setting[key] = value;
     this.database.setItem(key, JSON.stringify(value));
@@ -326,12 +339,19 @@ class DataManager{
   static getSetting(key){
     return this.setting[key];
   }
+  /*-------------------------------------------------------------------------*/
+  static changeDebugOption(key, value){
+    let dbg = this.debugOption();
+    dbg[key] = value;
+    this.changeSetting(this.kDebug, dbg);
+  }
   /**-------------------------------------------------------------------------
    * > Getter functions
    */
   static get language(){return this.setting[this.kLanguage];}
   static get volume(){return this.setting[this.kVolume];}
   static get audioEnable(){return this.setting[this.kAudioEnable];}
+  static get debugOption(){return this.setting[this.kDebug];}
   /*-------------------------------------------------------------------------*/
 }
 /**---------------------------------------------------------------------------
@@ -634,7 +654,8 @@ class EventManager{
   static update(){
     for(let i in this.container){
       i = parseInt(i);
-      if(!this.event_timer[i]--){
+      this.event_timer[i] -= 1;
+      if(this.event_timer[i] <= 0){
         this.executeEvent(this.container[i]);
         this.unregisterEventByIndex(i);
       }

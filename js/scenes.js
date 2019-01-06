@@ -1123,6 +1123,13 @@ class Scene_Game extends Scene_Base{
       if(!card.sprite){
         this.assignCardSprite(card, 0, 0, true);
       }
+
+      if(index == 0 || DataManager.debugOption["showHand"]){
+        card.sprite.texture = Graphics.loadTexture(this.getCardImage(card));
+      }
+      else{
+        card.sprite.texture = Graphics.loadTexture(Graphics.CardBack);
+      }
       card.sprite.setPOS(canvasWidth/2,canvasHeight/2).setZ(0x11 + parseInt(i));
       hcs.addChild(card.sprite);
       card.sprite.rotateDegree(deg);
@@ -1146,7 +1153,7 @@ class Scene_Game extends Scene_Base{
 
   }
   /*-------------------------------------------------------------------------*/
-  addDiscardCard(card, player_id){
+  addDiscardCard(card, player_id, ext){
     player_id = parseInt(player_id);
     card.sprite.show();
     if(player_id >= 0){
@@ -1154,8 +1161,9 @@ class Scene_Game extends Scene_Base{
       card.sprite.rotateDegree(deg);
       EventManager.setTimeout(()=>{
         this.arrangeHandCards(player_id);
-      }, parseInt(10));
+      }, parseInt(20));
     }
+    card.sprite.texture = Graphics.loadTexture(this.getCardImage(card));
     let sx = this.discardPile.x + this.discardPile.width / 2;
     let sy = this.discardPile.y + this.discardPile.height / 2;
     let cx = (this.discardPile.width) / 2;
@@ -1166,7 +1174,7 @@ class Scene_Game extends Scene_Base{
       this.playColorEffect(card.color);
       this.animationCount -= 1;
       this.discardPile.addChild(card.sprite);
-      this.updateLastCardInfo();
+      if(ext != -1){this.updateLastCardInfo();}
       card.sprite.setPOS(cx, cy);
     }.bind(this));
     let repos = 1;
@@ -1184,12 +1192,6 @@ class Scene_Game extends Scene_Base{
     sprite.instance = null;
     this.discardPile.removeChild(sprite);
     sprite.hide();
-  }
-  /*-------------------------------------------------------------------------*/
-  clearDiscardPile(){
-    while(this.discardPile.children.length > 1){
-      this.discardPile.children.pop().hide();
-    }
   }
   /*-------------------------------------------------------------------------*/
   createHintWindow(){
@@ -1421,7 +1423,7 @@ class Scene_Game extends Scene_Base{
     card.sprite.setZ(0x20).handIndex = -1;
     card.sprite.playerIndex = -1;
     console.log("Card play: " + pid, card);
-    this.addDiscardCard(card, pid);
+    this.addDiscardCard(card, pid, ext);
   }
   /*-------------------------------------------------------------------------*/
   processCardEffects(effects, ext){
@@ -1471,11 +1473,17 @@ class Scene_Game extends Scene_Base{
     Sound.playCardDraw();
     sprite.instance = card;  
     this.animationCount += 1;
+    if(show){
+      sprite.texture = Graphics.loadTexture(this.getCardImage(card));
+      sprite.setZ(0x30);
+    }
     sprite.moveto(dx, dy, function(){
       this.animationCount -= 1;
-      sprite.texture = Graphics.loadTexture(this.getCardImage(card));
-      if(pid == 0){this.attachCardInfo(card);}
-      if(show){EventManager.setTimeout(this.sendCardToDeck.bind(this, pid, card), 180);}
+      if(pid == 0){
+        this.attachCardInfo(card);
+        sprite.texture = Graphics.loadTexture(this.getCardImage(card));
+      }
+      if(show){EventManager.setTimeout(this.sendCardToDeck.bind(this, pid, card), 200);}
       else if(ar){EventManager.setTimeout(()=>{this.arrangeHandCards(pid)}, 20)}
     }.bind(this));
   }
@@ -1654,19 +1662,39 @@ class Scene_Game extends Scene_Base{
   }
   /*-------------------------------------------------------------------------*/
   processGameOver(){
-
+    debug_log("Game Ends")
   }
   /*-------------------------------------------------------------------------*/
   processRoundOver(){
-
+    debug_log("Round Ends")
   }
   /*-------------------------------------------------------------------------*/
   processRoundStart(){
-
+    debug_log("Round Start");
+    this.clearTable();
+  }
+  /*-------------------------------------------------------------------------*/
+  clearTable(){
+    this.clearDeck();
+    this.clearCardSprites();
+  }
+  /*-------------------------------------------------------------------------*/
+  clearDeck(){
+    this.updateDeckInfo();
+  }
+  /*-------------------------------------------------------------------------*/
+  clearCardSprites(){
+    for(let i in this.spritePool){
+      let sprite = this.spritePool[i];
+      if(!sprite.instance){continue;}
+      if(sprite.instance != this.game.lastCard()){
+        this.recycleCard(sprite.instance);
+      }
+    }
   }
   /*-------------------------------------------------------------------------*/
   processGameStart(){
-    
+    debug_log("Game Start")
   }
   /*-------------------------------------------------------------------------*/
   isBusy(){
