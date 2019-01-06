@@ -514,7 +514,6 @@ class Scene_Intro extends Scene_Base{
     this.NTOUmoment   = 150;
     this.ENDmoment    = 500;
     this.drawLibrarySplash();
-    Sound.loadStageAudio();
   }
   /*-------------------------------------------------------------------------*/
   update(){
@@ -635,6 +634,7 @@ class Scene_Title extends Scene_Base{
     this.menu.activate();
     this.particles.forEach(function(sp){sp.render();})
     this.fadeDuration = 60;
+    if(!Sound.isStageReady()){Sound.loadStageAudio();}
   }
   /*-------------------------------------------------------------------------*/
   create(){
@@ -1093,12 +1093,12 @@ class Scene_Game extends Scene_Base{
   }
   /*-------------------------------------------------------------------------*/
   createInfoSprite(){
-    this.infoSprite = new SpriteCanvas(0, 0, 300, 24);
+    this.infoSprite = new SpriteCanvas(0, 0, 350, 24);
     let font = clone(Graphics.DefaultFontSetting);
     font.fill = 0x000000;
-    let bk  = this.infoSprite.fillRect(0, 0, 300, 24, Graphics.color.White);
-    bk.setOpacity(0.5);
-    let txt = this.infoSprite.drawText(0, 0, '', font);
+    let bk  = this.infoSprite.fillRect(0, 0, 350, 24, Graphics.color.White);
+    bk.setOpacity(0.5).hide();
+    let txt = this.infoSprite.drawText(Graphics.spacing, 0, '', font);
     this.infoSprite.textSprite = txt;
     this.infoSprite.backSprite = bk;
   }
@@ -1275,11 +1275,12 @@ class Scene_Game extends Scene_Base{
     let sx = Graphics.width - Graphics.spacing - tsp.width;
     let sy = Graphics.spacing;
     let sw = tsp.width, sh = tsp.height;
-    this.infoSprite.setPOS(sx, sy).resize(sw, sh);
+    this.infoSprite.backSprite.show();
+    this.infoSprite.setPOS(sx, sy).resize(sw + Graphics.spacing*2, sh);
     let bsp = this.infoSprite.backSprite;
     bsp.clear();
     bsp.beginFill(Graphics.color.White);
-    bsp.drawRect(0, 0, sw, sh);
+    bsp.drawRect(0, 0, sw + + Graphics.spacing*2, sh);
     bsp.endFill();
   }
   /*-------------------------------------------------------------------------*/
@@ -1874,7 +1875,7 @@ class Scene_Game extends Scene_Base{
         re += 'Any';
     }
     re += " / ";
-    if(!this.game.currentValue){
+    if(this.game.currentValue !== 0 && !this.game.currentValue){
       re += Vocab.Any;
     }
     else if(this.game.currentValue < 10){
