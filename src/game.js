@@ -428,27 +428,35 @@ class PunoGame {
   }
 
   update() {
-    if (GameManager.isSceneBusy())  return;
+    if (GameManager.isSceneBusy() || this.flagAIThinking)  return;
     if (this.isRoundOver())  return this.processResult();
     if (GameManager.isInTurn()) {
       this.endTurn();
     } else {
       console.log(this.currentPlayer());
       if (!this.currentPlayer().knockOut) {
-        if (this.currentPlayer().ai) {
-          GameManager.onNPCTurnBegin(this.currentPlayerIndex);
-        } else {
-          GameManager.onUserTurnBegin(this.currentPlayerIndex);
-        }
-        if (this.isCurrentPlayerSkipped()) {
-          this.penaltyCard = undefined;
-          this.endTurn();
-        } else if (this.currentPlayer().ai) {
-          this.beginTurn();
-        }
+        this.processTurnAction();
       } else {
         debug_log(this.currentPlayer().name, "knocked out - SKIP");
       }
+    }
+  }
+
+  processTurnAction(){
+    if (this.currentPlayer().ai) {
+      GameManager.onNPCTurnBegin(this.currentPlayerIndex);
+    } else {
+      GameManager.onUserTurnBegin(this.currentPlayerIndex);
+    }
+    if (this.isCurrentPlayerSkipped()) {
+      this.penaltyCard = undefined;
+      this.endTurn();
+    } else if (this.currentPlayer().ai) {
+      this.flagAIThinking = true;
+      EventManager.setTimeout(()=>{
+        this.flagAIThinking = false;
+        this.beginTurn();
+      }, 30);
     }
   }
 

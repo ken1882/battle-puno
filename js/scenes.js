@@ -811,6 +811,7 @@ class Scene_Game extends Scene_Base{
     this.fadeDuration       = 60;
     this.cardSpritePoolSize = 50;
     this.discardPileSize    = 15;
+    this.animationCount     = 0;
     this.playerPhase        = false;
   }
   /*-------------------------------------------------------------------------*/
@@ -1143,15 +1144,8 @@ class Scene_Game extends Scene_Base{
       card.lastZ = card.sprite.z; card.lastY = dy;
       if(index == 0 && !card.attached){this.attachCardInfo(card);}
     }
+    this.animationCount += 1;
     hcs.sortChildren();
-  }
-  /*-------------------------------------------------------------------------*/
-  onCardZoomIn(card){
-
-  }
-  /*-------------------------------------------------------------------------*/
-  onCardZoomOut(card){
-
   }
   /*-------------------------------------------------------------------------*/
   playColorEffect(cid){
@@ -1174,6 +1168,7 @@ class Scene_Game extends Scene_Base{
     let cx = (this.discardPile.width) / 2;
     let cy = (this.discardPile.height) / 2;
     console.log("Discard ", sx, sy, card.sprite.x, card.sprite.y);
+    this.animationCount += 1;
     card.sprite.moveto(sx, sy, function(){
       this.playColorEffect(card.color);
       if(card.sprite.parent != SceneManager.scene){
@@ -1266,15 +1261,16 @@ class Scene_Game extends Scene_Base{
   updatePenaltyInfo(current=false){
     let idx = this.game.getNextPlayerIndex();
     if(current){idx = this.game.currentPlayerIndex;}
+    let pcard = this.game.penaltyCard;
     for(let i in this.penaltyCanvas){
-      let pcard = this.game.penaltyCard;
+      i = parseInt(i);
       if(!pcard || i != idx){this.setPenaltyInfo(i, Vocab.Normal); continue;}
       switch(pcard.value){
         case Value.SKIP:
           return this.setPenaltyInfo(i, Vocab.SKIP);
         case Value.DRAW_TWO:
           return this.setPenaltyInfo(i, "+2");
-        case Value.DRAW_FOUR:
+        case Value.WILD_DRAW_FOUR:
           return this.setPenaltyInfo(i, "+4");
         default:
           return this.setPenaltyInfo(i, Vocab.Normal);
@@ -1455,10 +1451,13 @@ class Scene_Game extends Scene_Base{
   /*-------------------------------------------------------------------------*/
   onCardPlay(pid, card, effects, ext){
     pid = parseInt(pid);
-    if(pid == -1){
+    if(!card.sprite){
       let sx = this.deckSprite.x + this.deckSprite.width / 2;
       let sy = this.deckSprite.y + this.deckSprite.height / 2;
       this.assignCardSprite(card, sx, sy, true);
+    }
+
+    if(pid == -1){
       this.updateDeckInfo();
       EventManager.setTimeout(()=>{
         this.updatePenaltyInfo();
@@ -1547,6 +1546,7 @@ class Scene_Game extends Scene_Base{
       sprite.setZ(0x30);
     }
     debug_log(`${pid} Draw`);
+    this.animationCount += 1;
     sprite.moveto(dx, dy, function(){
       if(pid == 0){
         this.attachCardInfo(card);
@@ -1711,7 +1711,9 @@ class Scene_Game extends Scene_Base{
   processUserTurn(pid){
     this.setCursor(pid);
     this.playerPhase = true;
-    this.updatePenaltyInfo(true);
+    EventManager.setTimeout(()=>{
+      this.updatePenaltyInfo(true);
+    }, 5);
   }
   /*-------------------------------------------------------------------------*/
   processUserTurnEnd(){
@@ -1720,7 +1722,9 @@ class Scene_Game extends Scene_Base{
   /*-------------------------------------------------------------------------*/
   processNPCTurn(pid){
     this.setCursor(pid);
-    this.updatePenaltyInfo(true);
+    EventManager.setTimeout(()=>{
+      this.updatePenaltyInfo(true);
+    }, 5);
   }
   /*-------------------------------------------------------------------------*/
   setCursor(pid){
@@ -1783,8 +1787,11 @@ class Scene_Game extends Scene_Base{
   }
   /*-------------------------------------------------------------------------*/
   isAnimationPlaying(){
+    if(!this.animationCount){return false;}
+    this.animationCount = 0;
     for(let i in this.spritePool){
       if(this.spritePool[i].isMoving){
+        this.animationCount = 1;
         return true;
       }
     }

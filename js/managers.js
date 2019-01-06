@@ -341,7 +341,7 @@ class DataManager{
   }
   /*-------------------------------------------------------------------------*/
   static changeDebugOption(key, value){
-    let dbg = this.debugOption();
+    let dbg = this.debugOption;
     dbg[key] = value;
     this.changeSetting(this.kDebug, dbg);
   }
