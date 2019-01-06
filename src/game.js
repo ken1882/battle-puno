@@ -244,7 +244,6 @@ class PunoGame {
       }
       debug_log("WILD CHOOSE NEXT COLOR", this.currentColor);
       if (card.value === Value.WILD_CHAOS) {
-
         this.currentValue = getRandom(Value.ZERO, Value.NINE);
         debug_log("WILD CHAOS, NEXT VALUE", this.currentValue);
         ext = [this.currentColor, this.currentValue];
@@ -313,6 +312,8 @@ class PunoGame {
       } else {
         ext = 1;
       }
+    } else {
+      ext = -1;
     }
     if (this.currentPlayer().hand.length === 1) {
       this.currentPlayer().uno();
