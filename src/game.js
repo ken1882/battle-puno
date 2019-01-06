@@ -310,7 +310,7 @@ class PunoGame {
           this.penaltyCard = card;
         }
       } else {
-        this.penaltyCard = undefined;
+        ext = 1;
       }
     }
     if (this.currentPlayer().hand.length === 1) {
