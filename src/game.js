@@ -154,8 +154,8 @@ class PunoGame {
   }
 
   isGameOver() {
-    if(this.gameMode === Mode.TRADITIONAL)  return true;
-    return Math.max(...this.scoreBoard()) < this.scoreGoal;
+    if (this.gameMode === Mode.TRADITIONAL)  return true;
+    return Math.max(...this.scoreBoard()) >= this.scoreGoal;
   }
 
   isRoundOver() {
@@ -453,7 +453,7 @@ class PunoGame {
     }
   }
 
-  processTurnAction(){
+  processTurnAction() {
     if (this.currentPlayer().ai) {
       GameManager.onNPCTurnBegin(this.currentPlayerIndex);
     } else {
@@ -471,12 +471,12 @@ class PunoGame {
     }
   }
 
-  processResult(){
+  processResult() {
     this.gameResult();
     debug_log(this.scoreBoard());
-    if(this.isGameOver()){
+    if (this.isGameOver()) {
       GameManager.processGameOver();
-    }else{
+    } else {
       GameManager.processRoundOver();
     }
   }
