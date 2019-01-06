@@ -35,6 +35,7 @@ class SceneManager{
       SceneManager.changeScene();
       SceneManager.updateScene();
       SceneManager.renderScene();
+      EventManager.update();
     }
     catch(e){
       reportError(e);
@@ -111,6 +112,7 @@ class SceneManager{
     Sound.initialize();
     Input.initialize();
     GameManager.initialize();
+    EventManager.initialize();
   }
   /*-------------------------------------------------------------------------*/
   static goto(sceneClass, args){
@@ -609,6 +611,76 @@ class GameManager{
       default:
         throw new Error("Unknown penalty card: " + pcard);
     }
+  }
+  /*-------------------------------------------------------------------------*/
+}
+/**-------------------------------------------------------------------------
+ * A class that manages scheduled functions/events
+ * @namespace
+ */
+class EventManager{
+  /*-------------------------------------------------------------------------*/
+  constructor(){
+    throw new Error("This is a static class")
+  }
+  /*-------------------------------------------------------------------------*/
+  static initialize(){
+    this.container   = [];
+    this.event_timer = [];
+    this.indexMap    = [];
+    this.symbolMap   = {};
+  }
+  /*-------------------------------------------------------------------------*/
+  static update(){
+    for(let i in this.container){
+      i = parseInt(i);
+      if(!this.event_timer[i]--){
+        this.executeEvent(this.container[i]);
+        this.unregisterEventByIndex(i);
+      }
+    }
+  }/*-------------------------------------------------------------------------*/
+  /**
+   * Works just like window.setTimeout about the timer is in frame and called
+   * via the frame updates.
+   * @param {Function} func - The function to be fired 
+   * @param {Number} timer  - Frames to wait before fire the function
+   * @param {String} symbol - Symbol of this event
+   */
+  static setTimeout(func, timer, symbol=null){
+    if(symbol){
+      if(!this.symbolMap[symbol]){
+        this.symbolMap[symbol] = this.container.length;
+        this.indexMap[this.container.length] = symbol;
+      }
+      else{
+        console.error("Duplicated event symbol: " + symbol);
+        console.error("And it will be ignored");
+      }
+    }
+    this.container.push(func);
+    this.event_timer.push(timer || 0);
+  }
+  /*-------------------------------------------------------------------------*/
+  static executeEvent(eve){
+    eve();
+  }
+  /*-------------------------------------------------------------------------*/
+  static unregisterEventByIndex(idx){
+    this.container.splice(idx, 1);
+    this.event_timer.splice(idx, 1);
+    let sym = this.indexMap[idx];
+    if(sym){
+      this.symbolMap[sym] = null;
+      this.indexMap.splice(idx, 1);
+    }
+  }
+  /*-------------------------------------------------------------------------*/
+  static unregisterEventBySymbol(sym){
+    if(!this.symbolMap[sym]){
+      return console.error("Symbol not found: " + sym);
+    }
+    this.unregisterEventByIndex(this.symbolMap[sym]);
   }
   /*-------------------------------------------------------------------------*/
 }

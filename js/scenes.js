@@ -826,12 +826,12 @@ class Scene_Game extends Scene_Base{
     this.playStageBGM();
     this.selectionWindow.render();
     Graphics.renderSprite(this.infoSprite);
-    setTimeout(this.gameStart.bind(this), 1500);
+    EventManager.setTimeout(this.gameStart.bind(this), 90);
   }
   /*-------------------------------------------------------------------------*/
   playStageBGM(){
     if(!this.bgmName){
-      setTimeout(this.playStageBGM.bind(this), 500);
+      EventManager.setTimeout(this.playStageBGM.bind(this), 10);
     }
     else{Sound.playBGM(this.bgmName);}
   }
@@ -1130,7 +1130,7 @@ class Scene_Game extends Scene_Base{
       card.lastZ = card.sprite.z; card.lastY = dy;
       if(index == 0 && !card.attached){this.attachCardInfo(card);}
     }
-    setTimeout(()=>{this.animationCount -= 1}, 1000);
+    EventManager.setTimeout(()=>{this.animationCount -= 1}, 60);
     hcs.sortChildren();
   }
   /*-------------------------------------------------------------------------*/
@@ -1152,9 +1152,9 @@ class Scene_Game extends Scene_Base{
     if(player_id >= 0){
       let deg = -20 + player_id * (360 / GameManager.playerNumber) + randInt(0, 40);
       card.sprite.rotateDegree(deg);
-      setTimeout(()=>{
+      EventManager.setTimeout(()=>{
         this.arrangeHandCards(player_id);
-      }, 500);
+      }, parseInt(10));
     }
     let sx = this.discardPile.x + this.discardPile.width / 2;
     let sy = this.discardPile.y + this.discardPile.height / 2;
@@ -1435,18 +1435,19 @@ class Scene_Game extends Scene_Base{
   /*-------------------------------------------------------------------------*/
   processTradeEffect(ext){
     let pid = this.game.currentPlayerIndex;
-    setTimeout(()=>{
+    EventManager.setTimeout(()=>{
       this.arrangeHandCards(pid);
       this.arrangeHandCards(ext);
-    }, 500);
+    }, 10);
   }
   /*-------------------------------------------------------------------------*/
   onCardDraw(pid, cards, show=false){
     pid = parseInt(pid);
-    let wt = 300; // wait time
+    let wt = 20; // wait time
     for(let i in cards){
-      let ar = (parseInt(i)+1 == cards.length)
-      setTimeout(this.processCardDrawAnimation.bind(this, pid, cards[i], show, ar,i), wt * i);
+      i = parseInt(i);
+      let ar = (i+1 == cards.length)
+      EventManager.setTimeout(this.processCardDrawAnimation.bind(this, pid, cards[i], show, ar,i), wt * i);
     }
     this.updateDeckInfo();
   }
@@ -1473,8 +1474,8 @@ class Scene_Game extends Scene_Base{
       this.animationCount -= 1;
       sprite.texture = Graphics.loadTexture(this.getCardImage(card));
       if(pid == 0){this.attachCardInfo(card);}
-      if(show){setTimeout(this.sendCardToDeck.bind(this, pid, card), 2000);}
-      else if(ar){setTimeout(()=>{this.arrangeHandCards(pid)}, 500)}
+      if(show){EventManager.setTimeout(this.sendCardToDeck.bind(this, pid, card), 180);}
+      else if(ar){EventManager.setTimeout(()=>{this.arrangeHandCards(pid)}, 20)}
     }.bind(this));
   }
   /*-------------------------------------------------------------------------*/
