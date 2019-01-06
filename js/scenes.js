@@ -1263,13 +1263,12 @@ class Scene_Game extends Scene_Base{
     bsp.endFill();
   }
   /*-------------------------------------------------------------------------*/
-  updatePenaltyInfo(){
-    let next = this.game.getNextPlayerIndex();
-    debug_log("Next player: " + next);
+  updatePenaltyInfo(current=false){
+    let idx = this.game.getNextPlayerIndex();
+    if(current){idx = this.game.currentPlayerIndex;}
     for(let i in this.penaltyCanvas){
-      let hcs = this.penaltyCanvas[i];
       let pcard = this.game.penaltyCard;
-      if(!pcard || i != next){this.setPenaltyInfo(i, Vocab.Normal); continue;}
+      if(!pcard || i != idx){this.setPenaltyInfo(i, Vocab.Normal); continue;}
       switch(pcard.value){
         case Value.SKIP:
           return this.setPenaltyInfo(i, Vocab.SKIP);
@@ -1712,6 +1711,7 @@ class Scene_Game extends Scene_Base{
   processUserTurn(pid){
     this.setCursor(pid);
     this.playerPhase = true;
+    this.updatePenaltyInfo(true);
   }
   /*-------------------------------------------------------------------------*/
   processUserTurnEnd(){
@@ -1720,9 +1720,11 @@ class Scene_Game extends Scene_Base{
   /*-------------------------------------------------------------------------*/
   processNPCTurn(pid){
     this.setCursor(pid);
+    this.updatePenaltyInfo(true);
   }
   /*-------------------------------------------------------------------------*/
   setCursor(pid){
+    if(pid == -1){return this.cursor.hide();}
     let sx = this.nameCanvas[pid].x - Graphics.spacing;
     let sy = this.nameCanvas[pid].y - Graphics.spacing;
     let sw = this.nameCanvas[pid].textSprite.width + Graphics.padding + Graphics.spacing;
@@ -1738,11 +1740,13 @@ class Scene_Game extends Scene_Base{
   processGameOver(){
     debug_log("Game Ends")
     this.flagResulting = true;
+    this.setCursor(-1);
   }
   /*-------------------------------------------------------------------------*/
   processRoundOver(){
     debug_log("Round Ends")
     this.flagResulting = true;
+    this.setCursor(-1);
   }
   /*-------------------------------------------------------------------------*/
   processRoundStart(){
