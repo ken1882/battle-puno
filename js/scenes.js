@@ -799,7 +799,6 @@ class Scene_Test extends Scene_Base{
  * @property {String} bgmName - Path to background music
  * @property {String} meName  - Path to music effect (victory theme)
  * @property {Number} cardSpritePoolSize - Object pool size of card sprite
- * @property {Number} animationCount - Counter of animations playing
  * @property {boolean} playerPhase - Whether is user/player's turn
  */
 class Scene_Game extends Scene_Base{
@@ -812,7 +811,6 @@ class Scene_Game extends Scene_Base{
     this.fadeDuration       = 60;
     this.cardSpritePoolSize = 50;
     this.discardPileSize    = 15;
-    this.animationCount     = 0;
     this.playerPhase        = false;
   }
   /*-------------------------------------------------------------------------*/
@@ -1114,7 +1112,6 @@ class Scene_Game extends Scene_Base{
     let cur_player   = this.players[index];
     let base_pos     = (canvasWidth - totalWidth) / 2;
     let deg = index * (360 / GameManager.playerNumber);
-    this.animationCount += 1;
     console.log("Arrange " + index);
     for(let i in cur_player.hand){
       let dx = 0, dy = 0;
@@ -1145,7 +1142,6 @@ class Scene_Game extends Scene_Base{
       card.lastZ = card.sprite.z; card.lastY = dy;
       if(index == 0 && !card.attached){this.attachCardInfo(card);}
     }
-    EventManager.setTimeout(()=>{this.animationCount -= 1}, 60);
     hcs.sortChildren();
   }
   /*-------------------------------------------------------------------------*/
@@ -1176,11 +1172,9 @@ class Scene_Game extends Scene_Base{
     let sy = this.discardPile.y + this.discardPile.height / 2;
     let cx = (this.discardPile.width) / 2;
     let cy = (this.discardPile.height) / 2;
-    this.animationCount += 1;
     console.log("Discard ", sx, sy, card.sprite.x, card.sprite.y);
     card.sprite.moveto(sx, sy, function(){
       this.playColorEffect(card.color);
-      this.animationCount -= 1;
       if(card.sprite.parent != SceneManager.scene){
         card.sprite.parent.removeChild(card.sprite);
       }
@@ -1221,7 +1215,7 @@ class Scene_Game extends Scene_Base{
   }
   /*-------------------------------------------------------------------------*/
   updateGame(){
-    if(this.game.isRoundOver()){return ;}
+    if(this.flagResulting){return ;}
     if(this.game.deck){this.game.update();}
   }
   /*-------------------------------------------------------------------------*/
@@ -1548,14 +1542,12 @@ class Scene_Game extends Scene_Base{
     }
     Sound.playCardDraw();
     sprite.instance = card;  
-    this.animationCount += 1;
     if(show){
       sprite.texture = Graphics.loadTexture(this.getCardImage(card));
       sprite.setZ(0x30);
     }
     debug_log(`${pid} Draw`);
     sprite.moveto(dx, dy, function(){
-      this.animationCount -= 1;
       if(pid == 0){
         this.attachCardInfo(card);
         sprite.texture = Graphics.loadTexture(this.getCardImage(card));
@@ -1744,14 +1736,17 @@ class Scene_Game extends Scene_Base{
   /*-------------------------------------------------------------------------*/
   processGameOver(){
     debug_log("Game Ends")
+    this.flagResulting = true;
   }
   /*-------------------------------------------------------------------------*/
   processRoundOver(){
     debug_log("Round Ends")
+    this.flagResulting = true;
   }
   /*-------------------------------------------------------------------------*/
   processRoundStart(){
     debug_log("Round Start");
+    this.flagResulting = false;
     this.clearTable();
   }
   /*-------------------------------------------------------------------------*/
@@ -1783,7 +1778,12 @@ class Scene_Game extends Scene_Base{
   }
   /*-------------------------------------------------------------------------*/
   isAnimationPlaying(){
-    return this.animationCount != 0;
+    for(let i in this.spritePool){
+      if(this.spritePool[i].isMoving){
+        return true;
+      }
+    }
+    return false;
   }
   /*-------------------------------------------------------------------------*/
   isPlayerThinking(){
