@@ -227,6 +227,9 @@ class Scene_Base extends Stage{
       console.error("Try to add disposed window: " + getClassName(win));
       return ;
     }
+    if(this._windows.indexOf(win) >= 0){
+      return ;
+    }
     this._windows.push(win);
     this.addChild(win);
   }
@@ -265,7 +268,7 @@ class Scene_Base extends Stage{
     debug_log("Raise overlay: " + getClassName(ovs));
     this.overlay = ovs;
     this.overlay.oriZ = ovs.z;
-    this.overlay.setZ(0x111);
+    this.overlay.setZ(0x111).render();
     this.overlayFallback = fallback;
     this.children.forEach(function(sp){
       if(sp.alwaysActive){return ;}
@@ -1898,11 +1901,7 @@ class Scene_Game extends Scene_Base{
   /*-------------------------------------------------------------------------*/
 }
 /**-------------------------------------------------------------------------
-<<<<<<< HEAD
  * The game over scene that display the results
-=======
- *
->>>>>>> f097a1f9147d69b0ff9f8f76f2917c92147c565f
  */
 class Scene_GameOver extends Scene_Base{
   /*-------------------------------------------------------------------------*/
