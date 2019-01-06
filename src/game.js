@@ -237,13 +237,14 @@ class PunoGame {
   setNextColorAndValue(card, ext) {
     if (card.color === Color.WILD) {
       this.currentValue = undefined;
-      if (this.currentPlayer().ai) {
+      if (this.currentPlayer().ai || card.value === Value.WILD_CHAOS) {
         this.currentColor = getRandom(Color.RED, Color.BLUE, this.currentColor);
       } else {
         this.currentColor = ext;
       }
       debug_log("WILD CHOOSE NEXT COLOR", this.currentColor);
       if (card.value === Value.WILD_CHAOS) {
+
         this.currentValue = getRandom(Value.ZERO, Value.NINE);
         debug_log("WILD CHAOS, NEXT VALUE", this.currentValue);
         ext = [this.currentColor, this.currentValue];
