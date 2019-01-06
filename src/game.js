@@ -187,21 +187,28 @@ class PunoGame {
   discardAll(color) {
     debug_log("DISCARD ALL", color);
     let colorCardsIndex = this.currentPlayer().findAllCardsByColor(color);
-    _(colorCardsIndex).each(function(cardIndex, offset) {
-      setTimeout(function() {
-        const card = this.currentPlayer().hand[cardIndex];
+    for (let i in colorCardsIndex) {
+      const cardIndex = colorCardsIndex[i];
+      const card = this.currentPlayer().hand[cardIndex];
+      EventManager.setTimeout(() => {
         this.discardPile.push(card);
         this.currentPlayer().discard(cardIndex);
-        GameManager.onCardPlay(this.currentPlayerIndex, card, -1);
-      }, 300 * offset);
-    });
+        GameManager.onCardPlay(this.currentPlayerIndex(), card, -1);
+      }, 10 * i);
+    }
   }
 
   trade(player1, player2) {
-    debug_log("TRADE", player1, player2);
+    debug_log("TRADE");
+    debug_log("before trade");
+    debug_log(player1, this.players[player1].hand.slice());
+    debug_log(player2, this.players[player2].hand.slice());
     const temp = this.players[player1].hand.slice();
     this.players[player1].hand = this.players[player2].hand.slice();
     this.players[player2].hand = temp;
+    debug_log("after trade");
+    debug_log(player1, this.players[player1].hand.slice());
+    debug_log(player2, this.players[player2].hand.slice());
   }
 
   wildHitAll(currentPlayerIndex) {
