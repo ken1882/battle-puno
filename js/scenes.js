@@ -299,8 +299,7 @@ class Scene_Base extends Stage{
   }
   /*-------------------------------------------------------------------------*/
 } // Scene_Base
-
-/**
+/**-------------------------------------------------------------------------
  * > The scene that shows the load process
  *
  * @class Scene_Load
@@ -1947,7 +1946,7 @@ class Scene_GameOver extends Scene_Base{
   start(){
     super.start();
     EventManager.setTimeout(()=>{
-      this.showScoreBoard();
+      this.raiseOverlay(this.resultWindow);
     }, 30 + this.fadeDuration);
     EventManager.setTimeout(()=>{
       this.showLeaveButton();
@@ -1981,10 +1980,6 @@ class Scene_GameOver extends Scene_Base{
       this.resultWindow.drawText(dx[2], dy, String(ar[i].score));
       dy += this.resultWindow.lineHeight;
     }
-  }
-  /*-------------------------------------------------------------------------*/
-  showScoreBoard(){
-    this.resultWindow.show();
   }
   /*-------------------------------------------------------------------------*/
   showLeaveButton(){
