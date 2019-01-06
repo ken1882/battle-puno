@@ -406,9 +406,19 @@ class PunoGame {
     this.currentPlayerIndex = this.getNextPlayerIndex();
   }
 
-  getNextPlayerIndex(){
+  getNextPlayerIndex() {
     return this.clockwise ? mod(this.currentPlayerIndex + 1, 4)
                           : mod(this.currentPlayerIndex - 1, 4);
+  }
+
+  getNextAlivePlayerIndex() {
+    let nextAlivePlayerIndex = this.getNextPlayerIndex();
+    while (this.players[nextAlivePlayerIndex].knockOut) {
+      nextAlivePlayerIndex =
+          this.clockwise ? mod(nextAlivePlayerIndex + 1, 4)
+                         : mod(nextAlivePlayerIndex - 1, 4);
+    }
+    return nextAlivePlayerIndex;
   }
 
   scoreBoard() {
@@ -438,6 +448,7 @@ class PunoGame {
         this.processTurnAction();
       } else {
         debug_log(this.currentPlayer().name, "knocked out - SKIP");
+        this.endTurn();
       }
     }
   }

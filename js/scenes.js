@@ -1,8 +1,8 @@
 /**
  * The Superclass of all scene within the game.
- * 
+ *
  * @class Scene_Base
- * @constructor 
+ * @constructor
  * @extends Stage
  * @property {boolean} _active      - acitve flag
  * @property {number}  _fadingFlag  - fade type flag
@@ -302,7 +302,7 @@ class Scene_Base extends Stage{
 
 /**
  * > The scene that shows the load process
- * 
+ *
  * @class Scene_Load
  * @extends Scene_Base
  * @property {number} loading_timer - timer record of loading phase
@@ -935,7 +935,7 @@ class Scene_Game extends Scene_Base{
     this.cardValueCount = [];
     for(let i=0;i<this.cardSpritePoolSize;++i){
       this.spritePool.push(this.createCardSprite());
-    } 
+    }
   }
   /*-------------------------------------------------------------------------*/
   createCardSprite(){
@@ -1172,7 +1172,7 @@ class Scene_Game extends Scene_Base{
     for(let i in trash){
       this.recycleCardSprite(trash[i]);
     }
-  } 
+  }
   /*-------------------------------------------------------------------------*/
   playColorEffect(cid){
 
@@ -1286,12 +1286,17 @@ class Scene_Game extends Scene_Base{
   }
   /*-------------------------------------------------------------------------*/
   updatePenaltyInfo(current=false){
-    let idx = this.game.getNextPlayerIndex();
+    let idx = this.game.getNextAlivePlayerIndex();
     if(current){idx = this.game.currentPlayerIndex;}
     let pcard = this.game.penaltyCard;
     for(let i in this.penaltyCanvas){
       i = parseInt(i);
-      if(!pcard || i != idx){this.setPenaltyInfo(i, Vocab.Normal); continue;}
+      if(!pcard || i != idx){
+        let status = this.game.players[i].knockOut ? Vocab.KnockOut
+                                                   : Vocab.Normal;
+        this.setPenaltyInfo(i, status);
+        continue;
+      }
       switch(pcard.value){
         case Value.SKIP:
           return this.setPenaltyInfo(i, Vocab.SKIP);
@@ -1415,7 +1420,7 @@ class Scene_Game extends Scene_Base{
       case Color.GREEN:
         re += Vocab.HelpColorGreen + '; '; break;
       case Color.WILD:
-        re += Vocab.HelpColorWild + '; '; break;      
+        re += Vocab.HelpColorWild + '; '; break;
       default:
         re += "???";
     }
@@ -1468,7 +1473,7 @@ class Scene_Game extends Scene_Base{
   assignCardSprite(card, ix=0, iy=0, rnd=false){
     if(card.sprite){return ;}
     let sprite = this.getIdleCardSprite();
-    sprite.texture = Graphics.loadTexture(this.getCardImage(card)); 
+    sprite.texture = Graphics.loadTexture(this.getCardImage(card));
     sprite.setPOS(ix, iy);
     card.sprite = sprite;
     sprite.instance = card;
@@ -1568,7 +1573,7 @@ class Scene_Game extends Scene_Base{
       sprite.setPOS(sx, sy).rotateDegree(deg);
     }
     Sound.playCardDraw();
-    sprite.instance = card;  
+    sprite.instance = card;
     if(show){
       sprite.texture = Graphics.loadTexture(this.getCardImage(card));
       sprite.setZ(0x40 + ord);
@@ -1835,7 +1840,7 @@ class Scene_Game extends Scene_Base{
   }
   /*-------------------------------------------------------------------------*/
   isBusy(){
-    return super.isBusy() || this.isAnimationPlaying() || 
+    return super.isBusy() || this.isAnimationPlaying() ||
            this.isPlayerThinking() || this.flagBusy;
   }
   /*-------------------------------------------------------------------------*/
@@ -1894,7 +1899,11 @@ class Scene_Game extends Scene_Base{
   /*-------------------------------------------------------------------------*/
 }
 /**-------------------------------------------------------------------------
+<<<<<<< HEAD
  * The game over scene that display the results
+=======
+ *
+>>>>>>> f097a1f9147d69b0ff9f8f76f2917c92147c565f
  */
 class Scene_GameOver extends Scene_Base{
   /*-------------------------------------------------------------------------*/
