@@ -955,7 +955,8 @@ class Scene_Game extends Scene_Base{
 
     for(let i=0;i<GameManager.playerNumber;++i){
       counter[i % 4] += 1;
-      this.handCanvas.push(new SpriteCanvas(0, 0, sw, sh));
+      let ssw = (i == 0) ? 500 : sw;
+      this.handCanvas.push(new SpriteCanvas(0, 0, ssw, sh));
       this.handCanvas[i].playerIndex = i;
       this.handCanvas[i].render();
     }

@@ -62,7 +62,7 @@ class PunoGame {
       GameManager.onCardDraw(i, [firstDraw[i]], true);
       debug_log(this.players[i].name, firstDraw[i]);
     }
-    return highest & 0;
+    return highest;
   }
 
   currentPlayer() {
