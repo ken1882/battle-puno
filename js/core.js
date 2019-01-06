@@ -1652,8 +1652,10 @@ class Sprite extends PIXI.Sprite{
     if(!this.moveCompleteFallback){return ;}
     if(delay > 0){
       EventManager.setTimeout(()=>{
-        this.moveCompleteFallback();
-        this.moveCompleteFallback = null;
+        if(this.moveCompleteFallback){
+          this.moveCompleteFallback();
+          this.moveCompleteFallback = null;
+        };
       }, delay);
     }
     else{
