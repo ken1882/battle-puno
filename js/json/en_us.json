@@ -75,7 +75,10 @@
   "WILD_HIT_ALL": "Wild Hit All",
   "WILD_DRAW_FOUR": "Wild Draw 4",
   "Any": "Any",
-  
+  "Rank": "Rank",
+  "Player": "Player",
+  "Score": "Score",
+
   "Normal": "Normal",
 
   "HelpColorRed": "Color: Red",

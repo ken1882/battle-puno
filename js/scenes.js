@@ -1894,35 +1894,96 @@ class Scene_Game extends Scene_Base{
   /*-------------------------------------------------------------------------*/
 }
 /**-------------------------------------------------------------------------
- * 
+ * The game over scene that display the results
  */
 class Scene_GameOver extends Scene_Base{
-
+  /*-------------------------------------------------------------------------*/
   constructor(){
     super();
     this.fadeDuration = 60;
   }
-
+  /*-------------------------------------------------------------------------*/
   prepare(g){
     this.game = g;
   }
-
+  /*-------------------------------------------------------------------------*/
   createBackground(){
     this.backgroundImage = Graphics.addSprite(Graphics.GameOver);
     Graphics.renderSprite(this.backgroundImage);
   }
-
+  /*-------------------------------------------------------------------------*/
   create(){
     super.create();
-
+    this.createScoreBoard();
+    this.createLeaveButton();
   }
-
+  /*-------------------------------------------------------------------------*/
+  createScoreBoard(){
+    let ww = parseInt(Graphics.width  * 0.7);
+    let wh = parseInt(Graphics.height * 0.9);
+    let wx = Graphics.appCenterWidth(ww);
+    let wy = Graphics.appCenterWidth(wh);
+    this.resultWindow = new Window_Scoreboard(wx, wy, ww, wh);
+    this.resultWindow.setOpacity(0.1);
+    this.drawRank();
+  }
+  /*-------------------------------------------------------------------------*/
+  createLeaveButton(){
+    this.backButton = new Window_Back(0, 0, this.onActionBack.bind(this));
+    let wx = Graphics.width - this.backButton.width - Graphics.padding;
+    let wy = Graphics.padding;
+    this.backButton.setPOS(wx, wy).setZ(0x10).deactivate().hide();
+  }
+  /*-------------------------------------------------------------------------*/
   start(){
     super.start();
+    EventManager.setTimeout(()=>{
+      this.showScoreBoard();
+    }, 30 + this.fadeDuration);
+    EventManager.setTimeout(()=>{
+      this.showLeaveButton();
+    }, 90 + this.fadeDuration);
   }
-
-  showResult(){
-
+  /*-------------------------------------------------------------------------*/
+  update(){
+    super.update();
+    if(this.resultWindow.visible && this.resultWindow.opacity < 1){
+      this.resultWindow.setOpacity(this.resultWindow.opacity + 0.025);
+    }
   }
-
+  /*-------------------------------------------------------------------------*/
+  drawRank(){
+    let ar = this.game.players.slice();
+    if(this.game.gameMode == Mode.TRADITIONAL){
+      for(let i in ar){ar[i].score *= -1;}
+    }
+    ar.sort((a,b)=>{b.score - a.score});
+    let ww = this.resultWindow.width;
+    let dx = [parseInt(ww * 0.1), parseInt(ww * 0.4), parseInt(ww * 0.7)];
+    let dy = Graphics.spacing;
+    this.resultWindow.drawText(dx[0], dy, Vocab.Rank);
+    this.resultWindow.drawText(dx[1], dy, Vocab.Player);
+    this.resultWindow.drawText(dx[2], dy, Vocab.Score);
+    dy += this.removeWindow.lineHeight;
+    for(let i in ar){
+      i = parseInt(i);
+      this.resultWindow.drawText(dx[0], dy, String(i+1));
+      this.resultWindow.drawText(dx[1], dy, String(ar[i].name));
+      this.resultWindow.drawText(dx[2], dy, String(ar[i].score));
+      dy += this.resultWindow.lineHeight;
+    }
+  }
+  /*-------------------------------------------------------------------------*/
+  showScoreBoard(){
+    this.resultWindow.show();
+  }
+  /*-------------------------------------------------------------------------*/
+  showLeaveButton(){
+    this.backButton.activate().show();
+  }
+  /*-------------------------------------------------------------------------*/
+  onActionBack(){
+    SceneManager.goto(Scene_Title);
+  }
+  /*-------------------------------------------------------------------------*/
 }
