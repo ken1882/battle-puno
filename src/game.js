@@ -154,8 +154,8 @@ class PunoGame {
   }
 
   isGameOver() {
-    if(this.gameMode === Mode.TRADITIONAL){return true;}
-    return Math.max(...this.scoreBoard) < this.scoreGoal;
+    if(this.gameMode === Mode.TRADITIONAL)  return true;
+    return Math.max(...this.scoreBoard()) < this.scoreGoal;
   }
 
   isRoundOver() {
