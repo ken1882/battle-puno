@@ -67,7 +67,7 @@ class SceneManager{
   static focusGame(){
     if(SceneManager._focused){return ;}
     debug_log("Focus Game")
-    DisablePageScroll();
+    // DisablePageScroll();
     SceneManager._focused = true;
     Graphics.onFocus();
     Sound.resumeAll();
@@ -77,7 +77,7 @@ class SceneManager{
   static unfocusGame(){
     if(!SceneManager._focused){return ;}
     debug_log("Unfocus Game")
-    EnablePageScroll();
+    // EnablePageScroll();
     SceneManager._focused = false;
     Sound.pauseAll();
     Graphics.onUnfocus();

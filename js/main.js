@@ -47,7 +47,7 @@ var FatelError    = false;
  */
 function initializeApplication(){
   // Disable page scrolling
-  DisablePageScroll();
+  // DisablePageScroll();
   // Confirm leave before page unload
   RegisterLeaveEvent();
   // Initialize kernel module
