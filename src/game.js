@@ -242,10 +242,10 @@ class PunoGame {
   setNextColorAndValue(card, ext) {
     if (card.color === Color.WILD) {
       this.currentValue = undefined;
-      if (this.currentPlayer().ai || card.value === Value.WILD_CHAOS) {
+      if (this.currentPlayer().ai ||
+          card.value === Value.WILD_CHAOS ||
+          card.value === Value.TRADE) {
         this.currentColor = getRandom(Color.RED, Color.BLUE, this.currentColor);
-      } else if (card.value === Value.TRADE) {
-        this.currentColor = ext[0];
       } else {
         this.currentColor = ext;
       }
@@ -271,9 +271,9 @@ class PunoGame {
       this.reverse();
       ext = this.penaltyCard === undefined ? 0 : 1;
     } else if (card.value === Value.TRADE) {
-      const target = this.currentPlayer().ai ? this.findTarget() : ext[1];
+      const target = this.currentPlayer().ai ? this.findTarget() : ext;
       this.trade(this.currentPlayerIndex, target);
-      ext = [ext, target];
+      ext = [undefined, target];
     } else if (card.value === Value.DISCARD_ALL) {
       this.discardAll(this.currentColor);
     } else if (card.value === Value.WILD_HIT_ALL) {
@@ -408,11 +408,6 @@ class PunoGame {
   endTurn() {
     GameManager.onTurnEnd(this.currentPlayerIndex);
     this.currentPlayerIndex = this.getNextPlayerIndex();
-  }
-
-  getNextPlayerIndex(){
-    return this.clockwise ? mod(this.currentPlayerIndex + 1, 4)
-                          : mod(this.currentPlayerIndex - 1, 4);
   }
 
   scoreBoard() {
