@@ -87,7 +87,7 @@ $.getJSON('js/json/audio.json', function(data){
   }
 })
 
-Sound.fadeDurationBGM = 3000;
+Sound.fadeDurationBGM = 2000;
 Sound.fadeDurationSE  = 2000;
 
 

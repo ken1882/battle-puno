@@ -733,6 +733,24 @@ class Graphics{
   static get spacing(){return this._spacing;}
   static get lineHeight(){return this.LineHeight;}
   /**------------------------------------------------------------------------
+   * > Return a random color from color.json
+   */
+  static randomColor(exclude = []){
+    let candidates = [];
+    for(let k in this.color){
+      if(this.color.hasOwnProperty(k)){
+        candidates.push(this.color[k]);
+      }
+    }
+    for(let i=0;i<exclude.length;++i){
+      let idx = candidates.indexOf(exclude[i]);
+      if(idx >= 0){candidates.splice(idx, 1);}
+    }
+    let ki = parseInt(Math.random() * 1000) % candidates.length;
+    let re = candidates[ki];
+    return re;
+  }
+  /**------------------------------------------------------------------------
    * > Alias functions
    * @function
    */
@@ -1220,6 +1238,7 @@ class Sound{
   }
   /*-------------------------------------------------------------------------*/
   static registerAudio(soundInstance){
+    debug_log("Audio registered: " + soundInstance.id);
     Sound._audioMap[soundInstance.id] = soundInstance;
     if(soundInstance.type == 'SE'){
       Sound._currentSE.push(soundInstance);
@@ -1232,6 +1251,7 @@ class Sound{
   static unregisterAudio(soundID){
     let soundInstance = Sound._audioMap[soundID];
     if(!soundInstance){return ;}
+    debug_log("Audio unregisterd: " + soundID);
     let soundContext = Sound.track[soundInstance.symbol];
     if(soundInstance && !soundContext.loop(soundID)){
       if(soundInstance.type == 'SE'){
@@ -1255,6 +1275,10 @@ class Sound{
   }
   /*-------------------------------------------------------------------------*/
   static onAudioFadeComplete(soundID){
+    if(!Sound._audioMap[soundID]){
+      console.error("Untracked audio: " + soundID);
+      return ;
+    }
     let soundGroup = Sound.track[Sound._audioMap[soundID].symbol];
     if(soundGroup.volume(soundID) == 0.0){
       soundGroup.loop(false, soundID);

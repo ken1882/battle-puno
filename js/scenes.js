@@ -62,8 +62,7 @@ class Scene_Base extends Stage{
   preTerminate(){
     debug_log("Scene pre-terminate: " + getClassName(this));
     this._terminating = true;
-    Sound.fadeOutAll();
-    this.startFadeOut();
+    this.fadeOutAll();
     this.deactivateChildren();
   }
   /*-------------------------------------------------------------------------*/
@@ -186,10 +185,8 @@ class Scene_Base extends Stage{
    * > Fade out screen and sound
    */
   fadeOutAll(){
-    var time = this.slowFadeSpeed() / 60;
-    Sound.fadeOutBGM(time);
-    Sound.fadeOutSE(time);
-    this.startFadeOut(this.slowFadeSpeed());
+    Sound.fadeOutAll();
+    this.startFadeOut();
   }
   /*-------------------------------------------------------------------------*/
   onFadeComplete(){
@@ -843,9 +840,9 @@ class Scene_Game extends Scene_Base{
   /*-------------------------------------------------------------------------*/
   playStageBGM(){
     if(!this.bgmName){
-      EventManager.setTimeout(this.playStageBGM.bind(this), 10);
+      setTimeout(this.playStageBGM.bind(this), 500);
     }
-    else{Sound.playBGM(this.bgmName);}
+    else{Sound.fadeInBGM(this.bgmName, 500);}
   }
   /*-------------------------------------------------------------------------*/
   gameStart(){
@@ -1929,9 +1926,9 @@ class Scene_GameOver extends Scene_Base{
     let ww = parseInt(Graphics.width  * 0.7);
     let wh = parseInt(Graphics.height * 0.9);
     let wx = Graphics.appCenterWidth(ww);
-    let wy = Graphics.appCenterWidth(wh);
+    let wy = Graphics.appCenterHeight(wh);
     this.resultWindow = new Window_Scoreboard(wx, wy, ww, wh);
-    this.resultWindow.setOpacity(0.1);
+    this.resultWindow.setOpacity(0.1).hide();
     this.drawRank();
   }
   /*-------------------------------------------------------------------------*/
@@ -1946,6 +1943,7 @@ class Scene_GameOver extends Scene_Base{
     super.start();
     EventManager.setTimeout(()=>{
       this.raiseOverlay(this.resultWindow);
+      this.resultWindow.setOpacity(0.1);
     }, 30 + this.fadeDuration);
     EventManager.setTimeout(()=>{
       this.showLeaveButton();
@@ -1955,7 +1953,7 @@ class Scene_GameOver extends Scene_Base{
   update(){
     super.update();
     if(this.resultWindow.visible && this.resultWindow.opacity < 1){
-      this.resultWindow.setOpacity(this.resultWindow.opacity + 0.025);
+      this.resultWindow.setOpacity(this.resultWindow.opacity + 0.01);
     }
   }
   /*-------------------------------------------------------------------------*/
@@ -1966,12 +1964,12 @@ class Scene_GameOver extends Scene_Base{
     }
     ar.sort((a,b)=>{b.score - a.score});
     let ww = this.resultWindow.width;
-    let dx = [parseInt(ww * 0.1), parseInt(ww * 0.4), parseInt(ww * 0.7)];
+    let dx = [parseInt(ww * 0.1), parseInt(ww * 0.4), parseInt(ww * 0.8)];
     let dy = Graphics.spacing;
     this.resultWindow.drawText(dx[0], dy, Vocab.Rank);
     this.resultWindow.drawText(dx[1], dy, Vocab.Player);
     this.resultWindow.drawText(dx[2], dy, Vocab.Score);
-    dy += this.removeWindow.lineHeight;
+    dy += this.resultWindow.lineHeight * 2;
     for(let i in ar){
       i = parseInt(i);
       this.resultWindow.drawText(dx[0], dy, String(i+1));
@@ -1982,7 +1980,7 @@ class Scene_GameOver extends Scene_Base{
   }
   /*-------------------------------------------------------------------------*/
   showLeaveButton(){
-    this.backButton.activate().show();
+    this.backButton.activate().show().setZ(0x112).render();
   }
   /*-------------------------------------------------------------------------*/
   onActionBack(){
