@@ -9,12 +9,19 @@ class Sprite_ProgressBar extends SpriteCanvas{
     super(x, y, width, height);
     this.maxProgress     = 1;
     this.currentProgress = 0;
+    this.changeColor(Graphics.color.DeepSkyBlue);
     this.createSprite();
     this.drawBorderSprite();
     this.setZ(1);
   }
   /*-------------------------------------------------------------------------*/
   get borderWidth(){return 4;}
+  get color(){return this._color;}
+  /*-------------------------------------------------------------------------*/
+  changeColor(c){
+    this._color = c;
+    this.refresh();
+  }
   /*-------------------------------------------------------------------------*/
   resize(w, h){
     super.resize(w, h);
@@ -26,7 +33,7 @@ class Sprite_ProgressBar extends SpriteCanvas{
   refresh(){
     if(!this.indexSprite){return ;}
     this.indexSprite.clear();
-    this.indexSprite.beginFill(Graphics.color.DeepSkyBlue);
+    this.indexSprite.beginFill(this.color);
     let dw = (this.width - this.borderWidth * 2) * (this.currentProgress / this.maxProgress);
     this.indexSprite.drawRect(0, 0, dw, this.height - this.borderWidth);
     this.indexSprite.endFill();

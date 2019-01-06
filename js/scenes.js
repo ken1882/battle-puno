@@ -1489,10 +1489,18 @@ class Scene_Game extends Scene_Base{
   }
   /*-------------------------------------------------------------------------*/
   processCardEffects(effects, ext){
+    ext = [].concat(ext);
+    debug_log("Effects: " + effects);
+    debug_log("Ext: " + ext);
     for(let i in effects){
+      if(ext[i] == -1){continue;}
       switch(effects[i]){
+        case Effect.CHOOSE_COLOR:
+          this.processColorChangeEffect(parseInt(ext[i]));
+          break;
         case Effect.TRADE:
-          return this.processTradeEffect(parseInt(ext[1]));
+          this.processTradeEffect(parseInt(ext[i]));
+          break;
       }
     }
   }
@@ -1503,6 +1511,10 @@ class Scene_Game extends Scene_Base{
       this.arrangeHandCards(pid);
       this.arrangeHandCards(ext);
     }, 10);
+  }
+  /*-------------------------------------------------------------------------*/
+  processColorChangeEffect(cid){
+    debug_log("Color changed: " + cid);
   }
   /*-------------------------------------------------------------------------*/
   onCardDraw(pid, cards, show=false){

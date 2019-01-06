@@ -69,11 +69,6 @@ class PunoGame {
     return this.players[this.currentPlayerIndex];
   }
 
-  getNextPlayerIndex() {
-    return this.clockwise ? mod(this.currentPlayerIndex + 1, 4)
-                          : mod(this.currentPlayerIndex - 1, 4);
-  }
-
   lastCard() {
     if (this.discardPile.length === 0) {
       return null;
