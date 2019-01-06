@@ -462,7 +462,7 @@ class PunoGame {
     if (this.isCurrentPlayerSkipped()) {
       this.penaltyCard = undefined;
       this.endTurn();
-    } ellse if (this.currentPlayer().ai) {
+    } else if (this.currentPlayer().ai) {
       this.flagAIThinking = true;
       EventManager.setTimeout(()=>{
         this.flagAIThinking = false;
