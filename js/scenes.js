@@ -875,8 +875,7 @@ class Scene_Game extends Scene_Base{
       setTimeout(this.changeAmbientMusic.bind(this, amb_id), 500);
     }
     else{
-      this.bgmName = Sound["Stage" + amb_id];
-      this.meName  = Sound["Victory" + amb_id];
+      this.bgmName = Sound.getStageTheme(amb_id);
     }
   }
   /*-------------------------------------------------------------------------*/
@@ -1928,7 +1927,7 @@ class Scene_GameOver extends Scene_Base{
     let wx = Graphics.appCenterWidth(ww);
     let wy = Graphics.appCenterHeight(wh);
     this.resultWindow = new Window_Scoreboard(wx, wy, ww, wh);
-    this.resultWindow.setOpacity(0.1).hide();
+    this.resultWindow.setOpacity(0.1).setZ(0x10).hide();
     this.drawRank();
   }
   /*-------------------------------------------------------------------------*/
@@ -1942,18 +1941,19 @@ class Scene_GameOver extends Scene_Base{
   start(){
     super.start();
     EventManager.setTimeout(()=>{
-      this.raiseOverlay(this.resultWindow);
-      this.resultWindow.setOpacity(0.1);
-    }, 30 + this.fadeDuration);
+      this.showResultWindow();
+    }, 20 + this.fadeDuration);
     EventManager.setTimeout(()=>{
       this.showLeaveButton();
     }, 90 + this.fadeDuration);
+    this.resultWindow.render();
+    this.backButton.render();
   }
   /*-------------------------------------------------------------------------*/
   update(){
     super.update();
     if(this.resultWindow.visible && this.resultWindow.opacity < 1){
-      this.resultWindow.setOpacity(this.resultWindow.opacity + 0.01);
+      this.resultWindow.setOpacity(this.resultWindow.opacity + 0.015);
     }
   }
   /*-------------------------------------------------------------------------*/
@@ -1977,10 +1977,28 @@ class Scene_GameOver extends Scene_Base{
       this.resultWindow.drawText(dx[2], dy, String(ar[i].score));
       dy += this.resultWindow.lineHeight;
     }
+    if(ar[0] == this.game.players[0]){
+      this.playVictory();
+    }
+    else{
+      this.playDefeat();
+    }
+  }
+  /*-------------------------------------------------------------------------*/
+  playVictory(){
+    Sound.playBGM(Sound.getVictoryTheme(this.game.gameMode));
+  }
+  /*-------------------------------------------------------------------------*/
+  playDefeat(){
+    Sound.fadeInBGM(Sound.Defeat, 3000);
+  }
+  /*-------------------------------------------------------------------------*/
+  showResultWindow(){
+    this.resultWindow.show().setOpacity(0.1);
   }
   /*-------------------------------------------------------------------------*/
   showLeaveButton(){
-    this.backButton.activate().show().setZ(0x112).render();
+    this.backButton.activate().show();
   }
   /*-------------------------------------------------------------------------*/
   onActionBack(){

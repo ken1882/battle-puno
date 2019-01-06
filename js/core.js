@@ -1554,20 +1554,20 @@ class Sound{
     this.playSE(cand[parseInt(randInt(0, cand.length-1))])
   }
   /*-------------------------------------------------------------------------*/
-  static playVictory(id = -1){
+  static getVictoryTheme(id = -1){
     let cand = [this.Victory0, this.Victory1, this.Victory2]
     if(id < 0 || id >= cand.length){
       id = parseInt(randInt(0, cand.length-1))
     }
-    this.playBGM(cand[id])
+    return cand[id];
   }
   /*-------------------------------------------------------------------------*/
-  static playStage(id = -1){
+  static getStageTheme(id = -1){
     let cand = [this.Stage0, this.Stage1, this.Stage2]
     if(id < 0 || id >= cand.length){
       id = parseInt(randInt(0, cand.length-1))
     }
-    this.playBGM(cand[id])
+    return cand[id];
   }
   /*-------------------------------------------------------------------------*/
   static playDefeat(){
