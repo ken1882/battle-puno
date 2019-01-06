@@ -244,6 +244,8 @@ class PunoGame {
       this.currentValue = undefined;
       if (this.currentPlayer().ai || card.value === Value.WILD_CHAOS) {
         this.currentColor = getRandom(Color.RED, Color.BLUE, this.currentColor);
+      } else if (card.value === Value.TRADE) {
+        this.currentColor = ext[0];
       } else {
         this.currentColor = ext;
       }
@@ -269,7 +271,7 @@ class PunoGame {
       this.reverse();
       ext = this.penaltyCard === undefined ? 0 : 1;
     } else if (card.value === Value.TRADE) {
-      const target = this.findTarget();
+      const target = this.currentPlayer().ai ? this.findTarget() : ext[1];
       this.trade(this.currentPlayerIndex, target);
       ext = [ext, target];
     } else if (card.value === Value.DISCARD_ALL) {
