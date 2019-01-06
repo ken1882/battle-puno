@@ -85,5 +85,9 @@ class Deck {
     this.deck = cards.concat(this.deck);
   }
 
+  clear() {
+    this.deck.length = 0;
+  }
+
   get length() { return this.deck.length; }
 }
