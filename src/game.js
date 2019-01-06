@@ -405,6 +405,11 @@ class PunoGame {
     this.currentPlayerIndex = this.getNextPlayerIndex();
   }
 
+  getNextPlayerIndex(){
+    return this.clockwise ? mod(this.currentPlayerIndex + 1, 4)
+                          : mod(this.currentPlayerIndex - 1, 4);
+  }
+
   scoreBoard() {
     return [this.players[0].score, this.players[1].score,
             this.players[2].score, this.players[3].score];
