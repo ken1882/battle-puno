@@ -69,6 +69,11 @@ class PunoGame {
     return this.players[this.currentPlayerIndex];
   }
 
+  getNextPlayerIndex() {
+    return this.clockwise ? mod(this.currentPlayerIndex + 1, 4)
+                          : mod(this.currentPlayerIndex - 1, 4);
+  }
+
   lastCard() {
     if (this.discardPile.length === 0) {
       return null;
@@ -239,6 +244,8 @@ class PunoGame {
       this.currentValue = undefined;
       if (this.currentPlayer().ai || card.value === Value.WILD_CHAOS) {
         this.currentColor = getRandom(Color.RED, Color.BLUE, this.currentColor);
+      } else if (card.value === Value.TRADE) {
+        this.currentColor = ext[0];
       } else {
         this.currentColor = ext;
       }
@@ -264,7 +271,7 @@ class PunoGame {
       this.reverse();
       ext = this.penaltyCard === undefined ? 0 : 1;
     } else if (card.value === Value.TRADE) {
-      const target = this.findTarget();
+      const target = this.currentPlayer().ai ? this.findTarget() : ext[1];
       this.trade(this.currentPlayerIndex, target);
       ext = [ext, target];
     } else if (card.value === Value.DISCARD_ALL) {
@@ -378,7 +385,7 @@ class PunoGame {
           this.gameMode === Mode.DEATH_MATCH) {
         debug_log("RECIEVE DAMAGE");
         debug_log("hp", this.currentPlayer().hp,
-                    "=>", this.currentPlayer().hp - this.damagePool);
+                  "=>", this.currentPlayer().hp - this.damagePool);
         this.currentPlayer().hp -= this.damagePool;
         this.currentPlayer().knockOut = this.currentPlayer().hp <= 0;
         this.damagePool = 0;
@@ -400,9 +407,7 @@ class PunoGame {
 
   endTurn() {
     GameManager.onTurnEnd(this.currentPlayerIndex);
-    this.currentPlayerIndex =
-        this.clockwise ? mod(this.currentPlayerIndex + 1, 4)
-                       : mod(this.currentPlayerIndex - 1, 4);
+    this.currentPlayerIndex = this.getNextPlayerIndex();
   }
 
   getNextPlayerIndex(){
