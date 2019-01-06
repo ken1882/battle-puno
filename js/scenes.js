@@ -1137,16 +1137,38 @@ class Scene_Game extends Scene_Base{
       else{
         card.sprite.texture = Graphics.loadTexture(Graphics.CardBack);
       }
-      card.sprite.setPOS(canvasWidth/2,canvasHeight/2).setZ(0x11 + parseInt(i));
-      hcs.addChild(card.sprite);
+      if(card.sprite.parent && card.sprite.parent != hcs){
+        card.sprite.parent.removeChild(card.sprite);
+        hcs.addChild(card.sprite);
+        card.sprite.setPOS(canvasWidth/2,canvasHeight/2);
+      }
+      card.sprite.setZ(0x11 + parseInt(i));
       card.sprite.rotateDegree(deg);
       card.sprite.moveto(dx, dy);
       card.lastZ = card.sprite.z; card.lastY = dy;
       if(index == 0 && !card.attached){this.attachCardInfo(card);}
     }
+    EventManager.setTimeout(()=>{
+      this.purifyHandCards(index)
+      if(index == 0){this.activatePlayerCards()}
+    }, 5);
     this.animationCount += 1;
     hcs.sortChildren();
   }
+  /*-------------------------------------------------------------------------*/
+  purifyHandCards(index){
+    let trash = [];
+    for(let i in this.handCanvas[index].children){
+      let sprite = this.handCanvas[index].children[i];
+      if(!sprite.instance){continue;}
+      if(this.players[index].hand.indexOf(sprite.instance) == -1){
+        trash.push(sprite);
+      }
+    }
+    for(let i in trash){
+      this.recycleCardSprite(trash[i]);
+    }
+  } 
   /*-------------------------------------------------------------------------*/
   playColorEffect(cid){
 
@@ -1180,18 +1202,19 @@ class Scene_Game extends Scene_Base{
     }.bind(this));
     let repos = 1;
     while(this.discardPile.children.length > this.discardPileSize){
-      let re = this.recycleCard(this.discardPile.children[repos].instance);
+      let re = this.recycleCardSprite(this.discardPile.children[repos]);
       if(!re){repos += 1;}
       if(re >= this.discardPile.length){break;}
     }
   }
   /*-------------------------------------------------------------------------*/
-  recycleCard(card){
-    if(!card){return false;}
-    let sprite = card.sprite;
-    card.playerIndex = -2;
+  recycleCardSprite(sprite){
+    if(!sprite || this.spritePool.indexOf(sprite) == -1){return false;}
+    sprite.playerIndex = -2;
     sprite.instance = null;
-    this.discardPile.removeChild(sprite);
+    if(sprite.parent){
+      sprite.parent.removeChild(sprite);
+    }
     sprite.hide();
   }
   /*-------------------------------------------------------------------------*/
@@ -1450,6 +1473,8 @@ class Scene_Game extends Scene_Base{
   }
   /*-------------------------------------------------------------------------*/
   onCardPlay(pid, card, effects, ext){
+    this.flagBusy = true;
+    EventManager.setTimeout(()=>{this.flagBusy = false}, Graphics.FPS);
     pid = parseInt(pid);
     if(!card.sprite){
       let sx = this.deckSprite.x + this.deckSprite.width / 2;
@@ -1514,17 +1539,16 @@ class Scene_Game extends Scene_Base{
   /*-------------------------------------------------------------------------*/
   onCardDraw(pid, cards, show=false){
     pid = parseInt(pid);
-    let wt = 20; // wait time
+    let wt = 10; // wait time
     for(let i in cards){
       i = parseInt(i);
       let ar = (i+1 == cards.length);
-      debug_log(cards[i], wt * i);
       EventManager.setTimeout(this.processCardDrawAnimation.bind(this, pid, cards[i], show, ar,i), wt * i);
     }
     this.updateDeckInfo();
   }
   /*-------------------------------------------------------------------------*/
-  processCardDrawAnimation(pid, card, show=false, ar=false,ord=0){
+  processCardDrawAnimation(pid, card, show=false, ar=false, ord=0){
     let sprite = this.getIdleCardSprite().show();
     sprite.texture = Graphics.loadTexture(Graphics.CardBack);
     sprite.render();
@@ -1543,8 +1567,9 @@ class Scene_Game extends Scene_Base{
     sprite.instance = card;  
     if(show){
       sprite.texture = Graphics.loadTexture(this.getCardImage(card));
-      sprite.setZ(0x30);
-    }
+      sprite.setZ(0x40 + ord);
+    }else{sprite.setZ(0x20 + ord);}
+
     debug_log(`${pid} Draw`);
     this.animationCount += 1;
     sprite.moveto(dx, dy, function(){
@@ -1552,12 +1577,13 @@ class Scene_Game extends Scene_Base{
         this.attachCardInfo(card);
         sprite.texture = Graphics.loadTexture(this.getCardImage(card));
       }
-      if(show){EventManager.setTimeout(this.sendCardToDeck.bind(this, pid, card), 200);}
+      if(show){EventManager.setTimeout(this.sendCardToDeck.bind(this, pid, card), 150);}
       else if(ar){EventManager.setTimeout(()=>{this.arrangeHandCards(pid)}, 20)}
     }.bind(this));
   }
   /*-------------------------------------------------------------------------*/
   onCardTrigger(card){
+    debug_log("Trigger: " + card);
     if(this.playerPhase && this.game.isCardPlayable(card)){
       this.hideCardInfo(card);
       if(this.game.isCardAbilitySelectionNeeded(card)){
@@ -1565,7 +1591,9 @@ class Scene_Game extends Scene_Base{
         this.processCardAbilitySelection(card);
         this.raiseOverlay(this.selectionWindow);
       }
-      else{this.onUserCardPlay(card, null);}
+      else{
+        this.onUserCardPlay(card, null);
+      }
     }
     else{
       Sound.playBuzzer();
@@ -1625,12 +1653,31 @@ class Scene_Game extends Scene_Base{
     });
   }
   /*-------------------------------------------------------------------------*/
+  deactivatePlayerCards(){
+    for(let i in this.handCanvas[0].children){
+      if(this.handCanvas[0].children[i].isActive()){
+        this.handCanvas[0].children[i].lastActiveState = true;
+        this.handCanvas[0].children[i].deactivate();
+      }
+    }
+  }
+  /*-------------------------------------------------------------------------*/
+  activatePlayerCards(){
+    for(let i in this.handCanvas[0].children){
+      if(this.handCanvas[0].children[i].lastActiveState){
+        this.handCanvas[0].children[i].activate();
+      }
+    }
+  }
+  /*-------------------------------------------------------------------------*/
   onUserCardPlay(card, ext){
     Sound.playOK();
+    this.deactivatePlayerCards();
     this.detachCardInfo(card);
     this.hideCardInfo(card);
     this.game.discard(this.game.currentPlayer().findCard(card), ext);
     this.processUserTurnEnd();
+    this.animationCount += 1;
   }
   /*-------------------------------------------------------------------------*/
   onUserAbilityCancel(){
@@ -1773,7 +1820,7 @@ class Scene_Game extends Scene_Base{
       let sprite = this.spritePool[i];
       if(!sprite.instance){continue;}
       if(sprite.instance != this.game.lastCard()){
-        this.recycleCard(sprite.instance);
+        this.recycleCardSprite(sprite);
       }
     }
   }
@@ -1783,7 +1830,8 @@ class Scene_Game extends Scene_Base{
   }
   /*-------------------------------------------------------------------------*/
   isBusy(){
-    return super.isBusy() || this.isAnimationPlaying() || this.isPlayerThinking();
+    return super.isBusy() || this.isAnimationPlaying() || 
+           this.isPlayerThinking() || this.flagBusy;
   }
   /*-------------------------------------------------------------------------*/
   isAnimationPlaying(){
