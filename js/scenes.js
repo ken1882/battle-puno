@@ -1446,7 +1446,8 @@ class Scene_Game extends Scene_Base{
     let wt = 20; // wait time
     for(let i in cards){
       i = parseInt(i);
-      let ar = (i+1 == cards.length)
+      let ar = (i+1 == cards.length);
+      debug_log(cards[i], wt * i);
       EventManager.setTimeout(this.processCardDrawAnimation.bind(this, pid, cards[i], show, ar,i), wt * i);
     }
     this.updateDeckInfo();

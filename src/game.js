@@ -193,7 +193,7 @@ class PunoGame {
       EventManager.setTimeout(() => {
         this.discardPile.push(card);
         this.currentPlayer().discard(cardIndex);
-        GameManager.onCardPlay(this.currentPlayerIndex(), card, -1);
+        GameManager.onCardPlay(this.currentPlayerIndex, card, -1);
       }, 10 * i);
     }
   }
