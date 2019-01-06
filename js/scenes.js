@@ -1580,10 +1580,10 @@ class Scene_Game extends Scene_Base{
   /*-------------------------------------------------------------------------*/
   processCardAbilitySelection(card){
     let effid = this.selectionWindow.setupCard(card);
-    this.setupCardAbilityHandler(effid);
+    this.setupCardAbilityHandler(card, effid);
   }
   /*-------------------------------------------------------------------------*/
-  setupCardAbilityHandler(effid){
+  setupCardAbilityHandler(card, effid){
     switch(effid){
       case Effect.CLEAR_DAMAGE:
         return this.setupZeroHandlers(card);

@@ -1,5 +1,3 @@
-import { utimes } from "fs";
-
 /**
  * The Superclass of all windows within the game.
  * 
@@ -621,10 +619,8 @@ class Window_Selectable extends Window_Base{
       if(item && item.symbol == symbol){
         item.on('click', method);
         item.on('tap', method);
-        return item;
       }
     }
-    return null;
   }
   /**------------------------------------------------------------------------
    * Add pure text selection item
