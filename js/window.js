@@ -1402,3 +1402,9 @@ class Window_CardSelection extends Window_Selectable{
   }
   /*------------------------------------------------------------------------*/
 }
+/**
+ * Window_Scoreboard
+ */
+class Window_Scoreboard extends Window_Base{
+  
+}

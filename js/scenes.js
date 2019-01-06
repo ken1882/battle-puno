@@ -48,6 +48,10 @@ class Scene_Base extends Stage{
   sortChildren(){
     this.children.sort((a,b) => (a.zIndex || 0) - (b.zIndex || 0));
   }
+  /*-------------------------------------------------------------------------*/
+  prepare(){
+    // reserved
+  }
   /**-------------------------------------------------------------------------
    * @returns {boolean} - whether scene is fading
    */
@@ -1792,6 +1796,7 @@ class Scene_Game extends Scene_Base{
     debug_log("Game Ends")
     this.flagResulting = true;
     this.setCursor(-1);
+    SceneManager.goto(Scene_GameOver, this.game);
   }
   /*-------------------------------------------------------------------------*/
   processRoundOver(){
@@ -1887,4 +1892,37 @@ class Scene_Game extends Scene_Base{
     return this.game.deck ? this.game.deck.length : 0;
   }
   /*-------------------------------------------------------------------------*/
+}
+/**-------------------------------------------------------------------------
+ * 
+ */
+class Scene_GameOver extends Scene_Base{
+
+  constructor(){
+    super();
+    this.fadeDuration = 60;
+  }
+
+  prepare(g){
+    this.game = g;
+  }
+
+  createBackground(){
+    this.backgroundImage = Graphics.addSprite(Graphics.GameOver);
+    Graphics.renderSprite(this.backgroundImage);
+  }
+
+  create(){
+    super.create();
+
+  }
+
+  start(){
+    super.start();
+  }
+
+  showResult(){
+
+  }
+
 }

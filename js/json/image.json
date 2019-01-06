@@ -12,6 +12,8 @@
   "Trailing": "assets/Trailing2.png",
   "Clicking": "assets/Clicking.png",
 
+  "GameOver": "assets/gameover.png",
+
   "DefaultWindowSkin": "assets/wskin_base.png",
   "WSkinRarity": "assets/wskin_rarity.png",
   "WSkinCelestia": "assets/wskin_celestia.png",

@@ -118,6 +118,7 @@ class SceneManager{
   static goto(sceneClass, args){
     if(sceneClass){
       this._nextScene = new (sceneClass.bind.apply(sceneClass, args))();
+      this.prepareNextScene(args);
     }
     if(this._scene){
       this._scene.preTerminate();
@@ -631,6 +632,27 @@ class GameManager{
       default:
         throw new Error("Unknown penalty card: " + pcard);
     }
+  }
+  /*-------------------------------------------------------------------------*/
+  static quickWin(pid){
+    if(!DebugMode){return ;}
+    let cards = this.game.players[pid].hand;
+    while(cards.length > 0){
+      this.forcePlayCard(pid, cards[0]);
+    }
+    if(pid == 0){
+      EventManager.setTimeout(()=>{
+        SceneManager.scene.processUserTurnEnd();
+      }, 60);
+    }
+  }
+  /*-------------------------------------------------------------------------*/
+  static forcePlayCard(pid, card){
+    console.log("Force play: " + pid + card);
+    let cardIndex = this.game.players[pid].hand.indexOf(card);
+    this.game.discardPile.push(card);
+    this.game.players[pid].discard(cardIndex);
+    GameManager.onCardPlay(pid, card, -1);
   }
   /*-------------------------------------------------------------------------*/
 }
