@@ -286,10 +286,12 @@ class Scene_Base extends Stage{
     Graphics.removeSprite(Graphics.dimSprite);
     this.overlay.setZ(this.overlay.oriZ);
     this.overlay = null;
-    EventManager.setTimeout(()=>{
-      this.overlayFallback();
-      this.overlayFallback = null;
-    }, 2);
+    if(this.overlayFallback){
+      EventManager.setTimeout(()=>{
+        this.overlayFallback();
+        this.overlayFallback = null;
+      }, 2);
+    }
   }
   /*-------------------------------------------------------------------------*/
 } // Scene_Base
