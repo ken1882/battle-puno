@@ -256,12 +256,13 @@ class Scene_Base extends Stage{
     return (this._buttonCooldown[kid] || 0) == 0;
   }
   /*-------------------------------------------------------------------------*/
-  raiseOverlay(ovs){
+  raiseOverlay(ovs, fallback=null){
     if(!ovs){return ;}
     debug_log("Raise overlay: " + getClassName(ovs));
     this.overlay = ovs;
     this.overlay.oriZ = ovs.z;
     this.overlay.setZ(0x111);
+    this.overlayFallback = fallback;
     this.children.forEach(function(sp){
       if(sp.alwaysActive){return ;}
       if(sp !== ovs){
@@ -285,6 +286,10 @@ class Scene_Base extends Stage{
     Graphics.removeSprite(Graphics.dimSprite);
     this.overlay.setZ(this.overlay.oriZ);
     this.overlay = null;
+    EventManager.setTimeout(()=>{
+      this.overlayFallback();
+      this.overlayFallback = null;
+    }, 2);
   }
   /*-------------------------------------------------------------------------*/
 } // Scene_Base
@@ -1036,7 +1041,7 @@ class Scene_Game extends Scene_Base{
       let side = i % 4;
       let sp = new SpriteCanvas(0, 0, 150, 24);
       let font = clone(Graphics.DefaultFontSetting);
-      font.fill = 0x000000;
+      font.fill = Graphics.color.Crimson;
       let txt = sp.drawText(0, 0, '', font);
       let sx = 0, sy = 0;
       if(side == 0){
@@ -1056,6 +1061,7 @@ class Scene_Game extends Scene_Base{
         sy = this.handCanvas[i].y - this.nameCanvas[i].height;
       }
       sp.textSprite = txt;
+      sp.baseX = sx; sp.baseY = sy;
       this.penaltyCanvas.push(sp.setPOS(sx, sy).setZ(0x10));
       sp.render();
     }
@@ -1173,6 +1179,9 @@ class Scene_Game extends Scene_Base{
     card.sprite.moveto(sx, sy, function(){
       this.playColorEffect(card.color);
       this.animationCount -= 1;
+      if(card.sprite.parent != SceneManager.scene){
+        card.sprite.parent.removeChild(card.sprite);
+      }
       this.discardPile.addChild(card.sprite);
       if(ext != -1){this.updateLastCardInfo();}
       card.sprite.setPOS(cx, cy);
@@ -1255,6 +1264,51 @@ class Scene_Game extends Scene_Base{
     bsp.beginFill(Graphics.color.White);
     bsp.drawRect(0, 0, sw, sh);
     bsp.endFill();
+  }
+  /*-------------------------------------------------------------------------*/
+  updatePenaltyInfo(){
+    let next = this.game.getNextPlayerIndex();
+    debug_log("Next player: " + next);
+    for(let i in this.penaltyCanvas){
+      let hcs = this.penaltyCanvas[i];
+      let pcard = this.game.penaltyCard;
+      if(!pcard || i != next){this.setPenaltyInfo(i, Vocab.Normal); continue;}
+      switch(pcard.value){
+        case Value.SKIP:
+          return this.setPenaltyInfo(i, Vocab.SKIP);
+        case Value.DRAW_TWO:
+          return this.setPenaltyInfo(i, "+2");
+        case Value.DRAW_FOUR:
+          return this.setPenaltyInfo(i, "+4");
+        default:
+          return this.setPenaltyInfo(i, Vocab.Normal);
+      }
+    }
+  }
+  /*-------------------------------------------------------------------------*/
+  setPenaltyInfo(i, txt){
+    let hcs = this.penaltyCanvas[i];
+    let tsp = hcs.textSprite;
+    tsp.text = txt;
+    let side = i % 4, sx = 0, sy = 0;
+    if(side == 0){
+      sx = this.handCanvas[i].x + this.handCanvas[i].width;
+      sy = this.nameCanvas[i].y
+    }
+    else if(side == 1){
+      sx = this.handCanvas[i].x;
+      sy = this.handCanvas[i].y + this.handCanvas[i].height;
+    }
+    else if(side == 2){
+      sx = this.handCanvas[i].x - tsp.width;
+      sy = this.nameCanvas[i].y;
+    }
+    else if(side == 3){
+      sx = this.handCanvas[i].x + this.handCanvas[i].width - tsp.width;
+      sy = this.handCanvas[i].y - tsp.height;
+    }
+    let sw = tsp.width, sh = tsp.height;
+    hcs.setPOS(sx, sy).resize(sw, sh);
   }
   /*-------------------------------------------------------------------------*/
   raiseOverlay(w){
@@ -1410,6 +1464,9 @@ class Scene_Game extends Scene_Base{
       let sy = this.deckSprite.y + this.deckSprite.height / 2;
       this.assignCardSprite(card, sx, sy, true);
       this.updateDeckInfo();
+      EventManager.setTimeout(()=>{
+        this.updatePenaltyInfo();
+      }, 10);
     }
     else{
       let pos = card.sprite.worldTransform;
@@ -1417,7 +1474,12 @@ class Scene_Game extends Scene_Base{
       this.handCanvas[pid].removeChild(card.sprite);
       card.sprite.render();
     }
-    if(ext != -1){this.processCardEffects(effects, ext);}
+    if(ext != -1){
+      this.processCardEffects(effects, ext);
+      EventManager.setTimeout(()=>{
+        this.updatePenaltyInfo();
+      }, 2);
+    }
     this.detachCardInfo(card);
     Sound.playCardPlace();
     card.sprite.setZ(0x20).handIndex = -1;
@@ -1477,6 +1539,7 @@ class Scene_Game extends Scene_Base{
       sprite.texture = Graphics.loadTexture(this.getCardImage(card));
       sprite.setZ(0x30);
     }
+    debug_log(`${pid} Draw`);
     sprite.moveto(dx, dy, function(){
       this.animationCount -= 1;
       if(pid == 0){
@@ -1505,6 +1568,10 @@ class Scene_Game extends Scene_Base{
   /*-------------------------------------------------------------------------*/
   processCardAbilitySelection(card){
     let effid = this.selectionWindow.setupCard(card);
+    this.setupCardAbilityHandler(effid);
+  }
+  /*-------------------------------------------------------------------------*/
+  setupCardAbilityHandler(effid){
     switch(effid){
       case Effect.CLEAR_DAMAGE:
         return this.setupZeroHandlers(card);
@@ -1531,9 +1598,9 @@ class Scene_Game extends Scene_Base{
     let cnt = 1;
     for(let i in alives){
       if(alives[i] == GameManager.game.players[0]){continue;}
-      this.selectionWindow.setHandler(cnt++, ()=>{
+        this.selectionWindow.setHandler(cnt++, ()=>{
         this.onUserAbilityDecided(card, this.players.indexOf(alives[i]))
-      })
+      });
     }
   }
   /*-------------------------------------------------------------------------*/

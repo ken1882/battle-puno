@@ -1648,10 +1648,18 @@ class Sprite extends PIXI.Sprite{
     }
   }
   /*-------------------------------------------------------------------------*/
-  callMoveCompleteFunction(){
+  callMoveCompleteFunction(delay=0){
     if(!this.moveCompleteFallback){return ;}
-    this.moveCompleteFallback();
-    this.moveCompleteFallback = null;
+    if(delay > 0){
+      EventManager.setTimeout(()=>{
+        this.moveCompleteFallback();
+        this.moveCompleteFallback = null;
+      }, delay);
+    }
+    else{
+      this.moveCompleteFallback();
+      this.moveCompleteFallback = null;
+    }
   }
   /*-------------------------------------------------------------------------*/
   resize(w, h){
@@ -1675,7 +1683,7 @@ class Sprite extends PIXI.Sprite{
   }
   /*-------------------------------------------------------------------------*/
   setPOS(x, y){
-    if(this.isMoving){this.callMoveCompleteFunction();}
+    if(this.isMoving){this.callMoveCompleteFunction(2);}
     super.setPOS(x, y);
     this.realX = this.x;
     this.realY = this.y;
