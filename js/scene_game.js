@@ -32,6 +32,7 @@ class Scene_Game extends Scene_Base{
     this.createSelectionWindow();
     this.createInfoSprite();
     this.createHuds();
+    this.createHitSprite();
   }
   /*-------------------------------------------------------------------------*/
   start(){
@@ -382,6 +383,29 @@ class Scene_Game extends Scene_Base{
     }
   }
   /*-------------------------------------------------------------------------*/
+  createHitSprite(){
+    let sp = new SpriteCanvas(0, 0, 300, 300);
+    let rect = sp.fillRect(0,0,300,300, Graphics.color.White);
+    sp.effectRect = rect;
+    sp.hide().setZ(0x30).render();
+    this.hitEffectSprite = sp;
+  }
+  /*-------------------------------------------------------------------------*/
+  displayHitEffect(i){
+    let sx = this.handCanvas[i].x;
+    let sy = this.handCanvas[i].y;
+    let sw = this.handCanvas[i].width;
+    let sh = this.handCanvas[i].height;
+    let rect = this.hitEffectSprite.effectRect;
+    rect.clear();
+    rect.beginFill(Graphics.color.White);
+    rect.drawRect(0, 0, sw, sh);
+    rect.endFill();
+    this.hitEffectSprite.setPOS(sx, sy).resize(sw, sh);
+    this.hitEffectSprite.setOpacity(0.01).show();
+    this.hitEffectSprite.flag = true;
+  }
+  /*-------------------------------------------------------------------------*/
   getPlayerHPText(i){
     let v = 0;
     if(this.players){v = String(this.players[i].hp)}
@@ -477,22 +501,30 @@ class Scene_Game extends Scene_Base{
   onHPChange(pid, types = []){
     this.updateHPBar(pid);
     console.log("On HP Change: ", pid, types);
+    let hit = false;
     for(let i in types){
       if(!types[i]){continue;}
       switch(parseInt(i)){
         case Color.RED:
           this.playFireDanage(pid);
+          hit = true;
           break;
         case Color.YELLOW:
           this.playThunderDamage(pid);
+          hit = true;
           break;
         case Color.GREEN:
           this.playWindDamage(pid);
+          hit = true;
           break;
         case Color.BLUE:
           this.playIceDamage(pid);
+          hit = true;
           break;
       }
+    }
+    if(hit){
+      this.displayHitEffect(pid);
     }
   }
   /*-------------------------------------------------------------------------*/
@@ -586,6 +618,7 @@ class Scene_Game extends Scene_Base{
     this.updateGame();
     this.updateCards();
     this.updateHintWindowVisibility();
+    this.updateHitEffect();
   }
   /*-------------------------------------------------------------------------*/
   updateGame(){
@@ -632,6 +665,20 @@ class Scene_Game extends Scene_Base{
     if(!ok){
       this.hintWindow.hoverNumber = 0;
       this.hideHintWindow();
+    }
+  }
+  /*-------------------------------------------------------------------------*/
+  updateHitEffect(){
+    if(!this.hitEffectSprite.visible){return ;}
+    if(this.hitEffectSprite.flag){
+      let opa = Math.min(1, this.hitEffectSprite.opacity + 0.1);
+      this.hitEffectSprite.setOpacity(opa);
+      if(opa >= 1){this.hitEffectSprite.flag = false;}
+    }
+    else{
+      let opa = Math.max(1, this.hitEffectSprite.opacity - 0.1);
+      this.hitEffectSprite.setOpacity(opa);
+      if(opa <= 1){this.hitEffectSprite.hide();}
     }
   }
   /*-------------------------------------------------------------------------*/
