@@ -40,7 +40,6 @@ class Scene_Game extends Scene_Base{
   /*-------------------------------------------------------------------------*/
   start(){
     super.start();
-    this.playStageBGM();
     this.selectionWindow.render();
     this.nextButton.render();
     this.dimBack.render();
@@ -56,6 +55,7 @@ class Scene_Game extends Scene_Base{
   }
   /*-------------------------------------------------------------------------*/
   gameStart(){
+    this.playStageBGM();
     this.game.gameStart();
     for(let i in this.players){
       this.players[i].lastHand = this.players[i].hand.slice();
@@ -1322,6 +1322,7 @@ class Scene_Game extends Scene_Base{
   }
   /*-------------------------------------------------------------------------*/
   onActionNext(){
+    Sound.playOK();
     this.resultWindow.hide().deactivate().clear();
     this.dimBack.hide();
     this.nextButton.hide().deactivate();
