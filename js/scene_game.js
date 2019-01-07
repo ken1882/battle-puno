@@ -488,7 +488,10 @@ class Scene_Game extends Scene_Base{
       card.sprite.rotateDegree(deg);
       card.sprite.moveto(dx, dy);
       card.lastZ = card.sprite.z; card.lastY = dy;
-      if(index == 0 && !card.attached){this.attachCardInfo(card);}
+      if(index == 0){
+        this.detachCardInfo(card);
+        this.attachCardInfo(card);
+      }
     }
     EventManager.setTimeout(()=>{
       this.purifyHandCards(index)
