@@ -1943,6 +1943,14 @@ class SpriteCanvas extends Sprite{
     }
     this.lastDisplayOrigin = [this.ox, this.oy];
   }
+  /**------------------------------------------------------------------------
+   * > Synchronize child properties to parent's
+   */
+  syncChildrenProperties(){
+    for(let i=0;i<this.children.length;++i){
+      this.children[i].interactive = this.isActivate();
+    }
+  }
   /*-------------------------------------------------------------------------*/
   resize(w, h){
     if(w === null){w = this._width;}

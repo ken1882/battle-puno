@@ -842,11 +842,7 @@ class Scene_GameOver extends Scene_Base{
   }
   /*-------------------------------------------------------------------------*/
   createScoreBoard(){
-    let ww = parseInt(Graphics.width  * 0.7);
-    let wh = parseInt(Graphics.height * 0.9);
-    let wx = Graphics.appCenterWidth(ww);
-    let wy = Graphics.appCenterHeight(wh);
-    this.resultWindow = new Window_Scoreboard(wx, wy, ww, wh);
+    this.resultWindow = new Window_Scoreboard();
     this.resultWindow.setOpacity(0.1).setZ(0x10).hide();
     this.drawRank();
   }
@@ -878,25 +874,7 @@ class Scene_GameOver extends Scene_Base{
   }
   /*-------------------------------------------------------------------------*/
   drawRank(){
-    let ar = this.game.players.slice();
-    if(this.game.gameMode == Mode.TRADITIONAL){
-      for(let i in ar){ar[i].score *= -1;}
-    }
-    ar.sort((a,b)=>{b.score - a.score});
-    let ww = this.resultWindow.width;
-    let dx = [parseInt(ww * 0.1), parseInt(ww * 0.4), parseInt(ww * 0.8)];
-    let dy = Graphics.spacing;
-    this.resultWindow.drawText(dx[0], dy, Vocab.Rank);
-    this.resultWindow.drawText(dx[1], dy, Vocab.Player);
-    this.resultWindow.drawText(dx[2], dy, Vocab.Score);
-    dy += this.resultWindow.lineHeight * 2;
-    for(let i in ar){
-      i = parseInt(i);
-      this.resultWindow.drawText(dx[0], dy, String(i+1));
-      this.resultWindow.drawText(dx[1], dy, String(ar[i].name));
-      this.resultWindow.drawText(dx[2], dy, String(ar[i].score));
-      dy += this.resultWindow.lineHeight;
-    }
+    const ar = this.resultWindow.drawRank();
     if(ar[0] == this.game.players[0]){
       this.playVictory();
     }

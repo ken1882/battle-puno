@@ -525,14 +525,6 @@ class Window_Selectable extends Window_Base{
       Sound.playBuzzer();
     }
   }
-  /**------------------------------------------------------------------------
-   * > Synchronize child properties to parent's
-   */
-  syncChildrenProperties(){
-    for(let i=0;i<this.children.length;++i){
-      this.children[i].interactive = this.isActivate();
-    }
-  }
   /**-------------------------------------------------------------------------
    * > Activate to make selections interactable
    */
@@ -940,17 +932,17 @@ class Window_Help extends Window_Base{
  */
 class Window_Back extends Window_Selectable{
   /*------------------------------------------------------------------------*/
-  constructor(x, y, handler){
+  constructor(x, y, handler, txt = Vocab["Back"]){
     super(x, y, 80, 50);
     this.handler = handler;
     this.changeSkin(Graphics.WSkinPinkie);
-    this.addBackSelection();
+    this.addBackSelection(txt);
     this.activate();
   }
   /*------------------------------------------------------------------------*/
-  addBackSelection(){
+  addBackSelection(txt){
     this.backSprite = this.addTextSelection({
-      text: Vocab["Back"],
+      text: txt,
       align: 2,
       handler: this.handler,
       symbol: 'back'
@@ -1406,5 +1398,44 @@ class Window_CardSelection extends Window_Selectable{
  * Window_Scoreboard
  */
 class Window_Scoreboard extends Window_Base{
-  // Reserved
+  
+  constructor(){
+    super(0,0,300,150);
+    let ww = parseInt(Graphics.width  * 0.7);
+    let wh = parseInt(Graphics.height * 0.9);
+    let wx = Graphics.appCenterWidth(ww);
+    let wy = Graphics.appCenterHeight(wh);
+    this.setPOS(wx, wy).resize(ww, wh);
+    this.game = GameManager.game;
+  }
+
+  drawRank(){
+    let ar = this.game.players.slice();
+    if(this.game.gameMode == Mode.TRADITIONAL){
+      for(let i in ar){ar[i].score *= -1;}
+    }
+    ar.sort(function(a,b){return b.score - a.score});
+    let ww = this.width;
+    let dx = [parseInt(ww * 0.1),  parseInt(ww * 0.25), parseInt(ww * 0.4), parseInt(ww * 0.8)];
+    let dy = Graphics.spacing;
+    this.drawText(dx[0], dy, Vocab.Rank);
+    if(this.game.gameMode != Mode.TRADITIONAL){
+      this.drawText(dx[1], dy, "HP");  
+    }
+    this.drawText(dx[2], dy, Vocab.Player);
+    this.drawText(dx[3], dy, Vocab.Score);
+    dy += this.lineHeight * 2;
+    for(let i in ar){
+      i = parseInt(i);
+      this.drawText(dx[0], dy, String(i+1));
+      if(this.game.gameMode != Mode.TRADITIONAL){
+        this.drawText(dx[1], dy, String(ar[i].hp));  
+      }
+      this.drawText(dx[2], dy, String(ar[i].name));
+      this.drawText(dx[3], dy, String(ar[i].score));
+      dy += this.lineHeight;
+    }
+    return ar;
+  }
+
 }

@@ -33,12 +33,17 @@ class Scene_Game extends Scene_Base{
     this.createInfoSprite();
     this.createHuds();
     this.createHitSprite();
+    this.createDimBack();
+    this.createScoreBoard();
+    this.createNextButton();
   }
   /*-------------------------------------------------------------------------*/
   start(){
     super.start();
     this.playStageBGM();
     this.selectionWindow.render();
+    this.nextButton.render();
+    this.dimBack.render();
     Graphics.renderSprite(this.infoSprite);
     EventManager.setTimeout(this.gameStart.bind(this), 90);
   }
@@ -391,6 +396,24 @@ class Scene_Game extends Scene_Base{
     this.hitEffectSprite = sp;
   }
   /*-------------------------------------------------------------------------*/
+  createScoreBoard(){
+    this.resultWindow = new Window_Scoreboard();
+    this.resultWindow.setZ(0x50).hide().render();
+  }
+  /*-------------------------------------------------------------------------*/
+  createNextButton(){
+    this.nextButton = new Window_Back(0, 0, this.onActionNext.bind(this), Vocab.Next);
+    let wx = Graphics.width - this.nextButton.width - Graphics.padding;
+    let wy = Graphics.padding;
+    this.nextButton.setPOS(wx, wy).setZ(0x50).hide();
+  }
+  /*-------------------------------------------------------------------------*/
+  createDimBack(){
+    this.dimBack = new Sprite(0, 0, Graphics.width, Graphics.height);
+    this.dimBack.fillRect(0, 0, Graphics.width, Graphics.height);
+    this.dimBack.setOpacity(0.7).setZ(0x4f).hide();
+  }
+  /*-------------------------------------------------------------------------*/
   displayHitEffect(i){
     let sx = this.handCanvas[i].x;
     let sy = this.handCanvas[i].y;
@@ -584,6 +607,12 @@ class Scene_Game extends Scene_Base{
       }
       this.discardPile.addChild(card.sprite);
       if(ext != -1){this.updateLastCardInfo();}
+      else{
+        let len = this.discardPile.children.length;
+        [this.discardPile.children[len-1], this.discardPile.children[len-2]] = [
+          this.discardPile.children[len-2], this.discardPile.children[len-1]
+        ]
+      }
       card.sprite.setPOS(cx, cy);
     }.bind(this));
     let repos = 1;
@@ -619,6 +648,7 @@ class Scene_Game extends Scene_Base{
     this.updateCards();
     this.updateHintWindowVisibility();
     this.updateHitEffect();
+    this.updateDimBack();
   }
   /*-------------------------------------------------------------------------*/
   updateGame(){
@@ -680,6 +710,13 @@ class Scene_Game extends Scene_Base{
       this.hitEffectSprite.setOpacity(opa);
       if(opa <= 1){this.hitEffectSprite.hide();}
     }
+  }
+  /*-------------------------------------------------------------------------*/
+  updateDimBack(){
+    if(!this.dimBack.visible){return ;}
+    let opa = this.dimBack.opacity;
+    if(opa >= 0.8){return ;}
+    this.dimBack.setOpacity(opa + 0.02);
   }
   /*-------------------------------------------------------------------------*/
   updateLastCardInfo(){
@@ -1105,6 +1142,28 @@ class Scene_Game extends Scene_Base{
     }
   }
   /*-------------------------------------------------------------------------*/
+  deactivateAllHuds(){
+    this.deactivatePlayerCards();
+    const ar = [this.deckSprite, this.discardPile, this.handCanvas[0].arrangeIcon];
+    for(let i in ar){
+      ar[i].deactivate();
+    }
+    for(let i in this.hudCanvas){
+      this.hudCanvas[i].hpBar.deactivate();
+    }
+  }
+  /*-------------------------------------------------------------------------*/
+  actiavteAllHuds(){
+    this.activatePlayerCards();
+    const ar = [this.deckSprite, this.discardPile, this.handCanvas[0].arrangeIcon];
+    for(let i in ar){
+      ar[i].activate();
+    }
+    for(let i in this.hudCanvas){
+      this.hudCanvas[i].hpBar.activate();
+    }
+  }
+  /*-------------------------------------------------------------------------*/
   onUserCardPlay(card, ext){
     Sound.playOK();
     this.deactivatePlayerCards();
@@ -1138,7 +1197,6 @@ class Scene_Game extends Scene_Base{
     GameManager.onCardDraw(0, cards);
     this.processUserTurnEnd();
   }
-  /*-------------------------------------------------------------------------*/
   /*-------------------------------------------------------------------------*/
   sendCardToDeck(pid, card){
     card.sprite.playerIndex = -2;
@@ -1239,12 +1297,29 @@ class Scene_Game extends Scene_Base{
     this.flagResulting = true;
     this.setCursor(-1);
     this.updateHPBar();
+    this.dimBack.show().setOpacity(0);
+    EventManager.setTimeout(()=>{
+      this.displayRoundResult();
+    }, 60);
   }
   /*-------------------------------------------------------------------------*/
   processRoundStart(){
     debug_log("Round Start");
     this.flagResulting = false;
     this.clearTable();
+  }
+  /*-------------------------------------------------------------------------*/
+  displayRoundResult(){
+    this.resultWindow.drawRank();
+    this.resultWindow.show().activate();
+    this.nextButton.show().activate();
+  }
+  /*-------------------------------------------------------------------------*/
+  onActionNext(){
+    this.resultWindow.hide().deactivate().clear();
+    this.dimBack.hide();
+    this.nextButton.hide().deactivate();
+    this.game.roundStart();
   }
   /*-------------------------------------------------------------------------*/
   clearTable(){
