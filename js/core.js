@@ -21,6 +21,13 @@ window.mobilecheck = function() {
 var isMobile = window.mobilecheck();
 
 /**----------------------------------------------------------------------------
+ * > Request user to reload
+ */
+function requestReload(txt){
+  let ok = window.confirm(txt);
+  if(ok){window.location.assign(location)}
+}
+/**----------------------------------------------------------------------------
  * > Disable web page scrolling
  */
 function DisablePageScroll() {
@@ -515,6 +522,9 @@ class Graphics{
   /*------------------------------------------------------------------------*/
   static onLoadError(msg, loader, rss){
     reportError(new ResourceError("PIXI Loader error:\n" + msg + '\n' + 'filename: ' + rss.name));
+    let txt = "There was an error while loading resources, probably caused by github.io server error " +
+              "and should be resolved after reload the page. Would you like to reload the page?";
+    requestReload(txt);
   }
   /**-------------------------------------------------------------------------
    * > Return textire of pre-loaded resources
@@ -1220,6 +1230,9 @@ class Sound{
       onend: function(soundID){Sound.unregisterAudio(soundID);},
       onloaderror: function(sid, msg){
         reportError(new ResourceError(msg + ' ' + filename));
+        let txt = "There was an error while loading resources, probably caused by github.io server error " +
+              "and should be resolved after reload the page. Would you like to reload the page?";
+        requestReload(txt);
       },
     });
     return this.track[filename];
