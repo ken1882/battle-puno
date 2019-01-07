@@ -432,7 +432,7 @@ class Scene_Game extends Scene_Base{
   getPlayerHPText(i){
     let v = 0;
     if(this.players){v = String(this.players[i].hp)}
-    return v + ' / ' + GameManager.initHP + '; score: ' + this.players[i].score;
+    return v + ' / ' + GameManager.initHP + '; ' + Vocab.Score + ': ' + this.players[i].score;
   }
   /*-------------------------------------------------------------------------*/
   arrangeHandCards(index){
