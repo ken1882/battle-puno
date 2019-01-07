@@ -208,9 +208,6 @@ class PunoGame {
       EventManager.setTimeout(() => {
         this.discardPile.push(card);
         this.currentPlayer().discard(cardIndex);
-        if (this.gameMode === Mode.DEATH_MATCH) {
-          this.currentPlayer().score += card.point;
-        }
         GameManager.onCardPlay(this.currentPlayerIndex, card, -1);
       }, 10 * i);
     }
@@ -358,9 +355,6 @@ class PunoGame {
     if (this.currentPlayer().hand.length === 1) {
       this.currentPlayer().uno();
     }
-    if (this.gameMode === Mode.DEATH_MATCH) {
-      this.currentPlayer().score += card.point;
-    }
     debug_log("ext", ext);
     this.discardPile.push(card);
     GameManager.onCardPlay(this.currentPlayerIndex, card, ext);
@@ -439,6 +433,12 @@ class PunoGame {
     this.players[player_id].hp -= this.damagePool;
     this.players[player_id].knockOut = this.players[player_id].hp <= 0;
     GameManager.onHPChange(player_id, this.damageTypes);
+    if(this.gameMode === Mode.DEATH_MATCH){
+      for(let i in this.players){
+        if(i == player_id){continue;}
+        this.players[i].score += this.damagePool;
+      }
+    }
     this.resetDamagePool();
     debug_log("reset damage pool");
   }
