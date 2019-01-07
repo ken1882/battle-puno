@@ -580,6 +580,15 @@ class Window_Selectable extends Window_Base{
     this.helpWindow = win;
   }
   /*------------------------------------------------------------------------*/
+  swapSelectionAt(a, b){
+    [this._selections[a]._index, this._selections[b]._index] = [
+      this._selections[b]._index, this._selections[a]._index
+    ]
+    [this._selections[a], this._selections[b]] = [
+      this._selections[b], this._selections[a]
+    ]
+  }
+  /*------------------------------------------------------------------------*/
   select(idx, se = true){
     this._index = idx;
     if(idx >= 0){
@@ -1427,6 +1436,9 @@ class Window_CardSelection extends Window_Selectable{
       }
     }
     pos = this.getIndexItemPOS(cnt);
+    let cindex = this.cancelSelection._index;
+    let nindex = this._selections[cnt]._index;
+    this.swapSelectionAt(cindex, nindex);
     this.cancelSelection.setPOS(null, pos.y);
   }
   /*------------------------------------------------------------------------*/
