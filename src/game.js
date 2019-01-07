@@ -302,13 +302,18 @@ class PunoGame {
     if (this.gameMode === Mode.TRADITIONAL)  return;
     this.damageTypes[card.color] = true;
     if (card.value === Value.ZERO) {
-      if (this.damagePool < 30 || !!getRandom(0, 1)) {
+      if (this.currentPlayer().ai) {
+        if (this.damagePool < 30 || !!getRandom(0, 1)) {
+          ext = 1;
+        } else {
+          ext = 0;
+        }
+      }
+      if (ext === 0) {
+        this.resetDamagePool();
+      } else {
         debug_log("+10 damage");
         this.addDamagePool(10, card.color);
-        ext = 1;
-      } else {
-        this.resetDamagePool();
-        ext = 0;
       }
     } else if (Value.ONE <= card.value && card.value <= Value.NINE) {
       this.addDamagePool(card.value, card.color);
