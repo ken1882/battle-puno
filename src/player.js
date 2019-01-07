@@ -80,7 +80,7 @@ class Player {
         matched.push(i);
       }
     }
-    return matched;
+    return matched.reverse();
   }
 
   receivePenalty(penaltyCard, currentColor) {
