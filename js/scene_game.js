@@ -102,6 +102,7 @@ class Scene_Game extends Scene_Base{
     this.deckSprite.on('mouseover', ()=>{
       this.showHintWindow(null,null,Vocab["HelpDeck"] + this.getDeckLeftNumber)
     });
+    this.deckSprite.on('mousemove', ()=>{this.updateHintWindow()});
     this.deckSprite.on('mouseout', ()=>{this.hideHintWindow()});
     this.deckSprite.on('click', ()=>{this.onDeckTrigger()})
     this.deckSprite.on('tap', ()=>{this.onDeckTrigger()})
@@ -118,6 +119,7 @@ class Scene_Game extends Scene_Base{
     this.discardPile.on("mouseover", ()=>{
       this.showHintWindow(null,null, this.getLastCardInfo())
     });
+    this.discardPile.on('mousemove', ()=>{this.updateHintWindow()});
     this.discardPile.on("mouseout",()=>{this.hideHintWindow()});
     if(this.game.gameMode != Mode.TRADITIONAL){
       this.createDamageText();
@@ -179,7 +181,7 @@ class Scene_Game extends Scene_Base{
       let ssw = (i == 0) ? 500 : sw;
       this.handCanvas.push(new SpriteCanvas(0, 0, ssw, sh));
       this.handCanvas[i].playerIndex = i;
-      this.handCanvas[i].render();
+      this.handCanvas[i].activate().render();
     }
 
     for(let i=0;i<4;++i){
@@ -210,6 +212,12 @@ class Scene_Game extends Scene_Base{
       }
     }
     this.createArrangeIcon(0);
+  }
+  /*-------------------------------------------------------------------------*/
+  getCollisionRect(sp){
+    let rect = new Rect(sp.hitArea);
+    [rect.x, rect.y] = [sp.x, sp.y]
+    return rect;
   }
   /*-------------------------------------------------------------------------*/
   createArrangeIcon(idx){
@@ -526,6 +534,7 @@ class Scene_Game extends Scene_Base{
     super.update();
     this.updateGame();
     this.updateCards();
+    this.updateHintWindowVisibility();
   }
   /*-------------------------------------------------------------------------*/
   updateGame(){
@@ -558,6 +567,20 @@ class Scene_Game extends Scene_Base{
     }else{
       this.deckSprite.bot.hide();
       this.deckSprite.top.show();
+    }
+  }
+  /*-------------------------------------------------------------------------*/
+  updateHintWindowVisibility(){
+    if(this.hintWindow.hoverNumber <= 0){return ;}
+    const ar = [this.deckSprite, this.discardPile].concat(this.handCanvas);
+    let ok = false;
+    for(let i in ar){
+      let rect = this.getCollisionRect(ar[i]);
+      if(Input.isMouseInArea(rect)){ok = true; break;}
+    }
+    if(!ok){
+      this.hintWindow.hoverNumber = 0;
+      this.hideHintWindow();
     }
   }
   /*-------------------------------------------------------------------------*/
