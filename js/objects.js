@@ -9,14 +9,22 @@ class Sprite_ProgressBar extends SpriteCanvas{
     super(x, y, width, height);
     this.maxProgress     = 1;
     this.currentProgress = 0;
+    this._borderWidth    = 4;
+    this.fillHorz        = (width > height);
     this.changeColor(Graphics.color.DeepSkyBlue);
     this.createSprite();
     this.drawBorderSprite();
     this.setZ(1);
   }
   /*-------------------------------------------------------------------------*/
-  get borderWidth(){return 4;}
+  get borderWidth(){return this._borderWidth;}
   get color(){return this._color;}
+  /*-------------------------------------------------------------------------*/
+  changeBorderWidth(w){
+    this._borderWidth = w;
+    this.drawBorderSprite();
+    this.refresh();
+  }
   /*-------------------------------------------------------------------------*/
   changeColor(c){
     this._color = c;
@@ -34,8 +42,14 @@ class Sprite_ProgressBar extends SpriteCanvas{
     if(!this.indexSprite){return ;}
     this.indexSprite.clear();
     this.indexSprite.beginFill(this.color);
-    let dw = (this.width - this.borderWidth * 2) * (this.currentProgress / this.maxProgress);
-    this.indexSprite.drawRect(0, 0, dw, this.height - this.borderWidth);
+    if(this.fillHorz){
+      let dw = (this.width - this.borderWidth * 2) * (this.currentProgress / this.maxProgress);
+      this.indexSprite.drawRect(0, 0, dw, this.height - this.borderWidth);
+    }
+    else{
+      let dh = (this.height - this.borderWidth * 2) * (this.currentProgress / this.maxProgress);
+      this.indexSprite.drawRect(0, 0, this.width - this.borderWidth, dh);
+    }
     this.indexSprite.endFill();
   }
   /*-------------------------------------------------------------------------*/
@@ -67,6 +81,7 @@ class Sprite_ProgressBar extends SpriteCanvas{
   /*-------------------------------------------------------------------------*/
   drawBorderSprite(){
     if(!this.borderSprite){return ;}
+    this.borderSprite.clear();
     this.borderSprite.beginFill(Graphics.color.White);
     // Draw upper border
     this.borderSprite.drawRect(0, 0, this._width, this.borderWidth);
