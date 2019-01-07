@@ -465,12 +465,59 @@ class Scene_Game extends Scene_Base{
     }
   }
   /*-------------------------------------------------------------------------*/
+  getPlayerPosition(pid){
+    return {x: (this.handCanvas[pid].x + this.handCanvas[pid].width) / 2,
+            y: (this.handCanvas[pid].y + this.handCanvas[pid].height) / 2};
+  }
+  /*-------------------------------------------------------------------------*/
   playColorEffect(cid){
 
   }
   /*-------------------------------------------------------------------------*/
   onHPChange(pid, types = []){
     this.updateHPBar(pid);
+    console.log("On HP Change: ", pid, types);
+    for(let i in types){
+      if(!types[i]){continue;}
+      switch(parseInt(i)){
+        case Color.RED:
+          this.playFireDanage(pid);
+        case Color.YELLO:
+          this.playThunderDamage(pid);
+        case Color.GREEN:
+          this.playWindDamage(pid);
+        case Color.BLUE:
+          this.playIceDamage(pid);
+      }
+    }
+  }
+  /*-------------------------------------------------------------------------*/
+  playFireDanage(pid){
+    this.shake(2);
+    let pos = this.getPlayerPosition(pid);
+    Sound.playSE(Sound.FireHit);
+    Graphics.playAnimation(pos.x, pos.y, Graphics.FireHit, 2);
+  }
+  /*-------------------------------------------------------------------------*/
+  playIceDamage(pid){
+    this.shake(2);
+    let pos = this.getPlayerPosition(pid);
+    Sound.playSE(Sound.IceHit);
+    Graphics.playAnimation(pos.x, pos.y, Graphics.IceHit, 2);
+  }
+  /*-------------------------------------------------------------------------*/
+  playWindDamage(pid){
+    this.shake(2);
+    let pos = this.getPlayerPosition(pid);
+    Sound.playSE(Sound.WindHit);
+    Graphics.playAnimation(pos.x, pos.y, Graphics.WindHit, 2);
+  }
+  /*-------------------------------------------------------------------------*/
+  playThunderDamage(pid){
+    this.shake(2);
+    let pos = this.getPlayerPosition(pid);
+    Sound.playSE(Sound.ThunerHit);
+    Graphics.playAnimation(pos.x, pos.y, Graphics.ThunderHit, 2);
   }
   /*-------------------------------------------------------------------------*/
   onDamageChange(){

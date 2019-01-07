@@ -32,6 +32,7 @@ class Scene_Base extends Stage{
   update(){
     this.updateFading();
     this.updateChildren();
+    this.updateShake();
   }
   /*-------------------------------------------------------------------------*/
   updateChildren(){
@@ -45,12 +46,32 @@ class Scene_Base extends Stage{
     }.bind(this))
   }
   /*------------------------------------------------------------------------*/
+  updateShake(){
+    if(!this._shaking){return ;}
+    if(this._shakeTimer <= 0){
+      this._shaking = false;
+      this.x = 0; this.y = 0;
+    }
+    let dis = 2 * this._shakeLevel;
+    let dx = randInt(0, 2 * dis) - dis;
+    let dy = randInt(0, 2 * dis) - dis;
+    this.x = dx;
+    this.y = dy;
+    this._shakeTimer -= 1;
+  }
+  /*------------------------------------------------------------------------*/
   sortChildren(){
     this.children.sort((a,b) => (a.zIndex || 0) - (b.zIndex || 0));
   }
   /*-------------------------------------------------------------------------*/
   prepare(){
     // reserved
+  }
+  /*-------------------------------------------------------------------------*/
+  shake(level = 1, duration = 30){
+    this._shaking    = true;
+    this._shakeLevel = level;
+    this._shakeTimer = duration;
   }
   /**-------------------------------------------------------------------------
    * @returns {boolean} - whether scene is fading

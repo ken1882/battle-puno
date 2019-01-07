@@ -103,6 +103,11 @@
   "WildExchange": "assets/w_exchange.png",
   "WildHit": "assets/w_hit.png",
 
+  "FireHit": "assets/fire_hit.png",
+  "ThunderHit": "assets/thuner_hit.png",
+  "WindHit": "assets/wind_hit.png",
+  "IceHit": "assets/ice_hit.png",
+
   "_comment": "other un-named files",
   "Images": []
 }

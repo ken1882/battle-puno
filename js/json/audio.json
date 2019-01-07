@@ -12,7 +12,10 @@
   "IconOK": "audio/se/Cursor1.mp3",
   "Shuffle": "audio/se/cardShuffle.mp3",
   "Deal": "audio/se/cardDeal.mp3",
-
+  "IceHit": "audio/se/blue_hit.mp3",
+  "FireHit": "audio/se/red_hit.mp3",
+  "WindHit": "audio/se/green_hit.mp3",
+  "ThunderHit": "audio/se/yellow_hit.mp3",
   "_comment": "Other un-named resrouce files",
   "resources": [
     "audio/se/cardDraw.mp3",
