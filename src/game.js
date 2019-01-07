@@ -195,7 +195,9 @@ class PunoGame {
       EventManager.setTimeout(() => {
         this.discardPile.push(card);
         this.currentPlayer().discard(cardIndex);
-        this.currentPlayer().score += card.point;
+        if (this.gameMode === Mode.DEATH_MATCH) {
+          this.currentPlayer().score += card.point;
+        }
         GameManager.onCardPlay(this.currentPlayerIndex, card, -1);
       }, 10 * i);
     }
@@ -376,29 +378,25 @@ class PunoGame {
     }
   }
 
+  replenish() {
+    if (this.gameMode != Mode.DEATH_MATCH)  return;
+    let numCardsDiff = this.initCardNumber - this.currentPlayer().hand.length;
+    if (numCardsDiff > 0) {
+      debug_log("DEATH MATCH DRAW");
+      let cards = this.drawCard(numCardsDiff);
+      this.currentPlayer().deal(cards);
+      GameManager.onCardDraw(this.currentPlayerIndex, cards);
+    }
+  }
+
   beginTurn() {
     debug_log("hand", this.currentPlayer().hand.slice());
     debug_log("CURRENT COLOR:", this.currentColor);
     debug_log("CURRENT VALUE:", this.currentValue);
-    /**************************************************************************/
-    // death match
-    if (this.gameMode === Mode.DEATH_MATCH) {
-      let numCardsDiff = this.initCardNumber - this.currentPlayer().hand.length;
-      if (numCardsDiff > 0) {
-        debug_log("DEATH MATCH DRAW");
-        let cards = this.drawCard(diff);
-        this.currentPlayer().deal(cards);
-        debug_log("hand", this.currentPlayer().hand.slice());
-        GameManager.onCardDraw(this.currentPlayerIndex, cards);
-      }
-    }
-    /**************************************************************************/
-    // penalty
     if (this.penaltyCard != undefined) {
       this.getPenalty();
       return;
     }
-    /**************************************************************************/
     let matchedCardIndex = this.currentPlayer().matching(this.currentColor,
                                                          this.currentValue);
     if (matchedCardIndex === -1) {
@@ -477,6 +475,9 @@ class PunoGame {
       console.log(this.currentPlayer());
       if (!this.currentPlayer().knockOut) {
         this.processTurnAction();
+        if (this.gameMode === Mode.DEATH_MATCH) {
+          this.replenish();
+        }
       } else {
         debug_log(this.currentPlayer().name, "knocked out - SKIP");
         this.endTurn();
