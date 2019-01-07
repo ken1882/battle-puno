@@ -16,7 +16,7 @@ class PunoGame {
     this.penaltyCard = undefined;
     this.gameMode = gameMode;
     this.damagePool = 0;
-    this.damageTypes = [false,false,false,false,false];
+    this.damageTypes = [false, false, false, false, false];
   }
 
   numAlivePlayers() {
@@ -110,8 +110,19 @@ class PunoGame {
     return card.isMatched(this.currentColor, this.currentValue);
   }
 
+  initGame() {
+    this.clockwise = true;
+    this.currentPlayerIndex = undefined;
+    this.currentColor = undefined;
+    this.currentValue = undefined;
+    this.damageTypes.fill(false);
+  }
+
   initDeck() {
     this.deck = new Deck(this.extraCardDisabled);
+    this.penaltyCard = undefined;
+    this.discardPile.length = 0;
+    this.damagePool = 0;
   }
 
   initPlayer() {
@@ -146,6 +157,7 @@ class PunoGame {
 
   initialize() {
     debug_log("--------------INITIALIZE--------------");
+    this.initGame();
     this.initDeck();
     this.initPlayer();
     this.processFirstDraw();
