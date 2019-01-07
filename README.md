@@ -59,3 +59,8 @@ Total of 76, four color with each two of 1-9 cards and one of 0 card.
 
  - **Death Match:**<br>
  Most are same as **Battle Puno!**, but when the number of card in player's hand is less than the number had at beginning, draws the card from deck until the number met. If the deck is out of card, shuffle the discarded cards as the deck. In rare situation, the cards played are all in the damage pool and no card in deck; resets the damage pool and shuffle those cards as deck. The player whose hp is lower or equal to zero will be knocked out. The last stand wins.
+
+## Credits:
+ Kernel and UI by Compeador(Jun-Kai Chao): [ken1882](https://github.com/ken1882)<br>
+ Gameplay and rules by [WT-Cheng](https://github.com/wt-cheng)<br>
+ [Resources Credits](https://github.com/battle-puno/battle-puno/blob/master/credits.txt)
