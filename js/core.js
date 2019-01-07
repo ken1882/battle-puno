@@ -289,6 +289,7 @@ class Graphics{
     this._height  = this.Resolution[1];
     this._padding = 32;
     this._spacing = 8;
+    this._lineHeight = 24;
     this._frameCount = 0;
     this._spriteMap  = {}
     this.fadingSprite     = null;
@@ -731,7 +732,7 @@ class Graphics{
   static get height(){return this._height;}
   static get padding(){return this._padding;}
   static get spacing(){return this._spacing;}
-  static get lineHeight(){return this.LineHeight;}
+  static get lineHeight(){return this._lineHeight;}
   /**------------------------------------------------------------------------
    * > Return a random color from color.json
    */

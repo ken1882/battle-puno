@@ -655,6 +655,14 @@ class GameManager{
     GameManager.onCardPlay(pid, card, -1);
   }
   /*-------------------------------------------------------------------------*/
+  static onHPChange(pid, types){
+    SceneManager.scene.onHPChange(pid, types);
+  }
+  /*-------------------------------------------------------------------------*/
+  static onDamageChange(){
+    SceneManager.scene.onDamageChange();
+  }
+  /*-------------------------------------------------------------------------*/
 }
 /**-------------------------------------------------------------------------
  * A class that manages scheduled functions/events

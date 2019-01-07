@@ -60,10 +60,6 @@ class Scene_Game extends Scene_Base{
     this.createDummyWindow();
   }
   /*-------------------------------------------------------------------------*/
-  roundStart(){
-
-  }
-  /*-------------------------------------------------------------------------*/
   randomBackground(draw=false){
     this.bgiName = Graphics["Background" + randInt(0, 3)];
     if(draw){
@@ -123,7 +119,19 @@ class Scene_Game extends Scene_Base{
       this.showHintWindow(null,null, this.getLastCardInfo())
     });
     this.discardPile.on("mouseout",()=>{this.hideHintWindow()});
+    if(this.game.gameMode != Mode.TRADITIONAL){
+      this.createDamageText();
+    }
     Graphics.renderSprite(this.discardPile);
+  }
+  /*-------------------------------------------------------------------------*/
+  createDamageText(){
+    let font = clone(Graphics.DefaultFontSetting);
+    font.fill = Graphics.color.Crimson;
+    let dx = Graphics.spacing / 2;
+    let dy = this.discardPile.height - Graphics.lineHeight;
+    let txt = this.discardPile.drawText(dx, dy, '0', font);
+    this.discardPile.damageText = txt;
   }
   /*-------------------------------------------------------------------------*/
   getIdleCardSprite(){
@@ -343,13 +351,33 @@ class Scene_Game extends Scene_Base{
         bx += Graphics.spacing/2;
         if(side == 0){bw -= (Graphics.IconRect.width + Graphics.padding);}
       }
+
       let bar = new Sprite_ProgressBar(bx, by, bw, bh)
       bar.changeColor(Graphics.color.ForestGreen);
       bar.setMaxProgress(GameManager.initHP);
       bar.setProgress(GameManager.initHP);
+      bar.on('mouseover', ()=>{
+        this.showHintWindow(null, null, this.getPlayerHPText(i));
+      });
+      bar.on('mousemove', ()=>{
+        this.updateHintWindow();
+      });
+      bar.on('mouseout', ()=>{
+        this.hideHintWindow();
+      });
+      bar.activate();
+
+      canvas.hpBar = bar;
       canvas.addChild(bar);
       canvas.show().setZ(0x1a).render();
+      this.hudCanvas.push(canvas);
     }
+  }
+  /*-------------------------------------------------------------------------*/
+  getPlayerHPText(i){
+    let v = 0;
+    if(this.players){v = String(this.players[i].hp)}
+    return v + ' / ' + GameManager.initHP;
   }
   /*-------------------------------------------------------------------------*/
   arrangeHandCards(index){
@@ -431,6 +459,14 @@ class Scene_Game extends Scene_Base{
   /*-------------------------------------------------------------------------*/
   playColorEffect(cid){
 
+  }
+  /*-------------------------------------------------------------------------*/
+  onHPChange(pid, types = []){
+    
+  }
+  /*-------------------------------------------------------------------------*/
+  onDamageChange(){
+    this.updateDamagePool();
   }
   /*-------------------------------------------------------------------------*/
   addDiscardCard(card, player_id, ext){
@@ -539,6 +575,11 @@ class Scene_Game extends Scene_Base{
     bsp.beginFill(Graphics.color.White);
     bsp.drawRect(0, 0, sw + + Graphics.spacing*2, sh);
     bsp.endFill();
+  }
+  /*-------------------------------------------------------------------------*/
+  updateDamagePool(){
+    if(!this.discardPile.damageText){return ;}
+    this.discardPile.damageText.text = String(this.game.damagePool);
   }
   /*-------------------------------------------------------------------------*/
   updatePenaltyInfo(current=false){
@@ -960,7 +1001,7 @@ class Scene_Game extends Scene_Base{
     if(!this.playerPhase){return Sound.playBuzzer();}
     let numCards = GameManager.getCardDrawNumber();
     this.game.penaltyCard = undefined;
-    let cards = GameManager.game.deck.draw(numCards);
+    const cards = GameManager.game.deck.draw(numCards);
     this.players[0].deal(cards);
     GameManager.onCardDraw(0, cards);
     this.processUserTurnEnd();

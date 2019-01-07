@@ -16,6 +16,7 @@ class PunoGame {
     this.penaltyCard = undefined;
     this.gameMode = gameMode;
     this.damagePool = 0;
+    this.damageTypes = [false,false,false,false,false];
   }
 
   numAlivePlayers() {
@@ -280,21 +281,37 @@ class PunoGame {
 
   setDamagePool(card, ext) {
     if (this.gameMode === Mode.TRADITIONAL)  return;
+    this.damageTypes[card.color] = true;
     if (card.value === Value.ZERO) {
       if (this.damagePool < 30 || !!getRandom(0, 1)) {
         debug_log("+10 damage");
-        this.damagePool += 10;
+        this.addDamagePool(10, card.color);
         ext = 1;
       } else {
-        debug_log("clear damage");
-        this.damagePool = 0;
+        this.resetDamagePool();
         ext = 0;
       }
     } else if (Value.ONE <= card.value && card.value <= Value.NINE) {
-      this.damagePool += card.value;
+      this.addDamagePool(card.value, card.color);
     }
     debug_log("damage pool", this.damagePool);
     return ext;
+  }
+
+  addDamagePool(v, c=null){
+    debug_log("Damage add: " + v);
+    this.damagePool += (v || 0);
+    if(c){this.damageTypes[c] = true;}
+    GameManager.onDamageChange();
+  }
+
+  resetDamagePool(){
+    debug_log("clear damage");
+    this.damagePool = 0;
+    for(let i in this.damageTypes){
+      this.damageTypes[i] = false;
+    }
+    GameManager.onDamageChange();
   }
 
   discard(cardIndex, ext=null) {
@@ -379,13 +396,7 @@ class PunoGame {
     if (matchedCardIndex === -1) {
       if (this.gameMode === Mode.BATTLE_PUNO ||
           this.gameMode === Mode.DEATH_MATCH) {
-        debug_log("RECIEVE DAMAGE");
-        debug_log("hp", this.currentPlayer().hp,
-                  "=>", this.currentPlayer().hp - this.damagePool);
-        this.currentPlayer().hp -= this.damagePool;
-        this.currentPlayer().knockOut = this.currentPlayer().hp <= 0;
-        this.damagePool = 0;
-        debug_log("reset damage pool");
+        this.processPlayerDamage(this.currentPlayerIndex);
       }
       const card = this.drawCard(1);
       if (card[0] === undefined) {
@@ -399,6 +410,19 @@ class PunoGame {
     } else {
       this.discard(matchedCardIndex);
     }
+  }
+
+  processPlayerDamage(player_id){
+    if(this.gameMode == Mode.TRADITIONAL){return ;}
+    debug_log("RECIEVE DAMAGE");
+    debug_log("hp", this.players[player_id].hp,
+              "=>", this.players[player_id].hp - this.damagePool);
+
+    this.players[player_id].hp -= this.damagePool;
+    this.players[player_id].knockOut = this.players[player_id].hp <= 0;
+    GameManager.onHPChange(this.player_id, this.damageTypes);
+    this.resetDamagePool();
+    debug_log("reset damage pool");
   }
 
   endTurn() {
