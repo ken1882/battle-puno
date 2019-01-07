@@ -1600,7 +1600,6 @@ class Sound{
   static playCursor(){this.playSE(this.Cursor);}
   static playCancel(){this.playSE(this.Cancel);}
   static playSaveLoad(){this.playSE(this.SaveLoad);}
-  static playShuffle(){this.playSE(this.Shuffle);}
   static playDeal(){this.playSE(this.Deal);}
   static get volumeData(){return [this._masterVolume, this._bgmVolume, this._seVolume];}
   static get isBGMEnabled(){return this.audioEnable[0];}
