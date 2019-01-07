@@ -1238,6 +1238,7 @@ class Scene_Game extends Scene_Base{
     debug_log("Round Ends")
     this.flagResulting = true;
     this.setCursor(-1);
+    this.updateHPBar();
   }
   /*-------------------------------------------------------------------------*/
   processRoundStart(){
