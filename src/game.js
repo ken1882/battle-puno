@@ -304,12 +304,12 @@ class PunoGame {
     if (card.value === Value.ZERO) {
       if (this.currentPlayer().ai) {
         if (this.damagePool < 30 || !!getRandom(0, 1)) {
-          ext = 1;
-        } else {
           ext = 0;
+        } else {
+          ext = 1;
         }
       }
-      if (ext === 0) {
+      if (ext === 1) {
         this.resetDamagePool();
       } else {
         debug_log("+10 damage");
