@@ -48,7 +48,7 @@ class Card {
   }
 
   isEqual(card) {
-    return this.color === card.color && this.value === card.value;
+    return this.numID === card.numID && this.color === card.color && this.value === card.value;
   }
 
   isMatched(color, value) {

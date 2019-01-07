@@ -1055,7 +1055,7 @@ class Scene_Game extends Scene_Base{
         sprite.texture = Graphics.loadTexture(this.getCardImage(card));
       }
       if(show){EventManager.setTimeout(this.sendCardToDeck.bind(this, pid, card), 150);}
-      else if(ar){EventManager.setTimeout(()=>{this.arrangeHandCards(pid)}, 20)}
+      else if(ar){EventManager.setTimeout(()=>{this.arrangeHandCards(pid)}, 30)}
     }.bind(this));
   }
   /*-------------------------------------------------------------------------*/
