@@ -231,7 +231,8 @@ class PunoGame {
       } else if (this.gameMode === Mode.BATTLE_PUNO ||
                  this.gameMode === Mode.DEATH_MATCH) {
         this.players[i].hp -= this.players[i].cardsPointSum();
-        this.players[i].score += Math.max(this.players[i].hp, 0);
+        this.players[i].hp = Math.max(0, this.players[i].hp);
+        this.players[i].score += this.players[i].hp;
       }
     }
   }

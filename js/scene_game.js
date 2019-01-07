@@ -470,7 +470,7 @@ class Scene_Game extends Scene_Base{
   }
   /*-------------------------------------------------------------------------*/
   onHPChange(pid, types = []){
-    
+    this.updateHPBar(pid);
   }
   /*-------------------------------------------------------------------------*/
   onDamageChange(){
@@ -603,6 +603,14 @@ class Scene_Game extends Scene_Base{
   updateDamagePool(){
     if(!this.discardPile.damageText){return ;}
     this.discardPile.damageText.text = String(this.game.damagePool);
+  }
+  /*-------------------------------------------------------------------------*/
+  updateHPBar(i = null){
+    if(i === null){
+      for(let i in this.hudCanvas){this.updateHPBar(parseInt(i))}
+      return ;
+    }
+    this.hudCanvas[i].hpBar.setProgress(this.players[i].hp);
   }
   /*-------------------------------------------------------------------------*/
   updatePenaltyInfo(current=false){
@@ -1023,12 +1031,16 @@ class Scene_Game extends Scene_Base{
   onDeckTrigger(){
     if(!this.playerPhase){return Sound.playBuzzer();}
     let numCards = GameManager.getCardDrawNumber();
+    if(!this.game.penaltyCard){
+      this.game.processPlayerDamage(0);
+    }
     this.game.penaltyCard = undefined;
     const cards = GameManager.game.deck.draw(numCards);
     this.players[0].deal(cards);
     GameManager.onCardDraw(0, cards);
     this.processUserTurnEnd();
   }
+  /*-------------------------------------------------------------------------*/
   /*-------------------------------------------------------------------------*/
   sendCardToDeck(pid, card){
     card.sprite.playerIndex = -2;
