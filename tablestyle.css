@@ -25,10 +25,15 @@ canvas{
   position: absolute;
 }
 
-#languageSelect{
+div{
   position: absolute;
   margin-left:auto;
   margin-right:auto;
   left: 0;
   right: 0;
+}
+
+a{
+  text-decoration: none;
+  color: dodgerblue;
 }

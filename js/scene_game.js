@@ -720,7 +720,7 @@ class Scene_Game extends Scene_Base{
   }
   /*-------------------------------------------------------------------------*/
   updateLastCardInfo(){
-    let txt = this.getLastCardInfo();
+    let txt = this.getLastCardInfo() + ' ';
     let tsp = this.infoSprite.textSprite;
     tsp.text = txt;
     let sx = Graphics.width - Graphics.spacing - tsp.width;
@@ -741,11 +741,16 @@ class Scene_Game extends Scene_Base{
   }
   /*-------------------------------------------------------------------------*/
   updateHPBar(i = null){
-    if(i === null){
-      for(let i in this.hudCanvas){this.updateHPBar(parseInt(i))}
-      return ;
+    if(!this.players){return ;}
+    if(i == null){
+      for(let i in this.hudCanvas){
+        this.updateHPBar(parseInt(i));
+        this.hudCanvas[i].hpBar.setProgress(this.players[i].hp);
+      }
     }
-    this.hudCanvas[i].hpBar.setProgress(this.players[i].hp);
+    else{
+      this.hudCanvas[i].hpBar.setProgress(this.players[i].hp);
+    }
   }
   /*-------------------------------------------------------------------------*/
   updatePenaltyInfo(current=false){
@@ -1055,7 +1060,7 @@ class Scene_Game extends Scene_Base{
   }
   /*-------------------------------------------------------------------------*/
   onCardTrigger(card){
-    debug_log("Trigger: " + card);
+    debug_log("Trigger: ", card);
     if(this.playerPhase && this.game.isCardPlayable(card)){
       this.hideCardInfo(card);
       if(this.game.isCardAbilitySelectionNeeded(card)){
@@ -1169,7 +1174,7 @@ class Scene_Game extends Scene_Base{
     this.deactivatePlayerCards();
     this.detachCardInfo(card);
     this.hideCardInfo(card);
-    this.game.discard(this.game.currentPlayer().findCard(card), ext);
+    this.game.discard(this.players[0].findCard(card), ext);
     this.processUserTurnEnd();
     this.animationCount += 1;
   }
@@ -1307,6 +1312,7 @@ class Scene_Game extends Scene_Base{
     debug_log("Round Start");
     this.flagResulting = false;
     this.clearTable();
+    this.updateHPBar();
   }
   /*-------------------------------------------------------------------------*/
   displayRoundResult(){

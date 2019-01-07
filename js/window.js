@@ -832,6 +832,7 @@ class Window_Option extends Window_Selectable{
     this.addMasterVolume();
     this.addBGMVolume();
     this.addSEVolume();
+    this.addAlwaysFocus();
   }
   /**------------------------------------------------------------------------
    * Draggable meter to adjust master volume
@@ -890,6 +891,50 @@ class Window_Option extends Window_Selectable{
       ts.text = parseInt(Sound._seVolume * 100);
     }
     this.SVBar.changeColor(Graphics.color.Orange)
+    this.addSelection(sp);
+  }
+  /**------------------------------------------------------------------------
+   * Whether enable extra cards(trade/wild chaos/discard all/wild hit),
+   * default is enabled
+   */
+  addAlwaysFocus(){
+    let pos = this.nextItemPOS;
+    let sp = new SpriteCanvas(0, 0, this.itemWidth, this.itemHeight);
+    sp.drawText(4, 0, Vocab["AlwaysFocus"]);
+    sp.setPOS(pos.x, pos.y);
+    let dx = (this.itemWidth - pos.x) / 5;
+    let font = clone(Graphics.DefaultFontSetting);
+    font.fill = Graphics.color.LightSkyBlue;
+    sp.okSprite = sp.drawText(dx * 2, 0, Vocab["Enable"], font);
+    font.fill = Graphics.color.Red;
+    sp.noSprite = sp.drawText(dx * 3, 0, Vocab["Disable"], font);
+    
+    let b = DataManager.focus;
+    if(b){
+      sp.okSprite.setOpacity(0xff);
+      sp.noSprite.setOpacity(sp.translucentAlpha);
+    }
+    else{
+      sp.okSprite.setOpacity(sp.translucentAlpha);
+      sp.noSprite.setOpacity(0xff);
+    }
+    let handler = function(){
+      let b = !!(DataManager.focus ^ true);
+      DataManager.changeSetting(DataManager.kFocus, b);
+      if(b){
+        sp.okSprite.setOpacity(0xff);
+        sp.noSprite.setOpacity(sp.translucentAlpha);
+        SceneManager.alwaysFocus();
+      }
+      else{
+        sp.okSprite.setOpacity(sp.translucentAlpha);
+        sp.noSprite.setOpacity(0xff);
+        SceneManager.autoFocus();
+      }
+    }
+    sp.on('click', handler);
+    sp.on('tap', handler);
+    
     this.addSelection(sp);
   }
   /*------------------------------------------------------------------------*/

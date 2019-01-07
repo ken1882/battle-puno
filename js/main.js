@@ -3,16 +3,20 @@
  *  Global constants
 **/
 
+
+// Initialize kernel module
+DataManager.initialize();
+
 /**
  * Debug mode flag, prints debug information and allow to use cheat function
  * if enabled.
  * @global
  * @type {boolean}
  */
-const DebugMode   = true;
+const DebugMode   = DataManager.debugMode;
 
 // Will go to Test Scene if set to true
-const TestMode    = true;
+const TestMode    = false;
 
 /**
  * Flag that determines whether skips the intro scene
@@ -50,8 +54,6 @@ function initializeApplication(){
   // DisablePageScroll();
   // Confirm leave before page unload
   RegisterLeaveEvent();
-  // Initialize kernel module
-  DataManager.initialize();
   Vocab.initialize();
   // call start
   setTimeout(start, 2000);

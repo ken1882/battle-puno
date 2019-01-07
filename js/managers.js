@@ -19,7 +19,7 @@ class SceneManager{
     this._previousClass     = null;
     this._backgroundSprite  = null;
     this._focused           = true;
-    if(DebugMode){this.alwaysFocus();}
+    if(DataManager.focus){this.alwaysFocus();}
     this.initModules();
   }
   /*-------------------------------------------------------------------------*/
@@ -272,7 +272,9 @@ class DataManager{
     this.kLanguage       = "language";
     this.kVolume         = "volume";
     this.kAudioEnable    = "audioEnable";
-    this.kDebug          = "debug"
+    this.kDebug          = "debug";
+    this.kDebugMode      = "debugMode";
+    this.kFocus          = "focus";
   }
   /*-------------------------------------------------------------------------*/
   static loadDatabase(){
@@ -319,6 +321,7 @@ class DataManager{
   /*-------------------------------------------------------------------------*/
   static loadDebugOption(){
     let dbg = this.debugOption;
+    let dbgm = this.debugMode;
     if(!dbg){
       dbg = {
         "log": true,
@@ -326,6 +329,7 @@ class DataManager{
       }
       this.changeSetting(this.kDebug, dbg);
     }
+    if(!dbgm){this.changeSetting(this.kDebugMode, false);}
   }
   /*-------------------------------------------------------------------------*/
   static changeSetting(key, value){
@@ -346,6 +350,11 @@ class DataManager{
     dbg[key] = value;
     this.changeSetting(this.kDebug, dbg);
   }
+  /*-------------------------------------------------------------------------*/
+  static toggleDebugMode(){
+    const stat = !!(this.debugMode ^ true);
+    this.changeSetting(this.kDebugMode, stat);
+  }
   /**-------------------------------------------------------------------------
    * > Getter functions
    */
@@ -353,6 +362,8 @@ class DataManager{
   static get volume(){return this.setting[this.kVolume];}
   static get audioEnable(){return this.setting[this.kAudioEnable];}
   static get debugOption(){return this.setting[this.kDebug];}
+  static get debugMode(){return this.setting[this.kDebugMode];}
+  static get focus(){return this.setting[this.kFocus];}
   /*-------------------------------------------------------------------------*/
 }
 /**---------------------------------------------------------------------------

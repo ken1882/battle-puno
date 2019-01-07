@@ -474,6 +474,7 @@ class Graphics{
     document.app = this.app;
     document.getElementById('GAME').replaceWith(this.app.view);
     $('#languageSelect').css('top', this.app.y + this.app.height + this.spacing + 'px');
+    $('#webinfo').css('top', this.app.y + this.app.height + this.padding + 'px');
   }
   /**-------------------------------------------------------------------------
    * > Initialize PIXI Loader

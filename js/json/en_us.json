@@ -60,7 +60,8 @@
   "HelpChaos": "Next color and number will randomly chosen",
   "HelpDiscardAll": "Discard all of cards with same color as last card.",
   "HelpArrange": "Arrange the cards",
-
+  "AlwaysFocus": "Always Focus",
+  
   "Red": "Red",
   "Blue": "Blue",
   "Yellow": "Yellow",

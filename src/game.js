@@ -156,6 +156,7 @@ class PunoGame {
 
   isGameOver() {
     if (this.gameMode === Mode.TRADITIONAL)  return true;
+    if (this.gameMode === Mode.DEATH_MATCH)  return true;
     return Math.max(...this.scoreBoard()) >= this.scoreGoal;
   }
 
