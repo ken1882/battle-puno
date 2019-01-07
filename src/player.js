@@ -49,9 +49,9 @@ class Player {
     return -1;
   }
 
-  findCard(card) {
+  findCard(card, compareId=false) {
     for (let i in this.hand) {
-      if (this.hand[i].isEqual(card), true) {
+      if (this.hand[i].isEqual(card, compareId)) {
         return i;
       }
     }
@@ -85,16 +85,13 @@ class Player {
 
   receivePenalty(penaltyCard, currentColor) {
     if (penaltyCard.value === Value.SKIP) {
-      return null;
+      return -1;
     }
-    let matchedCard = this.findCard(new Card(currentColor, Value.SKIP));
+    let matchedCard = this.findCard(new Card(currentColor, Value.SKIP), false);
     if (matchedCard === -1) {
-      matchedCard = this.findCard(new Card(currentColor, Value.REVERSE));
-      if (matchedCard === -1) {
-        return null;
-      }
+      return this.findCard(new Card(currentColor, Value.REVERSE), false);
     }
-    return this.hand.splice(matchedCard, 1)[0];
+    return matchedCard;
   }
 
   isGoingOut() {

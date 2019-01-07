@@ -371,9 +371,10 @@ class PunoGame {
       debug_log("SKIP");
       this.penaltyCard = undefined;
     } else {
-      const avoidCard = this.currentPlayer().receivePenalty(this.penaltyCard);
-      if (avoidCard != null) {
-        discard(avoidCard, 1);
+      const avoidCardIndex =
+          this.currentPlayer().receivePenalty(this.penaltyCard);
+      if (avoidCard != -1) {
+        this.discard(avoidCard, 1);
       } else {
         let cards = undefined;
         if (this.penaltyCard.value === Value.DRAW_TWO) {
@@ -432,7 +433,7 @@ class PunoGame {
 
   processPlayerDamage(player_id) {
     if (this.gameMode === Mode.TRADITIONAL)  return;
-    debug_log("RECIEVE DAMAGE");
+    debug_log("RECEIVE DAMAGE");
     debug_log("hp", this.players[player_id].hp,
               "=>", this.players[player_id].hp - this.damagePool);
     this.players[player_id].hp -= this.damagePool;

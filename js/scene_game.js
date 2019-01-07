@@ -1177,7 +1177,7 @@ class Scene_Game extends Scene_Base{
     this.deactivatePlayerCards();
     this.detachCardInfo(card);
     this.hideCardInfo(card);
-    let cardIndex = this.players[0].findCard(card);
+    let cardIndex = this.players[0].findCard(card, true);
     if(cardIndex >= 0){
       this.game.discard(cardIndex, ext);
       this.processUserTurnEnd();
