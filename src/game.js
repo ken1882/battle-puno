@@ -201,6 +201,11 @@ class PunoGame {
   }
 
   trade(player1, player2) {
+    if (this.players[player1].knockOut ||
+        this.players[player2].knockOut) {
+      debug_log("TRADE DENIED: someone knocked out");
+      return;
+    }
     debug_log("TRADE");
     debug_log("before trade");
     debug_log(player1, this.players[player1].hand.slice());
@@ -216,7 +221,7 @@ class PunoGame {
   wildHitAll(currentPlayerIndex) {
     debug_log("WILD HIT ALL");
     for (let i in this.players) {
-      if (i != currentPlayerIndex) {
+      if (i != currentPlayerIndex && !this.players[i].knockOut) {
         let cards = this.drawCard(2);
         this.players[i].deal(cards);
         GameManager.onCardDraw(i, cards);
@@ -299,19 +304,17 @@ class PunoGame {
     return ext;
   }
 
-  addDamagePool(v, c=null){
+  addDamagePool(v, c=null) {
     debug_log("Damage add: " + v);
     this.damagePool += (v || 0);
-    if(c){this.damageTypes[c] = true;}
+    if (c)  this.damageTypes[c] = true;
     GameManager.onDamageChange();
   }
 
-  resetDamagePool(){
+  resetDamagePool() {
     debug_log("clear damage");
     this.damagePool = 0;
-    for(let i in this.damageTypes){
-      this.damageTypes[i] = false;
-    }
+    this.damageTypes.fill(false);
     GameManager.onDamageChange();
   }
 
