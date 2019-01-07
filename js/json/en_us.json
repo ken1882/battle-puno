@@ -61,7 +61,10 @@
   "HelpDiscardAll": "Discard all of cards with same color as last card.",
   "HelpArrange": "Arrange the cards",
   "AlwaysFocus": "Always Focus",
-  
+
+  "NoCardPlays": "No cards played yet",
+  "CurrentColorValue": "Current Color/Value: ",
+
   "Red": "Red",
   "Blue": "Blue",
   "Yellow": "Yellow",

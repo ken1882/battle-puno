@@ -1385,19 +1385,19 @@ class Scene_Game extends Scene_Base{
   }
   /*-------------------------------------------------------------------------*/
   getLastCardInfo(){
-    if(!this.game || !this.game.currentColor){return 'No cards played yet';}
-    let re = 'Current Color/Value: ';
+    if(!this.game || !this.game.currentColor){return Vocab.NoCardPlays;}
+    let re = Vocab.CurrentColorValue;
     switch(this.game.currentColor){
       case Color.RED:
-        re += 'Red'; break;
+        re += Vocab.Red; break;
       case Color.BLUE:
-        re += 'Blue'; break;
+        re += Vocab.Blue; break;
       case Color.GREEN:
-        re += 'Green'; break;
+        re += Vocab.Green; break;
       case Color.YELLOW:
-        re += 'Yellow'; break;
+        re += Vocab.Yellow; break;
       default:
-        re += 'Any';
+        re += Vocab.Any;
     }
     re += " / ";
     if(this.game.currentValue !== 0 && !this.game.currentValue){
@@ -1407,11 +1407,25 @@ class Scene_Game extends Scene_Base{
       re += this.game.currentValue;
     }
     else{
-      for(let p in Value){
-        if(!Value.hasOwnProperty(p)){continue;}
-        if(Value[p] == this.game.currentValue){
-          re += capitalize(p);
-        }
+      switch(this.game.currentValue){
+        case Value.DRAW_TWO:
+          return re + Vocab.DRAW_TWO;
+        case Value.SKIP:
+          return re + Vocab.SKIP;
+        case Value.REVERSE:
+          return re + Vocab.REVERSE;
+        case Value.WILD:
+          return re + Vocab.WILD;
+        case Value.WILD_DRAW_FOUR:
+          return re + Vocab.WILD_DRAW_FOUR;
+        case Value.WILD_HIT_ALL:
+          return re + Vocab.WILD_HIT_ALL;
+        case Value.WILD_CHAOS:
+          return re + Vocab.WILD_CHAOS;
+        case Value.TRADE:
+          return re + Vocab.TRADE;
+        case Value.DISCARD_ALL:
+          return re + Vocab.DISCARD_ALL;
       }
     }
     return re;
