@@ -51,7 +51,7 @@ class Player {
 
   findCard(card) {
     for (let i in this.hand) {
-      if (this.hand[i].isEqual(card)) {
+      if (this.hand[i].isEqual(card), true) {
         return i;
       }
     }

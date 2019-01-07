@@ -47,8 +47,13 @@ class Card {
                       value === Value.WILD_DRAW_FOUR);
   }
 
-  isEqual(card) {
-    return this.numID === card.numID && this.color === card.color && this.value === card.value;
+  isEqual(card, compareId=false) {
+    if (compareId) {
+      return (this.numID === card.numID &&
+              this.color === card.color &&
+              this.value === card.value);
+    }
+    return this.color === card.color && this.value === card.value;
   }
 
   isMatched(color, value) {
