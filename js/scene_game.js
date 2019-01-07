@@ -1322,6 +1322,7 @@ class Scene_Game extends Scene_Base{
     debug_log("Round Start");
     this.flagResulting = false;
     this.clearTable();
+    this.updateDamagePool();
     this.updateHPBar();
   }
   /*-------------------------------------------------------------------------*/
