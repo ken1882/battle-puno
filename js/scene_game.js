@@ -493,7 +493,7 @@ class Scene_Game extends Scene_Base{
     EventManager.setTimeout(()=>{
       this.purifyHandCards(index)
       if(index == 0){this.activatePlayerCards()}
-    }, 5);
+    }, 20);
     this.animationCount += 1;
     hcs.sortChildren();
   }

@@ -1378,7 +1378,7 @@ class Window_CardSelection extends Window_Selectable{
     this.clearSelection();
     let txts = ["+10", Vocab.HelpReset];
     for(let i=0;i<txts.length;++i){
-      this.getItemBySymbol(i+1).text = txts[i];;
+      this.getItemBySymbol(i+1).text = txts[i];
     }
     debug_log("Ability setup: ", txts);
     this.sortSelections();
@@ -1431,7 +1431,7 @@ class Window_CardSelection extends Window_Selectable{
   }
   /*------------------------------------------------------------------------*/
   isItemEnabled(item){
-    return (item.text || '').length != 0
+    return (item.text || '').length > 1;
   }
   /*------------------------------------------------------------------------*/
   get isCurrentItemEnabled(){
