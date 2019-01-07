@@ -367,7 +367,7 @@ class Scene_Game extends Scene_Base{
       }
 
       let bar = new Sprite_ProgressBar(bx, by, bw, bh)
-      bar.changeColor(Graphics.color.ForestGreen);
+      bar.changeColor(Graphics.color.LightGreen);
       bar.setMaxProgress(GameManager.initHP);
       bar.setProgress(GameManager.initHP);
       bar.on('mouseover', ()=>{
