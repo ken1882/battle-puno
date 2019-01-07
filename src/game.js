@@ -374,7 +374,7 @@ class PunoGame {
       const avoidCardIndex =
           this.currentPlayer().receivePenalty(this.penaltyCard);
       if (avoidCardIndex != -1) {
-        this.discard(avoidCard, 1);
+        this.discard(avoidCardIndex, 1);
       } else {
         let cards = undefined;
         if (this.penaltyCard.value === Value.DRAW_TWO) {
