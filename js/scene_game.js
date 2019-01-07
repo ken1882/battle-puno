@@ -1174,9 +1174,15 @@ class Scene_Game extends Scene_Base{
     this.deactivatePlayerCards();
     this.detachCardInfo(card);
     this.hideCardInfo(card);
-    this.game.discard(this.players[0].findCard(card), ext);
-    this.processUserTurnEnd();
-    this.animationCount += 1;
+    let cardIndex = this.players[0].findCard(card);
+    if(cardIndex >= 0){
+      this.game.discard(cardIndex, ext);
+      this.processUserTurnEnd();
+      this.animationCount += 1;
+    }
+    else{
+      this.arrangeHandCards(0);
+    }
   }
   /*-------------------------------------------------------------------------*/
   onUserAbilityCancel(){

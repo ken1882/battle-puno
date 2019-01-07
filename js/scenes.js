@@ -900,6 +900,7 @@ class Scene_GameOver extends Scene_Base{
   }
   /*-------------------------------------------------------------------------*/
   onActionBack(){
+    Sound.playOK();
     SceneManager.goto(Scene_Title);
   }
   /*-------------------------------------------------------------------------*/

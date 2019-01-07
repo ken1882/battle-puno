@@ -581,12 +581,10 @@ class Window_Selectable extends Window_Base{
   }
   /*------------------------------------------------------------------------*/
   swapSelectionAt(a, b){
-    [this._selections[a]._index, this._selections[b]._index] = [
-      this._selections[b]._index, this._selections[a]._index
-    ]
-    [this._selections[a], this._selections[b]] = [
-      this._selections[b], this._selections[a]
-    ]
+    let ia = this._selections[a];
+    let ib = this._selections[b];
+    [ia._index, ib._index] = [ib._index, ia._index];
+    [this._selections[a], this._selections[b]] = [this._selections[b], this._selections[a]];
   }
   /*------------------------------------------------------------------------*/
   select(idx, se = true){
@@ -1424,9 +1422,11 @@ class Window_CardSelection extends Window_Selectable{
   sortSelections(){
     let cnt = 0, pos = {};
     for(let i in this._selections){
+      i = parseInt(i);
       let sel = this._selections[i];
       if(sel == this.cancelSelection){continue;}
       if(this.isItemEnabled(sel)){
+        sel._index = cnt;
         pos = this.getIndexItemPOS(cnt++);
         let px = (pos.x + this.itemWidth - sel.width) / 2 + this.spacing;
         sel.setPOS(px, pos.y).activate();
@@ -1436,9 +1436,7 @@ class Window_CardSelection extends Window_Selectable{
       }
     }
     pos = this.getIndexItemPOS(cnt);
-    let cindex = this.cancelSelection._index;
-    let nindex = this._selections[cnt]._index;
-    this.swapSelectionAt(cindex, nindex);
+    this.cancelSelection._index = cnt;
     this.cancelSelection.setPOS(null, pos.y);
   }
   /*------------------------------------------------------------------------*/
