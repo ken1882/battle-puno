@@ -424,7 +424,7 @@ class PunoGame {
 
     this.players[player_id].hp -= this.damagePool;
     this.players[player_id].knockOut = this.players[player_id].hp <= 0;
-    GameManager.onHPChange(this.player_id, this.damageTypes);
+    GameManager.onHPChange(player_id, this.damageTypes);
     this.resetDamagePool();
     debug_log("reset damage pool");
   }

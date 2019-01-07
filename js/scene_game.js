@@ -466,8 +466,8 @@ class Scene_Game extends Scene_Base{
   }
   /*-------------------------------------------------------------------------*/
   getPlayerPosition(pid){
-    return {x: (this.handCanvas[pid].x + this.handCanvas[pid].width) / 2,
-            y: (this.handCanvas[pid].y + this.handCanvas[pid].height) / 2};
+    return {x: this.handCanvas[pid].x + this.handCanvas[pid].width / 2,
+            y: this.handCanvas[pid].y + this.handCanvas[pid].height / 2};
   }
   /*-------------------------------------------------------------------------*/
   playColorEffect(cid){
@@ -482,12 +482,16 @@ class Scene_Game extends Scene_Base{
       switch(parseInt(i)){
         case Color.RED:
           this.playFireDanage(pid);
-        case Color.YELLO:
+          break;
+        case Color.YELLOW:
           this.playThunderDamage(pid);
+          break;
         case Color.GREEN:
           this.playWindDamage(pid);
+          break;
         case Color.BLUE:
           this.playIceDamage(pid);
+          break;
       }
     }
   }
@@ -516,7 +520,7 @@ class Scene_Game extends Scene_Base{
   playThunderDamage(pid){
     this.shake(2);
     let pos = this.getPlayerPosition(pid);
-    Sound.playSE(Sound.ThunerHit);
+    Sound.playSE(Sound.ThunderHit);
     Graphics.playAnimation(pos.x, pos.y, Graphics.ThunderHit, 2);
   }
   /*-------------------------------------------------------------------------*/
