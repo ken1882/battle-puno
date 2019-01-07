@@ -1181,6 +1181,7 @@ class Scene_Game extends Scene_Base{
       this.animationCount += 1;
     }
     else{
+      console.error("Selected card not in hand: ", card);
       this.arrangeHandCards(0);
     }
   }
