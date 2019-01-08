@@ -164,6 +164,7 @@ class Scene_Base extends Stage{
       Graphics.renderSprite(sp);
       if(sp.defaultActiveState){sp.activate(); sp.show();}
     });
+    this.optionSprite = Graphics.optionSprite;
   }
   /*-------------------------------------------------------------------------*/
   renderGlobalWindows(){
@@ -171,6 +172,7 @@ class Scene_Base extends Stage{
       Graphics.renderWindow(win);
       if(win.defaultActiveState){win.activate(); win.show();}
     });
+    this.optionWindow = Graphics.optionWindow;
   }
   /*-------------------------------------------------------------------------*/
   startFadeIn(duration = this.fadeDuration){
@@ -283,6 +285,10 @@ class Scene_Base extends Stage{
   /*-------------------------------------------------------------------------*/
   raiseOverlay(ovs, fallback=null){
     if(!ovs){return ;}
+    if(ovs !== this.optionWindow){
+      this.optionSprite.deactivate();
+      this.optionSprite.Xmark.show();
+    }
     debug_log("Raise overlay: " + getClassName(ovs));
     this.overlay = ovs;
     this.overlay.oriZ = ovs.z;
@@ -302,6 +308,9 @@ class Scene_Base extends Stage{
   closeOverlay(){
     if(!this.overlay){return ;}
     debug_log("Close overlay");
+    this.optionSprite.activate();
+    this.optionSprite.Xmark.hide();
+
     this.overlay.hide(); this.overlay.deactivate();
     this.children.forEach(function(sp){
       if(sp !== this.overlay && sp.lastActiveState){

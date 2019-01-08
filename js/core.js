@@ -371,6 +371,7 @@ class Graphics{
     let dy = this.height - this.IconRect.height - this.spacing;
     let dx = this.spacing
     this.optionSprite.drawIcon(this.IconID.Option,0,0);
+    this.optionSprite.Xmark = this.optionSprite.drawIcon(this.IconID.Xmark,0,0).setZ(2).hide();
     
     let handler = function(){
       Sound.playSE(Sound.IconOK);
