@@ -851,8 +851,7 @@ class Window_Option extends Window_Selectable{
     sp.setPOS(pos.x, pos.y);
 
     let offset = this.spacing / 2;
-    let ts  = this.drawText(410, 0, parseInt(Sound._masterVolume * 100));
-    ts.y = offset;
+    let ts  = this.drawText(396, -offset*4, parseInt(Sound._masterVolume * 100));
     sp.addChild(ts);
     this.MVBar = new Sprite_DragBar(150, -offset, 250, null, null, null, parseInt(Sound._masterVolume * 100));
     sp.addChild(this.MVBar);
@@ -869,8 +868,7 @@ class Window_Option extends Window_Selectable{
     sp.drawText(4, 0, Vocab["BGMVolume"]);
     sp.setPOS(pos.x, pos.y);
     let offset = this.spacing / 2;
-    let ts  = this.drawText(410, 0, parseInt(Sound._bgmVolume * 100));
-    ts.y = offset;
+    let ts  = this.drawText(396, -offset*4, parseInt(Sound._bgmVolume * 100));
     sp.addChild(ts);
     this.BVBar = new Sprite_DragBar(150, -offset, 250, null, null, null, parseInt(Sound._bgmVolume * 100));
     sp.addChild(this.BVBar);
@@ -888,8 +886,7 @@ class Window_Option extends Window_Selectable{
     sp.drawText(4, 0, Vocab["SEVolume"]);
     sp.setPOS(pos.x, pos.y);
     let offset = this.spacing / 2;
-    let ts  = this.drawText(410, 0, parseInt(Sound._seVolume * 100));
-    ts.y = offset;
+    let ts  = this.drawText(396, -offset*4, parseInt(Sound._seVolume * 100));
     sp.addChild(ts);
     this.SVBar = new Sprite_DragBar(150, -offset, 250, null, null, null, parseInt(Sound._seVolume * 100));
     sp.addChild(this.SVBar);
