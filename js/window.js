@@ -1438,7 +1438,9 @@ class Window_CardSelection extends Window_Selectable{
   }
   /*------------------------------------------------------------------------*/
   isItemEnabled(item){
-    return (item.text || '').length > 1;
+    let txt = (item.text || '');
+    if((txt.replace(/\s+/g, '')).length == 0){return false;}
+    return true;
   }
   /*------------------------------------------------------------------------*/
   get isCurrentItemEnabled(){
