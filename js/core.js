@@ -1807,56 +1807,77 @@ class Sprite extends PIXI.Sprite{
     let spaceW = this.getStringWidth(' ', font);
     let endl = false;   // End Of Line Flag
     let strW = 0;       // Current processing string width
-
+    let flag_simple = (DataManager.language.indexOf("zh") != -1);
     let str = null; // Current processing string
-    while(str = strings[0]){
-      if((str || '').length == 0){continue;}
-      strW = this.getStringWidth(str, font);
-      endl = false; 
-      // String excessed line limit
-      if(strW + paddingW > lineWidth){
-        line = "";
-        let curW = minusW, last_i = 0;
-        let processed = false;
-        // Process each character in current string
-        for(let i=0;i<str.length;++i){
-          strW = this.getStringWidth(str[i], font);
-          last_i = i;
-          // Display not possible
-          if(!processed && curW + strW >= lineWidth){
-            return text;
-          } // Current character acceptable
-          else if(curW + strW < lineWidth){
-            curW += strW;
-            line += str[i];
-            processed = true;
-          } // Unable to add more
-          else{
-            break;
+    debug_log("-----Text Wrap-----");
+    debug_log("Original: " + text);
+    if(!flag_simple){
+      while(str = strings[0]){
+        if((str || '').length == 0){continue;}
+        strW = this.getStringWidth(str, font);
+        endl = false; 
+        // String excessed line limit
+        if(strW + paddingW > lineWidth){
+          line = "";
+          let curW = minusW, last_i = 0;
+          let processed = false;
+          // Process each character in current string
+          for(let i=0;i<str.length;++i){
+            strW = this.getStringWidth(str[i], font);
+            last_i = i;
+            // Display not possible
+            if(!processed && curW + strW >= lineWidth){
+              return text;
+            } // Current character acceptable
+            else if(curW + strW < lineWidth){
+              curW += strW;
+              line += str[i];
+              processed = true;
+            } // Unable to add more
+            else{
+              break;
+            }
           }
+  
+          line += '-'
+          strings[0] = str.substr(last_i, str.length);
+          endl = true;
+        } // current string can fully add to line
+        else if(curW + strW < lineWidth){
+          curW += strW + spaceW;
+          line += strings.shift() + ' ';
+          if(strings.length == 0){endl = true;}
         }
-
-        line += '-'
-        strings[0] = str.substr(last_i, str.length);
-        endl = true;
-      } // current string can fully add to line
-      else if(curW + strW < lineWidth){
-        curW += strW + spaceW;
-        line += strings.shift() + ' ';
-        if(strings.length == 0){endl = true;}
+        else{
+          endl = true;
+        }
+        debug_log("Current: " + line);
+        if(endl){
+          formated += line;
+          if(strings.length > 0){formated += '\n';}
+          line = "";
+          curW = paddingW;
+          debug_log("Endl merged: " + formated);
+        }
       }
-      else{
-        endl = true;
-      }
-      
-      if(endl){
-        formated += line;
-        if(strings.length > 0){formated += '\n';}
-        line = "";
-        curW = paddingW;
+    } // else: just process one by one
+    else{
+      for(let i=0;i<text.length;++i){
+        strW = this.getStringWidth(text[i], font);
+        if(curW + strW >= lineWidth){
+          formated += line + '\n';
+          curW = strW;
+          line = text[i];
+        }
+        else{
+          line += text[i];
+          curW += strW;
+        }
       }
     }
     if(line.length > 0){formated += line;}
+    debug_log("Final: " + formated);
+    debug_log("-------------------")
     return formated;
   }
   /*-------------------------------------------------------------------------*/

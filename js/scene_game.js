@@ -895,7 +895,7 @@ class Scene_Game extends Scene_Base{
       default:
         re += "???";
     }
-    re += 'Effects: \n';
+    re += Vocab.Effect + ': ';
     switch(card.value){
       case Value.ZERO:
         re += Vocab.HelpZero + '; '; break;
