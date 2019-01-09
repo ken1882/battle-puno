@@ -1264,12 +1264,15 @@ class Window_GameOption extends Window_Selectable{
 
     ts.interactive = true;
     let handler = function(){
+      let ori = SceneManager._alwaysFocus;
       SceneManager.alwaysFocus();
       let msg = `${Vocab["HPInput"]} (${GameManager.initHPPeak[0]} ~ ${GameManager.initHPPeak[1]})`
       let v = window.prompt(msg);
       GameManager.changeGameSetting(GameManager.kInitHP, parseInt(v));
       this.HPBar.setValue(GameManager.initHP);
-      setTimeout(function(){SceneManager.autoFocus();}, 1000);
+      if(!ori){
+        setTimeout(function(){SceneManager.autoFocus();}, 1000);
+      }
     }.bind(this);
     ts.on('click', handler);
     ts.on('tap', handler);
@@ -1300,12 +1303,15 @@ class Window_GameOption extends Window_Selectable{
 
     ts.interactive = true;
     let handler = function(){
+      let ori = SceneManager._alwaysFocus;
       SceneManager.alwaysFocus();
       let msg = `${Vocab["ScoreInput"]} (${GameManager.scoreGoalPeak[0]} ~ ${GameManager.scoreGoalPeak[1]})`
       let v = window.prompt(msg);
       GameManager.changeGameSetting(GameManager.kScoreGoal, parseInt(v));
       this.SGBar.setValue(GameManager.scoreGoal);
-      setTimeout(function(){SceneManager.autoFocus();}, 1000);
+      if(!ori){
+        setTimeout(function(){SceneManager.autoFocus();}, 1000);
+      }
     }.bind(this);
     ts.on('click', handler);
     ts.on('tap', handler);

@@ -19,7 +19,10 @@ class SceneManager{
     this._previousClass     = null;
     this._backgroundSprite  = null;
     this._focused           = true;
-    if(DataManager.focus){this.alwaysFocus();}
+    if(DataManager.focus){
+      this.alwaysFocus();
+      debug_log("Game always focus")
+    }
     this.initModules();
   }
   /*-------------------------------------------------------------------------*/

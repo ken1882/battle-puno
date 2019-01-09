@@ -314,6 +314,7 @@ class Graphics{
 
     this.createApp();
     this.initRenderer();
+    this.relocatPageElement();
     this.initLoader();
     this.aliasFunctions();
     this.createBasicSprites();
@@ -481,8 +482,15 @@ class Graphics{
     this.renderer.plugins.interaction.interactionFrequency = 100
     document.app = this.app;
     document.getElementById('GAME').replaceWith(this.app.view);
-    $('#languageSelect').css('top', this.app.y + this.app.height + this.spacing + 'px');
-    $('#webinfo').css('top', this.app.y + this.app.height + this.padding + 'px');
+  }
+  /**-------------------------------------------------------------------------
+   * Re-locate page elements under the app
+   */
+  static relocatPageElement(){
+    let base = this.app.y + this.app.height + this.spacing;
+    let dy = (this.spacing + this.padding)
+    $('#languageSelect').css('top', base + 'px');
+    $('#webinfo').css('top', base + dy + 'px');
   }
   /**-------------------------------------------------------------------------
    * > Initialize PIXI Loader
@@ -605,7 +613,7 @@ class Graphics{
    * @returns {number} - the x-pos after centered
    */  
   static screenCenterWidth(x = this._width){
-    return (screen.width - x) / 2;
+    return Math.max((screen.width - x) / 2, 0);
   }
   /**-------------------------------------------------------------------------
    * > Get center y-pos of object in screen

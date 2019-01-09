@@ -430,8 +430,9 @@ class Scene_Game extends Scene_Base{
   }
   /*-------------------------------------------------------------------------*/
   getPlayerHPText(i){
+    if(!this.players){return '';}
     let v = 0;
-    if(this.players){v = String(this.players[i].hp)}
+    v = String(this.players[i].hp);
     return v + ' / ' + GameManager.initHP + '; ' + Vocab.Score + ': ' + this.players[i].score;
   }
   /*-------------------------------------------------------------------------*/
@@ -486,12 +487,11 @@ class Scene_Game extends Scene_Base{
       }
       card.sprite.setZ(0x11 + parseInt(i));
       card.sprite.rotateDegree(deg);
-      card.sprite.moveto(dx, dy);
+      this.detachCardInfo(card);
+      card.sprite.moveto(dx, dy, function(){
+        if(index == 0){this.attachCardInfo(card);}
+      }.bind(this));
       card.lastZ = card.sprite.z; card.lastY = dy;
-      if(index == 0){
-        this.detachCardInfo(card);
-        this.attachCardInfo(card);
-      }
     }
     EventManager.setTimeout(()=>{
       this.purifyHandCards(index)
@@ -677,7 +677,9 @@ class Scene_Game extends Scene_Base{
   }
   /*-------------------------------------------------------------------------*/
   updateDeckInfo(){
-    this.updateHintWindow(Vocab["HelpDeck"] + this.getDeckLeftNumber);
+    if(Input.isMouseInArea(this.deckSprite.hitArea)){
+      this.updateHintWindow(Vocab["HelpDeck"] + this.getDeckLeftNumber);
+    }
     if(this.game.deck.length == 0){
       this.deckSprite.top.hide();
       this.deckSprite.bot.show();
@@ -1044,11 +1046,12 @@ class Scene_Game extends Scene_Base{
       sprite.setPOS(sx, sy).rotateDegree(deg);
     }
     Sound.playCardDraw();
+    sprite.setZ(0x30 + ord);
     sprite.instance = card;
     if(show){
       sprite.texture = Graphics.loadTexture(this.getCardImage(card));
-      sprite.setZ(0x40 + ord);
-    }else{sprite.setZ(0x20 + ord);}
+      sprite.setZ(0x50 + ord);
+    }
 
     debug_log(`${pid} Draw`);
     this.animationCount += 1;
@@ -1324,6 +1327,7 @@ class Scene_Game extends Scene_Base{
     this.clearTable();
     this.updateDamagePool();
     this.updateHPBar();
+    this.updateDeckInfo();
   }
   /*-------------------------------------------------------------------------*/
   displayRoundResult(){
