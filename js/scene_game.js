@@ -184,7 +184,7 @@ class Scene_Game extends Scene_Base{
 
     for(let i=0;i<GameManager.playerNumber;++i){
       counter[i % 4] += 1;
-      let ssw = (i == 0) ? 500 : sw;
+      let ssw = (i == 0) ? parseInt(Graphics.width * 0.6) : sw;
       this.handCanvas.push(new SpriteCanvas(0, 0, ssw, sh));
       this.handCanvas[i].playerIndex = i;
       this.handCanvas[i].activate().render();
@@ -454,6 +454,8 @@ class Scene_Game extends Scene_Base{
       let dx = 0, dy = 0;
       let card = cur_player.hand[i];
       let next_index = (side <= 1) ? i : cardSize - i - 1;
+      this.detachCardInfo(card);
+      
       if(!(side&1)){
         dx = base_pos + cardWidth * stackPortion * next_index + cardWidth / 2;
         dy = (side == 0) ? canvasHeight - cardHeight + cardHeight / 2 : cardHeight / 2;
@@ -470,6 +472,7 @@ class Scene_Game extends Scene_Base{
           else{dx -= 30;}
         }
       }
+      
       if(!card.sprite){
         this.assignCardSprite(card, 0, 0, true);
       }
@@ -487,7 +490,7 @@ class Scene_Game extends Scene_Base{
       }
       card.sprite.setZ(0x11 + parseInt(i));
       card.sprite.rotateDegree(deg);
-      this.detachCardInfo(card);
+      
       card.sprite.moveto(dx, dy, function(){
         if(index == 0){this.attachCardInfo(card);}
       }.bind(this));
@@ -862,6 +865,9 @@ class Scene_Game extends Scene_Base{
   detachCardInfo(card){
     card.attached = false;
     if(!card.sprite){return ;}
+    if(this.hintWindow.subject == card){
+      this.hideCardInfo(card);
+    }
     card.sprite.deactivate();
     card.sprite.removeAllListeners();
   }
@@ -872,6 +878,7 @@ class Scene_Game extends Scene_Base{
     card.sprite.setPOS(null, card.lastY - 32);
     this.handCanvas[0].sortChildren();
     this.showHintWindow(null, null, info);
+    this.hintWindow.subject = card;
   }
   /*-------------------------------------------------------------------------*/
   hideCardInfo(card){
@@ -879,6 +886,7 @@ class Scene_Game extends Scene_Base{
     card.sprite.setPOS(null, card.lastY);
     this.handCanvas[0].sortChildren();
     this.hideHintWindow(true);
+    this.hintWindow.subject = null;
   }
   /*-------------------------------------------------------------------------*/
   getCardHelp(card){
@@ -1063,6 +1071,8 @@ class Scene_Game extends Scene_Base{
       if(show){EventManager.setTimeout(this.sendCardToDeck.bind(this, pid, card), 150);}
       else if(ar){EventManager.setTimeout(()=>{this.arrangeHandCards(pid)}, 30)}
     }.bind(this));
+
+    this.sortChildren();
   }
   /*-------------------------------------------------------------------------*/
   onCardTrigger(card){
