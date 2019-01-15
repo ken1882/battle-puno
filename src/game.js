@@ -14,9 +14,11 @@ class PunoGame {
     this.deck = null;
     this.discardPile = [];
     this.penaltyCard = undefined;
+    this.penaltyPool = 0;
     this.gameMode = gameMode;
     this.damagePool = 0;
     this.damageTypes = [false, false, false, false, false];
+    this.maxHandThreshold = this.initCardNumber + 1;
   }
 
   numAlivePlayers() {
@@ -43,7 +45,7 @@ class PunoGame {
     let highest = 0;
     let deadlock = true;
     let firstDraw = undefined;
-    while (deadlock) {
+    while(deadlock){
       firstDraw = this.deck.drawNumbered(4);
       deadlock = false;
       for (let i = 1; i < 4; ++i) {
@@ -104,8 +106,13 @@ class PunoGame {
   isCardPlayable(card) {
     if (this.penaltyCard != undefined) {
       if (this.penaltyCard.value === Value.SKIP)  return false;
-      return (card.isEqual(new Card(this.currentColor, Value.SKIP)) ||
-              card.isEqual(new Card(this.currentColor, Value.REVERSE)));
+      let base = (card.isEqual(new Card(this.currentColor, Value.SKIP)) ||
+                  card.isEqual(new Card(this.currentColor, Value.REVERSE)));
+      if(this.gameMode === Mode.DEATH_MATCH){
+        base |= (card.value === Value.DRAW_TWO);
+        base |= (card.value === Value.WILD_DRAW_FOUR);
+      }
+      return !!base;
     }
     return card.isMatched(this.currentColor, this.currentValue);
   }
@@ -121,6 +128,7 @@ class PunoGame {
   initDeck() {
     this.deck = new Deck(this.extraCardDisabled);
     this.penaltyCard = undefined;
+    this.penaltyPool = 0;
     this.discardPile.length = 0;
     this.damagePool = 0;
   }
@@ -303,7 +311,7 @@ class PunoGame {
     this.damageTypes[card.color] = true;
     if (card.value === Value.ZERO) {
       if (this.currentPlayer().ai) {
-        if (this.damagePool < 30 || !!getRandom(0, 1)) {
+        if (this.gameMode === Mode.DEATH_MATCH || this.damagePool < 30 || !!getRandom(0, 1)) {
           ext = 0;
         } else {
           ext = 1;
@@ -347,6 +355,12 @@ class PunoGame {
         ext = this.takeCardAction(card, ext);
       }
       ext = this.setNextColorAndValue(card, ext);
+
+      if(this.gameMode === Mode.DEATH_MATCH){
+        if(card.value === Value.DRAW_TWO){this.penaltyPool += 2;}
+        if(card.value === Value.WILD_DRAW_FOUR){this.penaltyPool += 4;}
+      }
+
       if (this.penaltyCard === undefined) {
         if (card.penalty) {
           this.penaltyCard = card;
@@ -377,16 +391,14 @@ class PunoGame {
         this.discard(avoidCardIndex, 1);
       } else {
         let cards = undefined;
-        if (this.penaltyCard.value === Value.DRAW_TWO) {
-          debug_log("DRAW TWO");
-          cards = this.drawCard(2);
-        } else if (this.penaltyCard.value === Value.WILD_DRAW_FOUR) {
-          debug_log("DRAW FOUR");
-          cards = this.drawCard(4);
+        if (this.penaltyPool > 0) {
+          debug_log("DRAW " + this.penaltyPool);
+          cards = this.drawCard(this.penaltyPool);
         }
         this.currentPlayer().deal(cards);
         GameManager.onCardDraw(this.currentPlayerIndex, cards);
         this.penaltyCard = undefined;
+        this.penaltyPool = 0;
       }
     }
   }
@@ -415,7 +427,7 @@ class PunoGame {
     if (matchedCardIndex === -1) {
       if (this.gameMode === Mode.BATTLE_PUNO ||
           this.gameMode === Mode.DEATH_MATCH) {
-        this.processPlayerDamage(this.currentPlayerIndex);
+        this.processDeckDamage(this.currentPlayerIndex);
       }
       const card = this.drawCard(1);
       if (card[0] === undefined) {
@@ -431,22 +443,40 @@ class PunoGame {
     }
   }
 
-  processPlayerDamage(player_id) {
+  processDeckDamage(player_id){
     if (this.gameMode === Mode.TRADITIONAL)  return;
-    debug_log("RECEIVE DAMAGE");
-    debug_log("hp", this.players[player_id].hp,
-              "=>", this.players[player_id].hp - this.damagePool);
-    this.players[player_id].hp -= this.damagePool;
-    this.players[player_id].knockOut = this.players[player_id].hp <= 0;
-    GameManager.onHPChange(player_id, this.damageTypes);
-    if(this.gameMode === Mode.DEATH_MATCH){
-      for(let i in this.players){
-        if(i == player_id){continue;}
-        this.players[i].score += this.damagePool;
-      }
-    }
+    this.processPlayerDamage(player_id, this.damagePool, this.damageTypes)
     this.resetDamagePool();
     debug_log("reset damage pool");
+  }
+
+  processPlayerDamage(player_id, value, dmg_types) {
+    value = (value || 0);
+    debug_log("RECEIVE DAMAGE");
+    debug_log("hp", this.players[player_id].hp,
+              "=>", this.players[player_id].hp - value);
+    this.players[player_id].hp = Math.max(this.players[player_id].hp - value, 0);
+    this.players[player_id].knockOut = this.players[player_id].hp <= 0;
+    if(this.players[player_id].knockOut){this.players[player_id].damageStack = 0;}
+    GameManager.onHPChange(player_id, dmg_types);
+    if(this.gameMode === Mode.DEATH_MATCH){
+      for(let i in this.players){
+        if(i == player_id || this.players[i].knockOut){continue;}
+        this.players[i].score += value;
+      }
+    }
+  }
+
+  processPlayerExtraDamage(player_id){
+    let pl = this.players[player_id];
+    let ar = [];
+    let types = [false, false, false, false, false];
+    for(let i in pl.hand){ar.push(parseInt(pl.hand[i].color));}
+    ar = shuffleArray(ar);
+    types[ar[0]] = true;
+    let value = Math.max(1, parseInt(GameManager.initHP * pl.damageStack / 100.0))
+    if(pl.damageStack > 0){this.processPlayerDamage(player_id, value, types);}
+    pl.damageStack += 1;
   }
 
   endTurn() {
@@ -505,6 +535,13 @@ class PunoGame {
   }
 
   processTurnAction() {
+    if(this.gameMode === Mode.DEATH_MATCH){
+      if(this.currentPlayer().hand.length > this.maxHandThreshold){
+        this.processPlayerExtraDamage(this.currentPlayerIndex);
+      }
+      else{this.currentPlayer().damageStack = 0;}
+    }
+
     if (this.currentPlayer().ai) {
       GameManager.onNPCTurnBegin(this.currentPlayerIndex);
     } else {

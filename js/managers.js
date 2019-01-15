@@ -402,6 +402,7 @@ class GameManager{
     this.extraCardDisabled = false;
     this.playerNumber   = 4;
     this.gameMode       = 0;
+    this.maxHandNumber  = 15;
     this.importModules();
     this.initGameKeys();
     this.loadGameSettings();
@@ -636,16 +637,9 @@ class GameManager{
   }
   /*-------------------------------------------------------------------------*/
   static getCardDrawNumber(){
-    let pcard = this.game.penaltyCard;
-    if(!pcard){return 1;}
-    switch(pcard.value){
-      case Value.DRAW_TWO:
-        return 2;
-      case Value.WILD_DRAW_FOUR:
-        return 4;
-      default:
-        throw new Error("Unknown penalty card: " + pcard);
-    }
+    let pnum = this.game.penaltyPool;
+    if(pnum < 1){return 1;}
+    return pnum;
   }
   /*-------------------------------------------------------------------------*/
   static quickWin(pid){

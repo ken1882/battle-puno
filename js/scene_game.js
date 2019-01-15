@@ -767,22 +767,25 @@ class Scene_Game extends Scene_Base{
     let pcard = this.game.penaltyCard;
     for(let i in this.penaltyCanvas){
       i = parseInt(i);
+      let status = Vocab.Normal;
       if(!pcard || i != idx){
-        let status = this.game.players[i].knockOut ? Vocab.KnockOut
-                                                   : Vocab.Normal;
+        if(this.game.players[i].knockOut){
+          status = Vocab.KnockOut
+        }
+        else if(this.players[i].damageStack > 0){
+          status = "*" + this.players[i].damageStack;
+        }
         this.setPenaltyInfo(i, status);
         continue;
       }
-      switch(pcard.value){
-        case Value.SKIP:
-          return this.setPenaltyInfo(i, Vocab.SKIP);
-        case Value.DRAW_TWO:
-          return this.setPenaltyInfo(i, "+2");
-        case Value.WILD_DRAW_FOUR:
-          return this.setPenaltyInfo(i, "+4");
-        default:
-          return this.setPenaltyInfo(i, Vocab.Normal);
+      if(pcard.Value == Value.SKIP){
+        return this.setPenaltyInfo(i, Vocab.SKIP);
       }
+      else if(this.game.penaltyPool > 0){
+        return this.setPenaltyInfo(i, "+" + this.game.penaltyPool);
+      }
+
+      return this.setPenaltyInfo(i, Vocab.Normal);
     }
   }
   /*-------------------------------------------------------------------------*/
@@ -1217,9 +1220,10 @@ class Scene_Game extends Scene_Base{
     if(!this.playerPhase){return Sound.playBuzzer();}
     let numCards = GameManager.getCardDrawNumber();
     if(!this.game.penaltyCard){
-      this.game.processPlayerDamage(0);
+      this.game.processDeckDamage(0);
     }
     this.game.penaltyCard = undefined;
+    this.game.penaltyPool = 0;
     const cards = GameManager.game.deck.draw(numCards);
     this.players[0].deal(cards);
     GameManager.onCardDraw(0, cards);

@@ -7,12 +7,14 @@ class Player {
     this.ai = AI;
     this.knockOut = false;
     this.hand = [];
+    this.damageStack = 0;
   }
 
   reset() {
     this.hp = this.initHP;
     this.hand.length = 0;
     this.knockOut = false;
+    this.damageStack = 0;
   }
 
   deal(cards) {
@@ -89,7 +91,13 @@ class Player {
     }
     let matchedCard = this.findCard(new Card(currentColor, Value.SKIP), false);
     if (matchedCard === -1) {
-      return this.findCard(new Card(currentColor, Value.REVERSE), false);
+      matchedCard = this.findCard(new Card(currentColor, Value.REVERSE), false);
+    }
+    if(matchedCard === -1 && GameManager.game.gameMode === Mode.DEATH_MATCH){
+      matchedCard = this.findCard(new Card(-1, Value.DRAW_TWO), false);
+    }
+    if(matchedCard === -1 && GameManager.game.gameMode === Mode.DEATH_MATCH){
+      matchedCard = this.findCard(new Card(-1, Value.WILD_DRAW_FOUR), false);
     }
     return matchedCard;
   }

@@ -49,8 +49,9 @@ class Scene_Base extends Stage{
   updateShake(){
     if(!this._shaking){return ;}
     if(this._shakeTimer <= 0){
-      this._shaking = false;
       this.x = 0; this.y = 0;
+      this._shaking = false;
+      return ;
     }
     let dis = 2 * this._shakeLevel;
     let dx = randInt(0, 2 * dis) - dis;

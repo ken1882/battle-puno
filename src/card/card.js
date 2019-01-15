@@ -50,10 +50,10 @@ class Card {
   isEqual(card, compareId=false) {
     if (compareId) {
       return (this.numID === card.numID &&
-              this.color === card.color &&
+              (card.color === -1 || this.color === card.color) &&
               this.value === card.value);
     }
-    return this.color === card.color && this.value === card.value;
+    return (card.color === -1 || this.color === card.color) && this.value === card.value;
   }
 
   isMatched(color, value) {
