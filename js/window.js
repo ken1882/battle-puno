@@ -754,7 +754,7 @@ class Window_Menu extends Window_Selectable{
     Sound.playOK();
     let okHandler = function(){
       Sound.playOK();
-      window.open(Vocab["RulesLink"], "_blank");
+      window.open(document.URL + '/' + Vocab["RulesLink"] + '?language=' + Vocab.Language, "_blank");
       SceneManager.scene.closeOverlay();
     }
     let noHandler = function(){Sound.playCancel(); SceneManager.scene.closeOverlay();}

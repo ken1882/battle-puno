@@ -8,11 +8,11 @@ class Card {
         case Value.REVERSE:
         case Value.DRAW_TWO:
           return 20;
-        case Value.TRADE:
-        case Value.DISCARD_ALL:
-          return 30;
         case Value.WILD:
         case Value.WILD_CHAOS:
+          return 30;
+        case Value.TRADE:
+        case Value.DISCARD_ALL:
         case Value.WILD_HIT_ALL:
         case Value.WILD_DRAW_FOUR:
           return 50;

@@ -1,0 +1,36 @@
+@font-face{
+  font-family: 'CelestiaMediumRedux';
+  src: url('fonts/CelestiaMediumRedux.ttf') format('truetype');
+}
+
+@font-face{
+  font-family: 'NotoSansCJKtc-Regular';
+  src: url('fonts/NotoSansCJKtc-Regular.otf') format('opentype');
+}
+
+
+body{
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-attachment: fixed;
+  
+  font-family: 'Arial';
+  color: white;
+  font-size: 150%;
+  /* Prevent selection */
+  -webkit-user-select: none; /* webkit (safari, chrome) browsers */
+  -moz-user-select: none; /* mozilla browsers */
+  -khtml-user-select: none; /* webkit (konqueror) browsers */
+  -ms-user-select: none; /* IE10+ */
+}
+
+
+a{
+  text-decoration: underline;
+  color: dodgerblue;
+}
+
+img{
+  max-width: 50%;
+  max-height: 50%;
+}
