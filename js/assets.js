@@ -70,6 +70,7 @@ $.getJSON('js/json/image.json', function(data){
     Graphics[prop] = data[prop];
     Graphics.Images.push(data[prop]);
   }
+  Graphics.jsonReady = true;
 })
 
 // Window skins
@@ -85,6 +86,7 @@ $.getJSON('js/json/audio.json', function(data){
     Sound[prop] = data[prop];
     Sound.resources.push(data[prop]);
   }
+  Sound.jsonReady = true;
 })
 
 Sound.fadeDurationBGM = 2000;

@@ -176,11 +176,16 @@ class PunoGame {
 
   isGameOver() {
     if (this.gameMode === Mode.TRADITIONAL)  return true;
-    if (this.gameMode === Mode.DEATH_MATCH)  return true;
+    if (this.gameMode === Mode.DEATH_MATCH && this.players[0].knockOut){
+      return true;
+    }
     return Math.max(...this.scoreBoard()) >= this.scoreGoal;
   }
 
   isRoundOver() {
+    if(this.gameMode === Mode.DEATH_MATCH && this.players[0].knockOut){
+      return true;
+    }
     for (let i in this.players) {
       if (this.players[i].isGoingOut()) {
         return true;
@@ -254,8 +259,7 @@ class PunoGame {
     for (let i in this.players) {
       if (this.gameMode === Mode.TRADITIONAL) {
         this.players[i].score += this.players[i].cardsPointSum();
-      } else if (this.gameMode === Mode.BATTLE_PUNO ||
-                 this.gameMode === Mode.DEATH_MATCH) {
+      } else if (this.gameMode === Mode.BATTLE_PUNO) {
         this.players[i].hp -= this.players[i].cardsPointSum();
         this.players[i].hp = Math.max(0, this.players[i].hp);
         this.players[i].score += this.players[i].hp;
@@ -453,8 +457,7 @@ class PunoGame {
   processPlayerDamage(player_id, value, dmg_types) {
     value = (value || 0);
     debug_log("RECEIVE DAMAGE");
-    debug_log("hp", this.players[player_id].hp,
-              "=>", this.players[player_id].hp - value);
+    debug_log("HP:", this.players[player_id].hp + " => " + this.players[player_id].hp - value);
     this.players[player_id].hp = Math.max(this.players[player_id].hp - value, 0);
     this.players[player_id].knockOut = this.players[player_id].hp <= 0;
     if(this.players[player_id].knockOut){this.players[player_id].damageStack = 0;}
@@ -519,14 +522,15 @@ class PunoGame {
     if (GameManager.isSceneBusy() || this.flagAIThinking)  return;
     if (this.isRoundOver())  return this.processResult();
     if (GameManager.isInTurn()) {
+      if (this.gameMode === Mode.DEATH_MATCH) {
+        this.replenish();
+      }
       this.endTurn();
     } else {
       console.log(this.currentPlayer());
+      this.processDeathMatchDamage();
       if (!this.currentPlayer().knockOut) {
         this.processTurnAction();
-        if (this.gameMode === Mode.DEATH_MATCH) {
-          this.replenish();
-        }
       } else {
         debug_log(this.currentPlayer().name, "knocked out - SKIP");
         this.endTurn();
@@ -534,14 +538,18 @@ class PunoGame {
     }
   }
 
-  processTurnAction() {
+  processDeathMatchDamage(){
+    if(this.currentPlayer().knockOut){return this.currentPlayer().damageStack = 0;}
     if(this.gameMode === Mode.DEATH_MATCH){
       if(this.currentPlayer().hand.length > this.maxHandThreshold){
         this.processPlayerExtraDamage(this.currentPlayerIndex);
       }
       else{this.currentPlayer().damageStack = 0;}
     }
+  }
 
+  processTurnAction() {
+    
     if (this.currentPlayer().ai) {
       GameManager.onNPCTurnBegin(this.currentPlayerIndex);
     } else {

@@ -436,7 +436,7 @@ class Scene_Game extends Scene_Base{
     return v + ' / ' + GameManager.initHP + '; ' + Vocab.Score + ': ' + this.players[i].score;
   }
   /*-------------------------------------------------------------------------*/
-  arrangeHandCards(index){
+  arrangeHandCards(index, show=false){
     let hcs  = this.handCanvas[index];
     let side = index % 4;
     let cardSize  = this.players[index].hand.length;
@@ -447,6 +447,7 @@ class Scene_Game extends Scene_Base{
     let stackPortion = parseFloat(((canvasWidth - cardWidth) / (cardSize * cardWidth)).toFixed(3));
     let totalWidth   = cardWidth + (cardWidth * stackPortion * (cardSize - 1));
     let cur_player   = this.players[index];
+    if(cur_player.knockOut){show = true;}
     let base_pos     = (canvasWidth - totalWidth) / 2;
     let deg = index * (360 / GameManager.playerNumber);
     console.log("Arrange " + index);
@@ -474,15 +475,18 @@ class Scene_Game extends Scene_Base{
       }
       
       if(!card.sprite){
-        this.assignCardSprite(card, 0, 0, true);
+        let sx = hcs.x + hcs.width / 2;
+        let sy = hcs.y + hcs.height / 2;
+        this.assignCardSprite(card, sx, sy, true);
       }
 
-      if(index == 0 || DataManager.debugOption["showHand"]){
+      if(index == 0 || show || DataManager.debugOption["showHand"]){
         card.sprite.texture = Graphics.loadTexture(this.getCardImage(card));
       }
       else{
         card.sprite.texture = Graphics.loadTexture(Graphics.CardBack);
       }
+
       if(card.sprite.parent && card.sprite.parent != hcs){
         card.sprite.parent.removeChild(card.sprite);
         hcs.addChild(card.sprite);
@@ -492,7 +496,11 @@ class Scene_Game extends Scene_Base{
       card.sprite.rotateDegree(deg);
       
       card.sprite.moveto(dx, dy, function(){
-        if(index == 0){this.attachCardInfo(card);}
+        if(index == 0){
+          EventManager.setTimeout(()=>{
+            this.attachCardInfo(card);
+          }, 5)
+        }
       }.bind(this));
       card.lastZ = card.sprite.z; card.lastY = dy;
     }
@@ -554,6 +562,9 @@ class Scene_Game extends Scene_Base{
     }
     if(hit){
       this.displayHitEffect(pid);
+    }
+    if(this.players[pid].knockOut){
+      this.arrangeHandCards(pid, true)
     }
   }
   /*-------------------------------------------------------------------------*/
@@ -636,7 +647,9 @@ class Scene_Game extends Scene_Base{
     if(sprite.parent){
       sprite.parent.removeChild(sprite);
     }
-    sprite.hide();
+    let sx = this.deckSprite.x + this.deckSprite.width / 2;
+    let sy = this.deckSprite.y + this.deckSprite.height / 2;
+    sprite.setPOS(sx, sy).hide();
   }
   /*-------------------------------------------------------------------------*/
   createHintWindow(){
@@ -778,14 +791,19 @@ class Scene_Game extends Scene_Base{
         this.setPenaltyInfo(i, status);
         continue;
       }
+
       if(pcard.Value == Value.SKIP){
-        return this.setPenaltyInfo(i, Vocab.SKIP);
+        this.setPenaltyInfo(i, Vocab.SKIP);
       }
       else if(this.game.penaltyPool > 0){
-        return this.setPenaltyInfo(i, "+" + this.game.penaltyPool);
+        this.setPenaltyInfo(i, "+" + this.game.penaltyPool);
       }
-
-      return this.setPenaltyInfo(i, Vocab.Normal);
+      else if(this.players[i].damageStack > 0){
+        this.setPenaltyInfo(i, "*" + this.players[i].damageStack)
+      }
+      else{
+        this.setPenaltyInfo(i, Vocab.Normal);
+      }
     }
   }
   /*-------------------------------------------------------------------------*/
@@ -1057,22 +1075,23 @@ class Scene_Game extends Scene_Base{
       sprite.setPOS(sx, sy).rotateDegree(deg);
     }
     Sound.playCardDraw();
-    sprite.setZ(0x30 + ord);
+    sprite.setZ(0x50 + ord);
     sprite.instance = card;
     if(show){
       sprite.texture = Graphics.loadTexture(this.getCardImage(card));
-      sprite.setZ(0x50 + ord);
+      sprite.setZ(0x60 + ord);
     }
 
     debug_log(`${pid} Draw`);
     this.animationCount += 1;
     sprite.moveto(dx, dy, function(){
       if(pid == 0){
-        this.attachCardInfo(card);
         sprite.texture = Graphics.loadTexture(this.getCardImage(card));
       }
       if(show){EventManager.setTimeout(this.sendCardToDeck.bind(this, pid, card), 150);}
-      else if(ar){EventManager.setTimeout(()=>{this.arrangeHandCards(pid)}, 30)}
+      else if(ar){
+        EventManager.setTimeout(()=>{this.arrangeHandCards(pid);}, 40)
+      }
     }.bind(this));
 
     this.sortChildren();

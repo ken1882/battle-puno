@@ -29,7 +29,7 @@
   "GameModeDeathMatch": "死鬥",
   "HelpTraditional": "傳統UNO模式, 目標是搶先將手牌打光",
   "HelpBattlePuno": "Battle PUNO! 當任意玩家奪得指定分數後, 遊戲將會結束",
-  "HelpDeathMatch": "遊戲將無限進行到玩者HP歸零為止(玩到掛), 你能夠拿到幾分呢?",
+  "HelpDeathMatch": "有兩種結束遊戲的方式: 一是成為最後生存者, 二是死亡",
   "GameOptions": "遊戲選項",
   "Back": "返回",
   "InitHandCard": "起始手牌數",

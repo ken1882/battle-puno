@@ -64,7 +64,7 @@ function initializeApplication(){
  */
 function start(){
   // wait until initial data is ready
-  if(!DataManager.isReady()){
+  if(!DataManager.isReady() || !Graphics.jsonReady || !Sound.jsonReady){
     return setTimeout(start, 500);
   }
   debug_log("start")

@@ -29,7 +29,7 @@
   "GameModeDeathMatch": "Death Match",
   "HelpTraditional": "Traditional UNO Game, the first one plays all cards in hand wins.",
   "HelpBattlePuno": "Battle PUNO! The one reaches the certain score wins.",
-  "HelpDeathMatch": "The game will continue endlessly until player is knocked out. How many scores can you receive?",
+  "HelpDeathMatch": "There're two ways to end the game: one is to become the last stand, and another is die.",
   "GameOptions": "Game Options",
   "Back": "Back",
   "InitHandCard": "Initial hand cards",
