@@ -1,10 +1,28 @@
 Music:
-・Title Theme - Rainbow Power Showdown by KingSpartaX37(aka DeltaBrony)
+・Title Theme - Rainbow Power Showdown, by KingSpartaX37(aka DeltaBrony)
+・Battle Music 1 - Find your pet (instrumental), by Daniel Ingram, Steffan endrews
+・Battle Music 2 - Break the Shadows, by Baschfire (Fall of Crystal Empire OST)
+・Battle Music 3 - Luna's Future (Arranged Instrumental), by Daniel Ingram, Frozen Night
+・Defeat Theme - Final Fantasy VII - Continue, by 植松伸夫
+・Victory Theme 1 - Eternal Sonata - Well done, by 櫻庭統 (信賴鈴音～蕭邦之夢～OST)
+・Victory Theme 2 - MLP:FIM Theme (Instrumental), by Daniel Ingram
+・Victory Theme 3 - Age of Empire 2 - Wonder Victory, owned by Ensemble Studios
 
 Background:
-https://www.deviantart.com/hunternif/art/Canterlot-Throne-Room-Front-View-448277128
+・Game Over:https://www.deviantart.com/hunternif/art/Canterlot-Throne-Room-Front-View-448277128
+・In game (from MLP Wiki):
+ - http://mlp.wikia.com/wiki/File:Overhead_view_of_Canterlot_throne_room_MLPTM.png
+ - http://mlp.wikia.com/wiki/File:Overhead_shot_of_Inky_Rose_leaving_the_boutique_S7E9.png
+ - http://mlp.wikia.com/wiki/File:Mane_6_picnic_blanket_overhead_view_S2E03.png
 
+Sound Effects:
+・Cursor SE from Kingdom Hearts and Age of Empires II
+・Card SE by Kenney
+・Other SE from RPG Maker VX Ace
+ 
 My Littple Puno:
+・Site: https://www.pixiv.net/member_illust.php?mode=medium&illust_id=65650829
+・The credits page in Dev.Manual: https://goo.gl/uBTkUa
 ・Publisher:『My Little PUNO』制作委員会
 ・Leading Director：なべぶた
  - Artists:
