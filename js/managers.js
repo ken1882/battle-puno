@@ -78,7 +78,7 @@ class SceneManager{
   }
   /*-------------------------------------------------------------------------*/
   static unfocusGame(){
-    if(!SceneManager._focused){return ;}
+    if(!SceneManager._focused || isMobile){return ;}
     debug_log("Unfocus Game")
     // EnablePageScroll();
     SceneManager._focused = false;

@@ -756,6 +756,7 @@ class Window_Menu extends Window_Selectable{
       Sound.playOK();
       window.open(document.URL + '/' + Vocab["RulesLink"] + '?language=' + Vocab.Language, "_blank");
       SceneManager.scene.closeOverlay();
+      if(!SceneManager._alwaysFocus){SceneManager.unfocusGame();}
     }
     let noHandler = function(){Sound.playCancel(); SceneManager.scene.closeOverlay();}
     let win = new Window_Confirm(0, 0, 300, 150, Vocab["RulesRedirect"]);
@@ -776,6 +777,7 @@ class Window_Menu extends Window_Selectable{
       Sound.playOK();
       window.open(Vocab["CreditsLink"], "_blank");
       SceneManager.scene.closeOverlay();
+      if(!SceneManager._alwaysFocus){SceneManager.unfocusGame();}
     }
     let noHandler = function(){
       Sound.playCancel();
