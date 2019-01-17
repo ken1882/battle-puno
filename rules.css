@@ -17,11 +17,6 @@ body{
   font-family: 'Arial';
   color: white;
   font-size: 150%;
-  /* Prevent selection */
-  -webkit-user-select: none; /* webkit (safari, chrome) browsers */
-  -moz-user-select: none; /* mozilla browsers */
-  -khtml-user-select: none; /* webkit (konqueror) browsers */
-  -ms-user-select: none; /* IE10+ */
 }
 
 
