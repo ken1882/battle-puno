@@ -360,10 +360,8 @@ class PunoGame {
       }
       ext = this.setNextColorAndValue(card, ext);
 
-      if(this.gameMode === Mode.DEATH_MATCH){
-        if(card.value === Value.DRAW_TWO){this.penaltyPool += 2;}
-        if(card.value === Value.WILD_DRAW_FOUR){this.penaltyPool += 4;}
-      }
+      if(card.value === Value.DRAW_TWO){this.penaltyPool += 2;}
+      else if(card.value === Value.WILD_DRAW_FOUR){this.penaltyPool += 4;}
 
       if (this.penaltyCard === undefined) {
         if (card.penalty) {
@@ -527,7 +525,7 @@ class PunoGame {
       }
       this.endTurn();
     } else {
-      console.log(this.currentPlayer());
+      debug_log(this.currentPlayer());
       this.processDeathMatchDamage();
       if (!this.currentPlayer().knockOut) {
         this.processTurnAction();

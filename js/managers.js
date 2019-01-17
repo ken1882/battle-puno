@@ -656,7 +656,7 @@ class GameManager{
   }
   /*-------------------------------------------------------------------------*/
   static forcePlayCard(pid, card){
-    console.log("Force play: " + pid + card);
+    debug_log("Force play: " + pid + card);
     let cardIndex = this.game.players[pid].hand.indexOf(card);
     this.game.discardPile.push(card);
     this.game.players[pid].discard(cardIndex);

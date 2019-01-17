@@ -107,7 +107,7 @@ class Player {
   }
 
   uno() {
-    console.log(this.name, "CALL UNO!!!");
+    debug_log(this.name, "CALL UNO!!!");
   }
 
   cardsPointSum() {

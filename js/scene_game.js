@@ -450,7 +450,7 @@ class Scene_Game extends Scene_Base{
     if(cur_player.knockOut){show = true;}
     let base_pos     = (canvasWidth - totalWidth) / 2;
     let deg = index * (360 / GameManager.playerNumber);
-    console.log("Arrange " + index);
+    debug_log("Arrange " + index);
     for(let i in cur_player.hand){
       let dx = 0, dy = 0;
       let card = cur_player.hand[i];
@@ -537,7 +537,7 @@ class Scene_Game extends Scene_Base{
   /*-------------------------------------------------------------------------*/
   onHPChange(pid, types = []){
     this.updateHPBar(pid);
-    console.log("On HP Change: ", pid, types);
+    debug_log("On HP Change: ", pid, types);
     let hit = false;
     for(let i in types){
       if(!types[i]){continue;}
@@ -615,7 +615,7 @@ class Scene_Game extends Scene_Base{
     let sy = this.discardPile.y + this.discardPile.height / 2;
     let cx = (this.discardPile.width) / 2;
     let cy = (this.discardPile.height) / 2;
-    console.log("Discard ", sx, sy, card.sprite.x, card.sprite.y);
+    debug_log("Discard ", sx, sy, card.sprite.x, card.sprite.y);
     this.animationCount += 1;
     card.sprite.moveto(sx, sy, function(){
       this.playColorEffect(card.color);
@@ -1015,7 +1015,7 @@ class Scene_Game extends Scene_Base{
     Sound.playCardPlace();
     card.sprite.setZ(0x20).handIndex = -1;
     card.sprite.playerIndex = -1;
-    console.log("Card play: " + pid, card);
+    debug_log("Card play: " + pid, card);
     this.addDiscardCard(card, pid, ext);
   }
   /*-------------------------------------------------------------------------*/
@@ -1327,6 +1327,7 @@ class Scene_Game extends Scene_Base{
     let sx = this.nameCanvas[pid].x - Graphics.spacing;
     let sy = this.nameCanvas[pid].y - Graphics.spacing;
     let sw = this.nameCanvas[pid].textSprite.width + Graphics.padding + Graphics.spacing;
+    if(Vocab.Language == 'zh_tw'){sw += Graphics.spacing * 2}
     let sh = Graphics.lineHeight;
     this.dummy.resize(sw, sh);
     this.cursor.setPOS(sx, sy).show();
