@@ -294,7 +294,8 @@ class DataManager{
   }
   /*-------------------------------------------------------------------------*/
   static loadLanguageSetting(){
-    let lan = this.language;
+    let lan_param = new URL(document.URL).searchParams.get("language");
+    let lan = lan_param ? lan_param : this.language;
     if(!lan){lan = this.DefaultLanguage;}
     this.changeSetting(this.kLanguage, lan);
   }
