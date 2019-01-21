@@ -1,3 +1,5 @@
+# The game is temproray down due to negotiating with My Little Puno Committee for all of the artist's permission the show the artwork in thie game. After all permission granted the game will be recover immediately.
+
 # battle-puno
 Battle Puno (https://battle-puno.github.io/battle-puno/)
 
