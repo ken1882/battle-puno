@@ -56,7 +56,7 @@ function initializeApplication(){
   RegisterLeaveEvent();
   Vocab.initialize();
   // call start
-  setTimeout(start, 2000);
+  // setTimeout(start, 2000);
 }
 
 /**
