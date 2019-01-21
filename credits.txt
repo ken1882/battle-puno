@@ -19,12 +19,13 @@ Sound Effects:
 ・Cursor SE from Kingdom Hearts and Age of Empires II
 ・Card SE by Kenney
 ・Other SE from RPG Maker VX Ace
- 
+
 My Littple Puno:
 ・Site: https://www.pixiv.net/member_illust.php?mode=medium&illust_id=65650829
 ・The credits page in Dev.Manual: https://goo.gl/uBTkUa
 ・Publisher:『My Little PUNO』制作委員会
 ・Leading Director：なべぶた
+・French translation：Max le Fou (https://gitlab.com/maxlefou)
  - Artists:
 ・きしべ
 ・屑森みなお（twitter/Zumomomomomomo / http://kuzumori.tumblr.com/）

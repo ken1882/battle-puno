@@ -11,6 +11,7 @@
       if(currentLanguage.length == 0){currentLanguage = 'en_us';}
       let txt = 'Language';
       if(currentLanguage == 'zh_tw'){txt = "語言"}
+      if(currentLanguage == 'fr_fr'){txt = "Langage"}
       $('#language').html(txt + ':');
       let id = '#' + currentLanguage;
       $(id).attr('selected', "selected");
@@ -57,15 +58,16 @@
     <select id='languageOptions'>
       <option id="en_us">English(US)</option>
       <option id="zh_tw">繁體中文</option>
+      <option id="fr_fr">Français</option>
     </select>
     <input type="button" value='GO' onclick="changeLanguage()">
   </div>
   <div id='webinfo'>
-    <a href="https://github.com/battle-puno/battle-puno" target="_blank">   
+    <a href="https://github.com/battle-puno/battle-puno" target="_blank">
       <img src="https://github.githubassets.com/favicon.ico" width="24px" height="24px">
       Github
-    </a> 
-    <a href="https://goo.gl/bP5PR1" target="_blank">   
+    </a>
+    <a href="https://goo.gl/bP5PR1" target="_blank">
       <img src="https://ssl.gstatic.com/docs/presentations/images/favicon4.ico">
       Dev. Project Manual Slides
     </a>
