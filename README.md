@@ -6,6 +6,7 @@ Battle Puno (https://battle-puno.github.io/battle-puno/)
 
 English: https://battle-puno.github.io/battle-puno/rules.html?language=en_us<br>
 繁體中文: https://battle-puno.github.io/battle-puno/rules.html?language=zh_tw<br>
+Français: https://battle-puno.github.io/battle-puno/rules.html?language=fr_fr<br>
 
 
 ## Credits:
