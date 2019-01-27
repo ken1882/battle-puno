@@ -38,11 +38,6 @@ function setupLanguage(){
   document.getElementById("ui_content").innerHTML = Vocab.UIContent;
   document.getElementById("cp").innerHTML = Vocab.CP;
   document.getElementById("cp_content").innerHTML = Vocab.CPContent;
-
-  // This should be removed after negotiation done
-  $("img").each(function(){
-    $(this).attr("src", "dummy.img")
-  })
 }
 
 function onLanguageError(){

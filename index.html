@@ -15,22 +15,13 @@
       $('#language').html(txt + ':');
       let id = '#' + currentLanguage;
       $(id).attr('selected', "selected");
-      
-      loadDownInfo(currentLanguage);
+
     }
 
     function changeLanguage(){
       var e = document.getElementById('languageOptions');
       DataManager.changeSetting(DataManager.kLanguage, e.options[e.selectedIndex].id);
       location=location;
-    }
-    
-    function loadDownInfo(currentLanguage){
-    	let txt = "We're currently negotiating with My Little Puno Committee with some copyright issues, in respect to the artists the site will be down for a while. Please stand by."
-    	if(currentLanguage == 'zh_tw'){
-    		txt = "目前因為與My Little Puno製作委員會有圖片引用上的合法性爭議, 以示對繪師的尊重所以本網站將短暫停止服務."
-    	}
-    	$('#downinfo').html(txt);
     }
 
     window.addEventListener("load", processPageHTML, false);
