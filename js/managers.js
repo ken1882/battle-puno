@@ -305,8 +305,18 @@ class DataManager{
     if(validArgCount.apply(window, this.volume) != 3){
       this.changeSetting(this.kVolume, this.DefaultVolume);
     }
-    else if(validNumericCount.apply(this, [check, this.volume].flat()) != 3){
-      this.changeSetting(this.kVolume, this.DefaultVolume);
+    else{
+      let vn = 0;
+      try{
+        vn = validNumericCount.apply(this, [check, this.volume].flat());
+      }
+      catch(e){
+        reportError(e);
+        return window.alert(Vocab["BrowserUnsupport"]);
+      }
+      if(vn != 3){
+        this.changeSetting(this.kVolume, this.DefaultVolume);
+      }
     }
   }
   /*-------------------------------------------------------------------------*/

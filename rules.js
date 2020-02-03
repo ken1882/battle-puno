@@ -2,7 +2,27 @@ class Vocab{}
 DebugMode = true;
 
 function start(){
-  loadLanguage(new URL(document.URL).searchParams.get("language"));
+  processSecurityStage();
+  startProcessing();
+}
+
+function processSecurityStage(){
+  //window.alert("本專案目前只限國立臺灣海洋大學資工系的學生參考, 請回答以下問題以確認身分:\n");
+  //window.answer = window.prompt("馬哥哥和馬叔叔的名字分別是? (中間用一個空格分開):");
+  window.answer = "馬尚彬 馬永昌";
+  window.answer = CryptoJS.SHA256(window.answer).toString();
+  startProcessing();
+}
+
+function startProcessing(){
+  if(checkSecurityOk()){
+    let lan = new URL(document.URL).searchParams.get("language");
+    lan = lan || JSON.parse(window.localStorage.getItem("language"));
+    loadLanguage(lan);
+  }
+  else{
+    window.alert("叭叭! 答錯了!");
+  }
 }
 
 function loadLanguage(lan){

@@ -1900,6 +1900,17 @@ class Bitmap{
     Graphics.removeBitmap(this);
   }
   /*-------------------------------------------------------------------------*/
+  encrypt(){
+    return encStr(canvasArrToString(this.imageData.data));
+  }
+  /*-------------------------------------------------------------------------*/
+  loadEncryptedImage(ss){
+    var imgd = this.context.createImageData(this._width, this._height);
+    imgd.data.set(canvasStringToArr(decStr(ss)));
+    this._context.putImageData(imgd, 0, 0);
+  }
+  /*-------------------------------------------------------------------------*/
+  get imageData(){return this._context.getImageData(0, 0, this._width, this._height);}
   get canvas(){return this._canvas;}
   get context(){return this._context;}
   /*-------------------------------------------------------------------------*/

@@ -54,9 +54,20 @@ function initializeApplication(){
   // DisablePageScroll();
   // Confirm leave before page unload
   RegisterLeaveEvent();
-  Vocab.initialize();
+  Vocab.initialize();  
+}
+
+function startPorcessing(){
   // call start
-  setTimeout(start, 2000);
+  if(checkSecurityOk()){
+    window.getGameImages();
+    // window.alert("認證成功! 遊戲將在稍後開始")
+    setTimeout(start, 2000);
+    $('#downinfo').html('');
+  }
+  else{
+    window.alert("認證失敗!")
+  }
 }
 
 /**
@@ -77,4 +88,14 @@ function start(){
   }
 }
 
+function processSecurityStage(){
+  // window.alert("本專案目前只限國立臺灣海洋大學資工系的學生參考, 請回答以下問題以確認身分:\n");
+  // window.answer = window.prompt("馬哥哥和馬叔叔的名字分別是? (中間用一個空格分開):");
+  window.answer = "馬尚彬 馬永昌";
+  window.answerRaw = window.answer;
+  window.answer = CryptoJS.SHA256(window.answer).toString();
+  startPorcessing();
+}
+
 setTimeout(initializeApplication, 100);
+

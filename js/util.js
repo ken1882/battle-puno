@@ -267,3 +267,23 @@ function gcd(a, b){
   }
   return (b, a % b);
 }
+/**----------------------------------------------------------------------------
+ * > Converts Canvas Array to String
+ */
+function canvasArrToString(pix) {
+  var s = "";
+  for(let i=0;i<pix.length;++i){
+    s += String.fromCharCode(pix[i])
+  }
+  return s;
+}
+/**----------------------------------------------------------------------------
+ * > Converts Canvas String to Array
+ */
+function canvasStringToArr(ss) {
+  var arr=[];
+  for (var i=0;i<ss.length;++i) {
+    arr.push(ss[i].charCodeAt());
+  }
+  return arr;
+}

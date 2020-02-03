@@ -62,16 +62,24 @@ Graphics.AnimRowCount       = 5
 // Loading image, will be loaded first and won't loaded in meta-preload
 Graphics.LoadImage          = "assets/CrystalHeart.png",
 
-// Get collection of all images for PIXI preloading
-$.getJSON('js/json/image.json', function(data){
-  Graphics.Images = data["Images"];
-  for(prop in data){
-    if(prop == "Images" || prop == "_comment"){continue;}
-    Graphics[prop] = data[prop];
-    Graphics.Images.push(data[prop]);
-  }
-  Graphics.jsonReady = true;
-})
+window.getGameImages = function(){
+  // Get collection of all images for PIXI preloading
+  $.getJSON('js/json/image.json', function(data){
+    Graphics.Images = data["Images"];
+    let encFlag = false;
+    for(prop in data){
+      if(prop == "Images" || prop == "_comment"){continue;}
+      if(prop == "_encrypted"){
+        encFlag = true; continue;
+      }
+      let content = data[prop];
+      if(encFlag){content = decStr(content);}
+      Graphics[prop] = content;
+      Graphics.Images.push(content);
+    }
+    Graphics.jsonReady = true;
+  })
+}
 
 // Window skins
 Graphics.WindowSkinSrc = [

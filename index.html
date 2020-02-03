@@ -15,20 +15,43 @@
       $('#language').html(txt + ':');
       let id = '#' + currentLanguage;
       $(id).attr('selected', "selected");
-
+      // loadDownInfo(currentLanguage);
+      window.answer = 'nil';
+      processSecurityStage();
     }
 
     function changeLanguage(){
       var e = document.getElementById('languageOptions');
       DataManager.changeSetting(DataManager.kLanguage, e.options[e.selectedIndex].id);
-      location=location;
+      location.reload();
     }
+
+    function loadDownInfo(currentLanguage){
+      let txt = "Due to the rejection of public use from My Little Puno Committee.<br>" +
+      "----------------Apology Notice---------------<br>" +
+      "The browser game, 'battle-puno' has used the content from 'My Little PUNO' that was taken without asking permission from the creators due to the original characteristic of this project, which is a school project.<br>" +
+      "I deeply apologize for using the content that belonged to the 'My Little PUNO' Production Committee and publish it without asking them.<br>" +
+      "I'd like to apologize for causing serious trouble to the people of 'My Little PUNO' Production Committee and to the artists who dedicated there time to create the artwork.<br>" +
+      "The artwork has already been deleted from the GitHub repo. We will never re-upload again, nor the one has been cloned or downloaded it.<br>" +
+      "For information about the 'My Little PUNO' Production Committee please look at their official twitter page:<br>" + 
+      "<a href='https://twitter.com/mylittlepuno'>https://twitter.com/mylittlepuno</a> <br>" +
+      "To see the homepage of the artists that created the artwork for PUNO, please look at the link below:<br>" +
+      "<a href='https://goo.gl/uBTkUa'>https://goo.gl/uBTkUa</a><br>" +
+      "Once again, I deeply apologize for causing this issue. <br>" +
+      "<br><br>" +
+      "如果你是<b>國立臺灣海洋大學資工系</b>的學生, 請<a href='#' onclick='processSecurityStage()'>點此驗證身分</a>並查看此作品內容</b>";
+      
+    	$('#downinfo').html(txt);
+    }
+
 
     window.addEventListener("load", processPageHTML, false);
   </script>
 </head>
 <body>
-	<script type="text/javascript" src="js/lib/jquery-3.3.1.min.js"></script>
+  <script type="text/javascript" src="js/lib/jquery-3.3.1.min.js"></script>
+  <script type="text/javascript" src="js/lib/crypto-js/crypto-js.js"></script>
+  <script type="text/javascript" src="js/crypto.js"></script>
   <script type="text/javascript" src="js/lib/howler.js"></script>
   <script type="text/javascript" src="js/lib/pixi.js"></script>
   <script type="text/javascript" src="js/lib/pixi_filters.min.js"></script>
@@ -66,7 +89,7 @@
   </div>
   <div id="downinfo" style="top:100px"></div>
   <div id='webinfo' style="top: 30px">
-    <a href="https://github.com/battle-puno/battle-puno" target="_blank">
+    <a href="https://github.com/ken1882/battle-puno" target="_blank">
       <img src="https://github.githubassets.com/favicon.ico" width="24px" height="24px">
       Github
     </a>
@@ -75,5 +98,6 @@
       Dev. Project Manual Slides
     </a>
   </div>
+  <div id="ext"></div>
 </body>
 </html>
